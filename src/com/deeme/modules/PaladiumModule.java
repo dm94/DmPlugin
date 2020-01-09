@@ -8,6 +8,7 @@ import com.deeme.types.gui.AdvertisingMessage;
 import com.deeme.types.gui.ShipSupplier;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.types.Editor;
+import com.github.manolo8.darkbot.config.types.Num;
 import com.github.manolo8.darkbot.config.types.Option;
 import com.github.manolo8.darkbot.config.types.Options;
 import com.github.manolo8.darkbot.core.entities.BasePoint;
@@ -162,7 +163,6 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
         @Options(ShipSupplier.class)
         public String hangarBase = "";
 
-
         @Option(value = "Defense Mode", description = "Configuration for the defense of enemies")
         public Defense defenseModeDefense = new Defense();
 
@@ -172,6 +172,7 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
     public String instructions() {
         return "Palladium Hangar Module: \n"+
                 "It is necessary that a portal allows refresh \n" +
+                "Use in 5-2 a ship with less cargo than 5-3 \n" +
                 "Select palladium hangar and 5-2 hangar \n" +
                 "If the hangar list does not appear, click on \"Update HangarList\", close the config windows and it will be updated within minutes.";
     }
@@ -205,7 +206,6 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
                 if (hangarChange.hangarActive.equals(configPa.hangarBase)) {
                     this.currentStatus = State.HANGAR_AND_MAP_BASE;
                     sell();
-                    return;
                 } else if (super.canRefresh()) {
                     this.currentStatus = State.DEPOSIT_FULL_SWITCHING_HANGAR;
                     hangarToChange = configPa.hangarBase;

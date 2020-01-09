@@ -14,7 +14,10 @@ public class Defense {
     public boolean respondAttacks = true;
 
     @Option(value = "Help Clan Members", description = "Help clan members defend themselves")
-    public boolean helpAllies = false;
+    public boolean helpAllies = true;
+
+    @Option(value = "Help everyone", description = "Help all those who are not enemies")
+    public boolean helpEveryone = true;
 
     @Option(value = "Movement Mode", description = "Choose how to move in defense mode")
     @Editor(JListField.class)

@@ -4,16 +4,20 @@ import com.deeme.types.config.ExtraKeyConditions;
 import com.deeme.types.config.Defense;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.Config;
+import com.github.manolo8.darkbot.config.SafetyInfo;
 import com.github.manolo8.darkbot.core.entities.Ship;
 import com.github.manolo8.darkbot.core.manager.HeroManager;
 import com.github.manolo8.darkbot.core.utils.Drive;
 import com.github.manolo8.darkbot.core.utils.Location;
 import com.github.manolo8.darkbot.modules.utils.SafetyFinder;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import static com.github.manolo8.darkbot.Main.API;
+import static com.github.manolo8.darkbot.core.manager.HeroManager.instance;
 
 public class ShipAttacker {
     protected Config config;
@@ -47,7 +51,6 @@ public class ShipAttacker {
 
     public void tick() {
         if (target == null) return;
-
         setConfigToUse();
 
         if (!main.mapManager.isTarget(target)) {
@@ -180,7 +183,7 @@ public class ShipAttacker {
 
     protected void mixerRSB() {
         if (defense.RSB != null) {
-            if (lastRsbUse < System.currentTimeMillis() - 3000 && currentAmmo != defense.RSB) {
+            if (lastRsbUse < System.currentTimeMillis() - 3500 && currentAmmo != defense.RSB) {
                 changeAmmo(defense.RSB);
                 lastRsbUse = System.currentTimeMillis();
                 return;
@@ -197,13 +200,17 @@ public class ShipAttacker {
         target = getAttacker(this.hero);
 
         if (target == null && defense.helpAllies) {
-            List<Ship> ships = main.mapManager.entities.ships;
+            List<Ship> ships = main.mapManager.entities.ships.stream()
+                    .filter(s -> (s.playerInfo.clanDiplomacy == 1) ||
+                            (defense.helpEveryone || !s.playerInfo.isEnemy()))
+                    .collect(Collectors.toList());
+
+            if (ships.isEmpty()) return false;
+
             for (Ship ship : ships) {
-                if (ship.playerInfo.clanDiplomacy == 1) {
-                    target = getAttacker(ship);
-                    if (target != null) {
-                        return target != null;
-                    }
+                target = getAttacker(ship);
+                if (target != null) {
+                    return target != null;
                 }
             }
         }
@@ -219,14 +226,16 @@ public class ShipAttacker {
             return target;
         }
 
-        List<Ship> ships = main.mapManager.entities.ships;
-        for (Ship ship :ships) {
-            if (ship.playerInfo.isEnemy() && ship.isAttacking(assaulted) && !isPet(ship.playerInfo.username)) {
-                return ship;
-            }
-        }
+        List<Ship> ships = main.mapManager.entities.ships.stream()
+                .filter(s -> s.playerInfo.isEnemy())
+                .filter(s -> s.isAttacking(assaulted))
+                .filter(s -> !isPet(s.playerInfo.username))
+                .sorted(Comparator.comparingDouble(s -> s.locationInfo.distance(this.hero)))
+                .collect(Collectors.toList());
 
-        return null;
+        if (ships.isEmpty()) return null;
+
+        return ships.get(0);
     }
 
     private boolean isPet(String name) {

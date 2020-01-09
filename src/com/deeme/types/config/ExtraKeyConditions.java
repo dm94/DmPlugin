@@ -20,4 +20,11 @@ public class ExtraKeyConditions {
 
     @Option(value = "Enemy Health", description ="If the enemy's health is between")
     public Config.PercentRange HEALTH_ENEMY_RANGE = new Config.PercentRange(0.2, 0.4);
+
+    public ExtraKeyConditions() {
+    }
+
+    public ExtraKeyConditions(int newCountDown) {
+        this.countdown = newCountDown;
+    }
 }
