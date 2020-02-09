@@ -8,7 +8,6 @@ import com.deeme.types.gui.AdvertisingMessage;
 import com.deeme.types.gui.ShipSupplier;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.types.Editor;
-import com.github.manolo8.darkbot.config.types.Num;
 import com.github.manolo8.darkbot.config.types.Option;
 import com.github.manolo8.darkbot.config.types.Options;
 import com.github.manolo8.darkbot.core.entities.BasePoint;
@@ -171,7 +170,7 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
     @Override
     public String instructions() {
         return "Palladium Hangar Module: \n"+
-                "It is necessary that a portal allows refresh \n" +
+                "It is necessary that a portal allows refresh to change the hangar \n" +
                 "Use in 5-2 a ship with less cargo than 5-3 \n" +
                 "Select palladium hangar and 5-2 hangar \n" +
                 "If the hangar list does not appear, click on \"Update HangarList\", close the config windows and it will be updated within minutes.";
@@ -210,16 +209,17 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
                     this.currentStatus = State.DEPOSIT_FULL_SWITCHING_HANGAR;
                     hangarToChange = configPa.hangarBase;
                     main.setRunning(false);
-                } else {
+                } else if (!main.guiManager.lostConnection.visible && !main.guiManager.logout.visible) {
                     super.tick();
                     currentStatus = State.SEARCHING_PORTALS;
                 }
 
-            } else if (hangarChange.hangarActive.equals(configPa.hangarPalladium)) {
+            } else if (hangarChange.hangarActive.equals(configPa.hangarPalladium) &&
+                    !main.guiManager.lostConnection.visible && !main.guiManager.logout.visible) {
                 if (hero.map.id == 93) {
                     this.currentStatus = State.LOOT_PALADIUM;
                     super.tick();
-                } else {
+                } else if (!main.guiManager.lostConnection.visible && !main.guiManager.logout.visible) {
                     this.currentStatus = State.HANGAR_PALA_OTHER_MAP;
                     hero.roamMode();
                     this.main.setModule(new MapModule()).setTarget(this.main.starManager.byId(93));

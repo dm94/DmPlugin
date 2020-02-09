@@ -4,21 +4,20 @@ import com.deeme.types.config.ExtraKeyConditions;
 import com.deeme.types.config.Defense;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.Config;
-import com.github.manolo8.darkbot.config.SafetyInfo;
 import com.github.manolo8.darkbot.core.entities.Ship;
 import com.github.manolo8.darkbot.core.manager.HeroManager;
+import com.github.manolo8.darkbot.core.objects.swf.group.GroupMember;
 import com.github.manolo8.darkbot.core.utils.Drive;
 import com.github.manolo8.darkbot.core.utils.Location;
 import com.github.manolo8.darkbot.modules.utils.SafetyFinder;
 
+import java.lang.reflect.Member;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
 import static com.github.manolo8.darkbot.Main.API;
-import static com.github.manolo8.darkbot.core.manager.HeroManager.instance;
-
 public class ShipAttacker {
     protected Config config;
     protected HeroManager hero;
@@ -199,10 +198,11 @@ public class ShipAttacker {
 
         target = getAttacker(this.hero);
 
-        if (target == null && defense.helpAllies) {
+        if (target == null) {
             List<Ship> ships = main.mapManager.entities.ships.stream()
-                    .filter(s -> (s.playerInfo.clanDiplomacy == 1) ||
-                            (defense.helpEveryone || !s.playerInfo.isEnemy()))
+                    .filter(s -> (s.playerInfo.clanDiplomacy == 1 && defense.helpAllies) ||
+                            (defense.helpEveryone && !s.playerInfo.isEnemy())
+                            /*|| (defense.helpGroup && inGroup(s.id))*/)
                     .collect(Collectors.toList());
 
             if (ships.isEmpty()) return false;
@@ -218,6 +218,17 @@ public class ShipAttacker {
         if (target == null) resetDefenseData();
 
         return target != null;
+    }
+
+    private boolean inGroup(int id) {
+        if (main.groupManager.group.isValid()) {
+            for (GroupMember member : main.groupManager.group.members) {
+                if (member.id == id) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private Ship getAttacker(Ship assaulted) {

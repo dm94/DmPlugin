@@ -16,6 +16,9 @@ public class Defense {
     @Option(value = "Help Clan Members", description = "Help clan members defend themselves")
     public boolean helpAllies = true;
 
+    @Option(value = "Help Group Members", description = "Help group members defend themselves")
+    public boolean helpGroup = true;
+
     @Option(value = "Help everyone", description = "Help all those who are not enemies")
     public boolean helpEveryone = true;
 

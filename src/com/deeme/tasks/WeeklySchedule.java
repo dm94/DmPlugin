@@ -33,6 +33,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+import static com.github.manolo8.darkbot.Main.API;
+
 @Feature(name = "WeeklySchedule", description = "Use different module, map for a weekly schedule")
 public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyConfig>, InstructionProvider {
 
@@ -138,6 +140,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
                     } else if (totalStopTime < System.currentTimeMillis()){
                         totalStopTime = 0;
                         nextStop = 0;
+                        API.handleRefresh();
                     }
                 }
             }
