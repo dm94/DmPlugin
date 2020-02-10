@@ -34,10 +34,7 @@ import java.text.DecimalFormat;
         this.main = main;
         this.statsManager = main.statsManager;
 
-        if (!AdvertisingMessage.hasAccepted) {
-            AdvertisingMessage.hasAccepted = VerifierChecker.getAuthApi().isDonor();
-            AdvertisingMessage.showAdverMessage();
-        }
+        AdvertisingMessage.showAdverMessage();
         if (!main.hero.map.gg) {
             AdvertisingMessage.newUpdateMessage(main.featureRegistry.getFeatureDefinition(this));
         }

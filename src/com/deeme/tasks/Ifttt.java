@@ -32,10 +32,7 @@ import java.util.List;
         this.main = main;
         this.statsManager = main.statsManager;
 
-        if (!AdvertisingMessage.hasAccepted) {
-            AdvertisingMessage.hasAccepted = VerifierChecker.getAuthApi().isDonor();
-            AdvertisingMessage.showAdverMessage();
-        }
+        AdvertisingMessage.showAdverMessage();
     }
 
     @Override

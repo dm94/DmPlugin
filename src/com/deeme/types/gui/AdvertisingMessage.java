@@ -1,5 +1,6 @@
 package com.deeme.types.gui;
 
+import com.deeme.types.VerifierChecker;
 import com.deeme.types.VersionJson;
 import com.deeme.types.backpage.Utils;
 import com.github.manolo8.darkbot.extensions.features.FeatureDefinition;
@@ -19,20 +20,23 @@ public class AdvertisingMessage {
         latestVersion = Utils.updateLastVersion();
 
         if (Utils.newVersionAvailable(latestVersion, featureDefinition)) {
-            JButton yesButton = new JButton("Download");
-            yesButton.addActionListener(e -> {
-                SystemUtils.openUrl("https://gist.github.com/dm94/d8fa849330513e1b402cc89eba5e4739/raw/DmPlugin.jar");
-                hasAccepted = true;
-                SwingUtilities.getWindowAncestor(yesButton).setVisible(false);
+            JButton download = new JButton("Download");
+            download.addActionListener(e -> {
+                SystemUtils.openUrl("https://gist.github.com/dm94/58c42d0a5957a300bbacd59dc7cbb752/raw/DmPlugin.jar");
+                SwingUtilities.getWindowAncestor(download).setVisible(false);
             });
 
-            JButton noButton = new JButton("Ignore");
-            noButton.addActionListener(e -> {
-                hasAccepted = false;
-                SwingUtilities.getWindowAncestor(noButton).setVisible(false);
+            JButton changelog = new JButton("Changelog");
+            changelog.addActionListener(e -> {
+                SystemUtils.openUrl("https://gist.githubusercontent.com/dm94/58c42d0a5957a300bbacd59dc7cbb752/raw/Changelog.txt");
             });
 
-            Popups.showMessageSync("DmPlugin", new JOptionPane("New version available " + latestVersion.getVersionNumber(), JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION, null, new Object[] { yesButton, noButton }));
+            JButton ignore = new JButton("Ignore");
+            ignore.addActionListener(e -> {
+                SwingUtilities.getWindowAncestor(ignore).setVisible(false);
+            });
+
+            Popups.showMessageSync("DmPlugin", new JOptionPane("New version available " + latestVersion.getVersionNumber(), JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION, null, new Object[] { download,changelog, ignore }));
         }
     }
 
@@ -54,7 +58,10 @@ public class AdvertisingMessage {
                 SwingUtilities.getWindowAncestor(noButton).setVisible(false);
             });
 
-            Popups.showMessageSync("DmPlugin", new JOptionPane("To use this plugin you have to open the following link", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION, null, new Object[] { yesButton, noButton }));
+            Popups.showMessageSync("DmPlugin", new JOptionPane("To use this plugin you have to open the following link, If you are a donor it is not necessary", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION, null, new Object[] { yesButton, noButton }));
+        }
+        if (!hasAccepted) {
+            hasAccepted = VerifierChecker.getAuthApi().isDonor();
         }
     }
 

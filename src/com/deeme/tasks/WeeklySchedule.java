@@ -1,6 +1,5 @@
 package com.deeme.tasks;
 
-import com.deeme.modules.PaladiumModule;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.HangarChange;
 import com.deeme.types.config.Hour;
@@ -64,14 +63,15 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
         this.main = m;
         this.hangarChange = new HangarChange(main);
         this.lostConnection = main.guiManager.lostConnection;
-        if (!AdvertisingMessage.hasAccepted) {
-            AdvertisingMessage.hasAccepted = VerifierChecker.getAuthApi().isDonor();
-            AdvertisingMessage.showAdverMessage();
-        }
+        AdvertisingMessage.showAdverMessage();
         if (!main.hero.map.gg) {
             AdvertisingMessage.newUpdateMessage(main.featureRegistry.getFeatureDefinition(this));
         }
         setup();
+    }
+    @Override
+    public void tickStopped() {
+        if (stopBot) tick();
     }
 
     @Override

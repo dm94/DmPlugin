@@ -92,7 +92,6 @@ public class GGModule extends CollectorModule implements Module, Configurable<GG
         this.npcs = main.mapManager.entities.npcs;
 
         if (!AdvertisingMessage.hasAccepted) {
-            AdvertisingMessage.hasAccepted = VerifierChecker.getAuthApi().isDonor();
             if (!main.hero.map.gg) {
                 AdvertisingMessage.showAdverMessage();
             }

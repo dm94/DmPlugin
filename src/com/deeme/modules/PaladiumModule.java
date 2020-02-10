@@ -49,8 +49,6 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
     private HangarChange hangarChange;
     private String hangarToChange = "";
 
-    private ShipAttacker shipAttacker;
-
     private enum State {
         WAIT ("Waiting"),
         HANGAR_AND_MAP_BASE ( "Selling palladium"),
@@ -88,19 +86,12 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
 
         currentStatus = State.WAIT;
 
-        if (!AdvertisingMessage.hasAccepted) {
-            AdvertisingMessage.hasAccepted = VerifierChecker.getAuthApi().isDonor();
-            AdvertisingMessage.showAdverMessage();
-        }
+        AdvertisingMessage.showAdverMessage();
+
         if (!main.hero.map.gg) {
             AdvertisingMessage.newUpdateMessage(main.featureRegistry.getFeatureDefinition(this));
         }
         setup();
-    }
-
-    @Override
-    public void uninstall() {
-        shipAttacker.uninstall();
     }
 
     @Override
@@ -112,8 +103,6 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
 
     private void setup() {
         if (main == null || configPa == null) return;
-
-        this.shipAttacker = new ShipAttacker(main,configPa.defenseModeDefense);
     }
 
     @Override
@@ -162,9 +151,6 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
         @Options(ShipSupplier.class)
         public String hangarBase = "";
 
-        @Option(value = "Defense Mode", description = "Configuration for the defense of enemies")
-        public Defense defenseModeDefense = new Defense();
-
     }
 
     @Override
@@ -193,12 +179,6 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
             return;
         }
         updateHangarList();
-
-        if (shipAttacker.isUnderAttack()) {
-            currentStatus = State.DEFENSE_MODE;
-            shipAttacker.tick();
-            if (!shipAttacker.takeControl()) return;
-        }
 
         if (hangarChange.hangarActive != null && !hangarChange.hangarActive.isEmpty()) {
             if (statsManager.deposit >= statsManager.depositTotal) {

@@ -45,6 +45,7 @@ public class ShipAttacker {
         this.defense = defense;
         this.safety = new SafetyFinder(main);
         this.rnd = new Random();
+
     }
 
     public void tick() {
@@ -79,6 +80,12 @@ public class ShipAttacker {
             safety.tick();
         } else if (defense.movementMode == 3) {
             if (!drive.isMoving() || drive.isOutOfMap()) drive.moveRandom();
+        } else if (defense.movementMode == 4) {
+            if (hero.health.hpPercent() <= config.GENERAL.SAFETY.REPAIR_HP_RANGE.min){
+                safety.tick();
+            } else {
+                vsMove();
+            }
         }
     }
 
@@ -96,7 +103,7 @@ public class ShipAttacker {
             attackConfigLost = true;
         }
 
-        if (attackConfigLost) {
+        if (attackConfigLost && defense.useSecondConfig) {
             hero.setMode(defense.secondConfig);
         } else {
             hero.attackMode();

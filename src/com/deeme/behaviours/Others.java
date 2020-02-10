@@ -25,10 +25,9 @@ public class Others implements Behaviour, Configurable<Others.LCConfig> {
     @Override
     public void install(Main main) {
         this.main = main;
-        if (!AdvertisingMessage.hasAccepted) {
-            AdvertisingMessage.hasAccepted = VerifierChecker.getAuthApi().isDonor();
-            AdvertisingMessage.showAdverMessage();
-        }
+
+        AdvertisingMessage.showAdverMessage();
+
         if (!main.hero.map.gg) {
             AdvertisingMessage.newUpdateMessage(main.featureRegistry.getFeatureDefinition(this));
         }

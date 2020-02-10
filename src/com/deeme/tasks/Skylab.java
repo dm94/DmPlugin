@@ -29,10 +29,8 @@ public class Skylab implements Task,Configurable<Skylab.SkylabConfig> {
     @Override
     public void install(Main main) {
         this.main = main;
-        if (!AdvertisingMessage.hasAccepted) {
-            AdvertisingMessage.hasAccepted = VerifierChecker.getAuthApi().isDonor();
-            AdvertisingMessage.showAdverMessage();
-        }
+
+        AdvertisingMessage.showAdverMessage();
         if (!main.hero.map.gg) {
             AdvertisingMessage.newUpdateMessage(main.featureRegistry.getFeatureDefinition(this));
         }
