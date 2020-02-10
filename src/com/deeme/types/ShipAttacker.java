@@ -11,7 +11,6 @@ import com.github.manolo8.darkbot.core.utils.Drive;
 import com.github.manolo8.darkbot.core.utils.Location;
 import com.github.manolo8.darkbot.modules.utils.SafetyFinder;
 
-import java.lang.reflect.Member;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
@@ -49,6 +48,7 @@ public class ShipAttacker {
     }
 
     public void tick() {
+        isUnderAttack();
         if (target == null) return;
         setConfigToUse();
 
@@ -202,7 +202,7 @@ public class ShipAttacker {
             List<Ship> ships = main.mapManager.entities.ships.stream()
                     .filter(s -> (s.playerInfo.clanDiplomacy == 1 && defense.helpAllies) ||
                             (defense.helpEveryone && !s.playerInfo.isEnemy())
-                            /*|| (defense.helpGroup && inGroup(s.id))*/)
+                            || (defense.helpGroup && inGroupAttacked(s.id)))
                     .collect(Collectors.toList());
 
             if (ships.isEmpty()) return false;
@@ -220,10 +220,12 @@ public class ShipAttacker {
         return target != null;
     }
 
-    private boolean inGroup(int id) {
-        if (main.groupManager.group.isValid()) {
-            for (GroupMember member : main.groupManager.group.members) {
-                if (member.id == id) {
+    private boolean inGroupAttacked(int id) {
+        if (main.guiManager.group == null) return false;
+
+        if (main.guiManager.group.group.isValid()) {
+            for (GroupMember member : main.guiManager.group.group.members) {
+                if (member.id == id && member.isAttacked) {
                     return true;
                 }
             }

@@ -62,8 +62,7 @@ public class HangarChange {
         if (play) {
             main.setRunning(true);
         }
-        main.hero.drive.checkMove();
-        main.hero.drive.moveRandom();
+        main.hero.drive.stop(true);
     }
 
     public void disconnectChangeHangarAndReload(String hangar) {
