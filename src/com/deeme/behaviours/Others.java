@@ -1,6 +1,5 @@
 package com.deeme.behaviours;
 
-import com.deeme.types.VerifierChecker;
 import com.deeme.types.gui.AdvertisingMessage;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.types.Num;

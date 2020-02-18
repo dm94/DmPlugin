@@ -41,6 +41,8 @@ public class AdvertisingMessage {
     }
 
     public static synchronized void showAdverMessage() {
+        VerifierChecker.getAuthApi().isAuthenticated();
+        
         if (!hasAccepted) {
             singOpen = true;
             JButton yesButton = new JButton("Open Advertising Link");

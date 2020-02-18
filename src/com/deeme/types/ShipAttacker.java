@@ -99,7 +99,7 @@ public class ShipAttacker {
 
     private void setConfigToUse() {
         if (defense.useSecondConfig &&
-                hero.health.shieldPercent() < 0.1 && !shouldSab()){
+                hero.health.shieldPercent() < 0.1 && !shouldSab() && defense.healthToChange <= hero.health.shieldPercent()){
             attackConfigLost = true;
         }
 

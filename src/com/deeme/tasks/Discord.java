@@ -1,6 +1,5 @@
 package com.deeme.tasks;
 
-import com.deeme.types.VerifierChecker;
 import com.deeme.types.VersionJson;
 import com.deeme.types.backpage.Utils;
 import com.deeme.types.gui.AdvertisingMessage;

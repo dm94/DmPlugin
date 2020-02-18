@@ -1,9 +1,6 @@
 package com.deeme.modules;
 
-import com.deeme.types.ShipAttacker;
-import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.HangarChange;
-import com.deeme.types.config.Defense;
 import com.deeme.types.gui.AdvertisingMessage;
 import com.deeme.types.gui.ShipSupplier;
 import com.github.manolo8.darkbot.Main;
@@ -210,6 +207,7 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
                 main.setRunning(false);
             }
         } else {
+            super.canRefresh();
             hangarChange.updateHangarActive();
             currentStatus = State.LOADING_HANGARS;
         }

@@ -5,6 +5,7 @@ import com.github.manolo8.darkbot.config.types.Editor;
 import com.github.manolo8.darkbot.config.types.Option;
 import com.github.manolo8.darkbot.config.types.Options;
 import com.github.manolo8.darkbot.gui.tree.components.JListField;
+import com.github.manolo8.darkbot.gui.tree.components.JPercentField;
 import com.github.manolo8.darkbot.gui.tree.components.JShipConfigField;
 
 @Option("Defense")
@@ -52,6 +53,10 @@ public class Defense {
 
     @Option(value = "Use second config", description = "Use the second config, if there is no shield and you cannot use sab")
     public boolean useSecondConfig = true;
+
+    @Option(value = "Min health to change", description ="If health comes down from")
+    @Editor(JPercentField.class)
+    public double healthToChange = 0.2;
 
     @Option(value = "Second config", description = "Used when attack config is exhausted")
     @Editor(JShipConfigField.class)
