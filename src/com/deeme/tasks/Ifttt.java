@@ -3,22 +3,27 @@ package com.deeme.tasks;
 import com.deeme.types.backpage.Utils;
 import com.deeme.types.gui.AdvertisingMessage;
 import com.github.manolo8.darkbot.Main;
+import com.github.manolo8.darkbot.config.tree.ConfigField;
 import com.github.manolo8.darkbot.config.types.*;
 import com.github.manolo8.darkbot.config.types.suppliers.OptionList;
 import com.github.manolo8.darkbot.core.itf.Configurable;
-import com.github.manolo8.darkbot.core.itf.InstructionProvider;
 import com.github.manolo8.darkbot.core.itf.Task;
 import com.github.manolo8.darkbot.core.manager.StatsManager;
+import com.github.manolo8.darkbot.core.utils.Lazy;
 import com.github.manolo8.darkbot.extensions.features.Feature;
+import com.github.manolo8.darkbot.gui.tree.OptionEditor;
+import com.github.manolo8.darkbot.gui.tree.components.JLabel;
 import com.github.manolo8.darkbot.gui.tree.components.JListField;
+import com.github.manolo8.darkbot.utils.SystemUtils;
 import com.github.manolo8.darkbot.utils.Time;
 
+import javax.swing.*;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.List;
 
 @Feature(name = "Ifttt", description = "Used to send statistics to ifttt")
-  public class Ifttt implements Task,Configurable<Ifttt.IftttConfig>, InstructionProvider {
+  public class Ifttt implements Task,Configurable<Ifttt.IftttConfig> {
 
     private IftttConfig iftttConfig;
     private Main main;
@@ -46,15 +51,11 @@ import java.util.List;
         this.iftttConfig = conf;
     }
 
-    public String instructions() {
-        return "<html>" +
-                "Ifttt: <br/> " +
-                "With this task you can connect the bot with any application thanks to IFTTT. <br/> " +
-                "You have to create an account and fill in the data. <br/> " +
-                "<a href=\"https://ifttt.com/maker_webhooks\">https://ifttt.com/maker_webhooks</a></html>";
-    }
-
     public static class IftttConfig {
+
+        @Option("")
+        @Editor(value = jInstructions.class, shared = true)
+        public Lazy<String> instruction;
 
         @Option(value = "Message Interval", description = "How often a message is sent in minutes")
         @Num(min = 10, max = 500)
@@ -83,6 +84,23 @@ import java.util.List;
         @Options(ValueTypes.class)
         public String value3 = "runningTime";
 
+    }
+
+    public static class jInstructions extends JPanel implements OptionEditor {
+        public jInstructions() {
+            JLabel text = new JLabel("<html> With this task you can connect the bot with any application thanks to IFTTT.<br/>" +
+                    "You have to create an account and fill in the data <br/></html>");
+            add(text);
+            JButton goLink = new JButton("Go IFTTT WebHooks");
+            goLink.addActionListener(e -> {
+                SystemUtils.openUrl("https://ifttt.com/maker_webhooks");
+            });
+            add(goLink);
+        }
+
+        public JComponent getComponent() { return this; }
+
+        public void edit(ConfigField configField) {}
     }
 
     private void sendTrigger() {

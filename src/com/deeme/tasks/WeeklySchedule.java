@@ -10,16 +10,17 @@ import com.deeme.types.gui.AdvertisingMessage;
 import com.deeme.types.gui.JDayChangeTable;
 import com.deeme.types.gui.ShipSupplier;
 import com.github.manolo8.darkbot.Main;
+import com.github.manolo8.darkbot.config.tree.ConfigField;
 import com.github.manolo8.darkbot.config.types.Editor;
 import com.github.manolo8.darkbot.config.types.Option;
 import com.github.manolo8.darkbot.core.itf.Configurable;
-import com.github.manolo8.darkbot.core.itf.InstructionProvider;
 import com.github.manolo8.darkbot.core.itf.Task;
 import com.github.manolo8.darkbot.core.objects.Gui;
 import com.github.manolo8.darkbot.core.utils.Lazy;
 import com.github.manolo8.darkbot.extensions.features.Feature;
 import com.github.manolo8.darkbot.gui.tree.OptionEditor;
 import com.github.manolo8.darkbot.gui.tree.components.InfoTable;
+import com.github.manolo8.darkbot.gui.tree.components.JLabel;
 import com.github.manolo8.darkbot.gui.utils.GenericTableModel;
 import com.github.manolo8.darkbot.modules.DisconnectModule;
 import com.github.manolo8.darkbot.utils.AuthAPI;
@@ -35,7 +36,7 @@ import java.util.Random;
 import static com.github.manolo8.darkbot.Main.API;
 
 @Feature(name = "WeeklySchedule", description = "Use different module, map for a weekly schedule")
-public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyConfig>, InstructionProvider {
+public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyConfig> {
 
     private WeeklyConfig weeklyConfig;
     private Main main;
@@ -282,18 +283,12 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
         }
     }
 
-    @Override
-    public String instructions() {
-        return  "WeeklySchedule: \n"+
-                "You have two different profiles. \n" +
-                "Each profile can choose which module, map or if it uses the maptimetable \n" +
-                "The MapTimetable is so that with the same profile the ship changes of map every x time or deaths in that map. \n" +
-                "Example: \n" +
-                "You can have a profile to kill NPCs in the high maps and change every x time and another profile for the weekend to put a module of GGs and make them.";
-
-    }
-
     public static class WeeklyConfig {
+
+        @Option("")
+        @Editor(value = jInstructions.class, shared = true)
+        public Lazy<String> instruction;
+
         @Option()
         @Editor(value = JDayChangeTable.class, shared = true)
         public Map<String, Hour> Hours_Changes = new HashMap<>();
@@ -323,6 +318,22 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
         @Editor(value = JMapChangeTable.class, shared = true)
         public Map<String, MapData> Maps_Changes = new HashMap<>();
         public transient Lazy<String> ADDED_MAPS = new Lazy<>();
+    }
+
+    public static class jInstructions extends JPanel implements OptionEditor {
+        public jInstructions() {
+            JLabel text = new JLabel("<html>You have two different profiles. <br/>" +
+                    "Each profile can choose which module, map or if it uses the maptimetable <br/>" +
+                    "The MapTimetable is so that with the same profile the ship changes of map every x time or deaths in that map. <br/>" +
+                    "Example: <br/>" +
+                    "You can have a profile to kill NPCs in the high maps and change every x time and another profile for the weekend <br/>" +
+                    "to put a module of GGs and make them. </html>");
+            add(text);
+        }
+
+        public JComponent getComponent() { return this; }
+
+        public void edit(ConfigField configField) {}
     }
 
 

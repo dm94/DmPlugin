@@ -74,6 +74,7 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
 
     @Override
     public void tick() {
+        main.guiManager.pet.setEnabled(true);
         if (main.guiManager.group.group != null && main.guiManager.group.group.isValid()) {
             if (sConfig.sentinelID == 0) {
                 shipIDToFollow = getIdToFollow();

@@ -63,6 +63,7 @@ public class HangarChange {
             main.setRunning(true);
         }
         main.hero.drive.stop(true);
+        main.hero.drive.checkMove();
     }
 
     public void disconnectChangeHangarAndReload(String hangar) {
