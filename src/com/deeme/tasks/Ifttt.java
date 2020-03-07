@@ -7,6 +7,7 @@ import com.github.manolo8.darkbot.config.tree.ConfigField;
 import com.github.manolo8.darkbot.config.types.*;
 import com.github.manolo8.darkbot.config.types.suppliers.OptionList;
 import com.github.manolo8.darkbot.core.itf.Configurable;
+import com.github.manolo8.darkbot.core.itf.InstructionProvider;
 import com.github.manolo8.darkbot.core.itf.Task;
 import com.github.manolo8.darkbot.core.manager.StatsManager;
 import com.github.manolo8.darkbot.core.utils.Lazy;
@@ -22,7 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Feature(name = "Ifttt", description = "Used to send statistics to ifttt")
-  public class Ifttt implements Task,Configurable<Ifttt.IftttConfig> {
+  public class Ifttt implements Task,Configurable<Ifttt.IftttConfig>, InstructionProvider {
 
     private IftttConfig iftttConfig;
     private Main main;
@@ -50,11 +51,23 @@ import java.util.List;
         this.iftttConfig = conf;
     }
 
-    public static class IftttConfig {
+    @Override
+    public String instructions() {
+        return "With this task you can connect the bot with any application thanks to IFTTT \n" +
+        "You have to create an account at IFTTT and fill in the data";
+    }
 
-        @Option("")
-        @Editor(value = jInstructions.class, shared = true)
-        public Lazy<String> instruction;
+    @Override
+    public JComponent beforeConfig() {
+        JButton goLink = new JButton("Go IFTTT WebHooks");
+        goLink.addActionListener(e -> {
+            SystemUtils.openUrl("https://ifttt.com/maker_webhooks");
+        });
+
+        return goLink;
+    }
+
+    public static class IftttConfig {
 
         @Option(value = "Message Interval", description = "How often a message is sent in minutes")
         @Num(min = 10, max = 500)
@@ -83,23 +96,6 @@ import java.util.List;
         @Options(ValueTypes.class)
         public String value3 = "runningTime";
 
-    }
-
-    public static class jInstructions extends JPanel implements OptionEditor {
-        public jInstructions() {
-            JLabel text = new JLabel("<html> With this task you can connect the bot with any application thanks to IFTTT.<br/>" +
-                    "You have to create an account and fill in the data <br/></html>");
-            add(text);
-            JButton goLink = new JButton("Go IFTTT WebHooks");
-            goLink.addActionListener(e -> {
-                SystemUtils.openUrl("https://ifttt.com/maker_webhooks");
-            });
-            add(goLink);
-        }
-
-        public JComponent getComponent() { return this; }
-
-        public void edit(ConfigField configField) {}
     }
 
     private void sendTrigger() {

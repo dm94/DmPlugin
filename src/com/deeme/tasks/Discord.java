@@ -8,15 +8,18 @@ import com.github.manolo8.darkbot.config.types.Length;
 import com.github.manolo8.darkbot.config.types.Num;
 import com.github.manolo8.darkbot.config.types.Option;
 import com.github.manolo8.darkbot.core.itf.Configurable;
+import com.github.manolo8.darkbot.core.itf.InstructionProvider;
 import com.github.manolo8.darkbot.core.itf.Task;
 import com.github.manolo8.darkbot.core.manager.StatsManager;
 import com.github.manolo8.darkbot.extensions.features.Feature;
+import com.github.manolo8.darkbot.utils.SystemUtils;
 import com.github.manolo8.darkbot.utils.Time;
 
+import javax.swing.*;
 import java.text.DecimalFormat;
 
 @Feature(name = "Discord", description = "Used to send statistics to discord")
-  public class Discord implements Task,Configurable<Discord.DiscordConfig> {
+  public class Discord implements Task,Configurable<Discord.DiscordConfig>, InstructionProvider {
 
     private DiscordConfig discordConfig;
     private Main main;
@@ -27,6 +30,16 @@ import java.text.DecimalFormat;
     private double lastCargo = 0;
     private boolean firstTick = true;
     private VersionJson lastVersion = null;
+
+    @Override
+    public JComponent beforeConfig() {
+        JButton goLink = new JButton("Tutorial");
+        goLink.addActionListener(e -> {
+            SystemUtils.openUrl("https://discordapp.com/channels/523159099870019584/534766866820759555/622589656063672325");
+        });
+
+        return goLink;
+    }
 
     @Override
     public void install(Main main) {

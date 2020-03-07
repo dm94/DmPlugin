@@ -1,30 +1,27 @@
 package com.deeme.modules;
 
 import com.github.manolo8.darkbot.Main;
-import com.github.manolo8.darkbot.config.tree.ConfigField;
-import com.github.manolo8.darkbot.config.types.Editor;
 import com.github.manolo8.darkbot.config.types.Num;
 import com.github.manolo8.darkbot.config.types.Option;
 import com.github.manolo8.darkbot.core.entities.Npc;
 import com.github.manolo8.darkbot.core.entities.Ship;
 import com.github.manolo8.darkbot.core.itf.Configurable;
+import com.github.manolo8.darkbot.core.itf.InstructionProvider;
 import com.github.manolo8.darkbot.core.itf.Module;
 import com.github.manolo8.darkbot.core.objects.swf.group.GroupMember;
+import com.github.manolo8.darkbot.core.objects.swf.group.Invite;
 import com.github.manolo8.darkbot.core.utils.Drive;
-import com.github.manolo8.darkbot.core.utils.Lazy;
 import com.github.manolo8.darkbot.core.utils.Location;
 import com.github.manolo8.darkbot.extensions.features.Feature;
-import com.github.manolo8.darkbot.gui.tree.OptionEditor;
 import com.github.manolo8.darkbot.modules.MapModule;
 import com.github.manolo8.darkbot.modules.utils.NpcAttacker;
 import com.github.manolo8.darkbot.modules.utils.SafetyFinder;
 
-import javax.swing.*;
 import java.util.List;
 import java.util.Random;
 
 @Feature(name = "Sentinel Module", description = "Follow the main ship or the group leader and do the same")
-public class SentinelModule implements Module, Configurable<SentinelModule.SentinelConfig> {
+public class SentinelModule implements Module, Configurable<SentinelModule.SentinelConfig>, InstructionProvider {
     private SentinelConfig sConfig;
     private Ship sentinel;
     private Main main;
@@ -63,11 +60,14 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
         this.sConfig = sentinelConfig;
     }
 
-    public static class SentinelConfig  {
-        @Option("")
-        @Editor(value = jInstructions.class, shared = true)
-        public Lazy<String> instruction;
+    @Override
+    public String instructions() {
+        return "Sentinel Module: \n" +
+                "It's important that the main ship is in a group \n" +
+                "If a \"Sentinel ID\" is not defined, it will follow the group leader";
+    }
 
+    public static class SentinelConfig  {
         @Option(value = "Sentinel ID", description = "Main ship ID")
         @Num(max = 2100000000, step = 1)
         public int sentinelID = 0;
@@ -95,7 +95,8 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
             } else {
                 goToLeader();
             }
-
+        } else {
+            acceptGroupSentinel();
         }
     }
 
@@ -141,17 +142,20 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
         return 0;
     }
 
-    public static class jInstructions extends JPanel implements OptionEditor {
-        public jInstructions() {
-            JLabel text = new JLabel("<html>Sentinel Module: <br/>" +
-            "It's important that the main ship is in a group <br/>" +
-                    "If a \"Sentinel ID\" is not defined, it will follow the group leader</html>");
-            add(text);
+    private void acceptGroupSentinel() {
+        if (sConfig.sentinelID == 0) return;
+
+        for (Invite i:main.guiManager.group.invites) {
+            System.out.println(i.inviter.id);
+            if (i.inviter.id == sConfig.sentinelID) {
+                if (main.guiManager.group.visible) {
+                    main.guiManager.group.acceptInvite(i);
+                } else {
+                    main.guiManager.group.show(true);
+                }
+                return;
+            }
         }
-
-        public JComponent getComponent() { return this; }
-
-        public void edit(ConfigField configField) {}
     }
 
 }
