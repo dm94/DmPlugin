@@ -4,28 +4,31 @@ import com.deeme.types.backpage.HangarChange;
 import com.deeme.types.gui.AdvertisingMessage;
 import com.deeme.types.gui.ShipSupplier;
 import com.github.manolo8.darkbot.Main;
+import com.github.manolo8.darkbot.config.tree.ConfigField;
 import com.github.manolo8.darkbot.config.types.Editor;
 import com.github.manolo8.darkbot.config.types.Option;
 import com.github.manolo8.darkbot.config.types.Options;
 import com.github.manolo8.darkbot.core.entities.BasePoint;
 import com.github.manolo8.darkbot.core.itf.Configurable;
-import com.github.manolo8.darkbot.core.itf.InstructionProvider;
 import com.github.manolo8.darkbot.core.itf.Module;
 import com.github.manolo8.darkbot.core.manager.HeroManager;
 import com.github.manolo8.darkbot.core.manager.StatsManager;
 import com.github.manolo8.darkbot.core.objects.Map;
 import com.github.manolo8.darkbot.core.objects.OreTradeGui;
 import com.github.manolo8.darkbot.core.utils.Drive;
+import com.github.manolo8.darkbot.core.utils.Lazy;
 import com.github.manolo8.darkbot.core.utils.Location;
 import com.github.manolo8.darkbot.extensions.features.Feature;
+import com.github.manolo8.darkbot.gui.tree.OptionEditor;
 import com.github.manolo8.darkbot.gui.tree.components.JListField;
 import com.github.manolo8.darkbot.modules.LootNCollectorModule;
 import com.github.manolo8.darkbot.modules.MapModule;
 
+import javax.swing.*;
 import java.util.List;
 
 @Feature(name = "Palladium Hangar", description = "Collect palladium and change hangars to sell")
-public class PaladiumModule extends LootNCollectorModule implements Module, Configurable<PaladiumModule.PaladiumConfig>, InstructionProvider {
+public class PaladiumModule extends LootNCollectorModule implements Module, Configurable<PaladiumModule.PaladiumConfig> {
 
     private HeroManager hero;
     private Drive drive;
@@ -134,6 +137,9 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
 
 
     public static class PaladiumConfig {
+        @Option("")
+        @Editor(value = jInstructions.class, shared = true)
+        public Lazy<String> instruction;
 
         @Option(value = "Update HangarList", description = "Mark it to update the hangar list")
         public boolean updateHangarList = true;
@@ -148,15 +154,6 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
         @Options(ShipSupplier.class)
         public String hangarBase = "";
 
-    }
-
-    @Override
-    public String instructions() {
-        return "Palladium Hangar Module: \n"+
-                "It is necessary that a portal allows refresh to change the hangar \n" +
-                "Use in 5-2 a ship with less cargo than 5-3 \n" +
-                "Select palladium hangar and 5-2 hangar \n" +
-                "If the hangar list does not appear, click on \"Update HangarList\", close the config windows and it will be updated within minutes.";
     }
 
     @Override
@@ -237,6 +234,21 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
                 configPa.updateHangarList = !ShipSupplier.updateOwnedShips(main.backpage.hangarManager.getShipInfos());
             }
         }
+    }
+
+    public static class jInstructions extends JPanel implements OptionEditor {
+        public jInstructions() {
+            JLabel text = new JLabel("<html>Palladium Hangar Module: <br/>"+
+                    "It is necessary that a portal allows refresh to change the hangar <br/>" +
+                    "Use in 5-2 a ship with less cargo than 5-3 <br/>" +
+                    "Select palladium hangar and 5-2 hangar <br/>" +
+                    "If the hangar list does not appear, click on \"Update HangarList\", close the config windows and it will be updated within minutes.</html>");
+            add(text);
+        }
+
+        public JComponent getComponent() { return this; }
+
+        public void edit(ConfigField configField) {}
     }
 
 }
