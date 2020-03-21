@@ -24,6 +24,10 @@ public class Profile {
 
     public @Option(key = "config.pet") Config.PetSettings PET = new Config.PetSettings();
 
+    public @Option(key = "config.loot.sab") Config.Loot.Sab SAB = new Config.Loot.Sab();
+
+    public @Option(key = "config.group") Config.GroupSettings GROUP = new Config.GroupSettings();
+
     @Override
     public String toString() {
         return (useMapTimetable ? "MT" : GENERAL.WORKING_MAP) + GENERAL.CURRENT_MODULE;

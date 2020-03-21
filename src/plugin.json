@@ -2,8 +2,8 @@
   "name": "Dmplugin",
   "author": "Dm94Dani",
   "version": "1.3.7",
-  "minVersion": "1.13.17 alpha 6",
-  "supportedVersion": "1.13.17 alpha 8",
+  "minVersion": "1.13.17 alpha 10",
+  "supportedVersion": "1.13.17 alpha 10",
   "features": [
     "com.deeme.modules.GGModule",
     "com.deeme.modules.PaladiumModule",
@@ -14,5 +14,7 @@
     "com.deeme.tasks.WeeklySchedule",
     "com.deeme.behaviours.Others",
     "com.deeme.behaviours.DefenseMode"
-  ]
+  ],
+  "donation" : "https://www.paypal.me/dm94dani/5",
+  "download" : "https://gist.github.com/dm94/58c42d0a5957a300bbacd59dc7cbb752/raw/DmPlugin.jar"
 }
