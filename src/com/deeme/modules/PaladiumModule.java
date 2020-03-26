@@ -1,5 +1,6 @@
 package com.deeme.modules;
 
+import com.deeme.types.SharedFunctions;
 import com.deeme.types.backpage.HangarChange;
 import com.deeme.types.gui.AdvertisingMessage;
 import com.deeme.types.gui.ShipSupplier;
@@ -147,6 +148,9 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
         @Option(value = "Update HangarList", description = "Mark it to update the hangar list")
         public boolean updateHangarList = true;
 
+        @Option(value = "Go portal to change", description = "Go to the portal to change the hangar")
+        public boolean goPortalChange = true;
+
         @Option(value = "Hangar Palladium", description = "Ship 5-3 Hangar ID")
         @Editor(JListField.class)
         @Options(ShipSupplier.class)
@@ -182,7 +186,7 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
                 if (hangarChange.hangarActive.equals(configPa.hangarBase)) {
                     this.currentStatus = State.HANGAR_AND_MAP_BASE;
                     sell();
-                } else if (super.canRefresh()) {
+                } else if (canBeDisconnected()) {
                     this.currentStatus = State.DEPOSIT_FULL_SWITCHING_HANGAR;
                     hangarToChange = configPa.hangarBase;
                     main.setRunning(false);
@@ -213,6 +217,16 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
         }
     }
 
+    private boolean canBeDisconnected() {
+        if (configPa.goPortalChange) {
+            return super.canRefresh();
+        } else if(hero.health.hpPercent() > 0.90 && SharedFunctions.getAttacker(hero,main,hero,null) != null) {
+            return true;
+        }
+
+        return false;
+    }
+
     private void sell() {
         pet.setEnabled(false);
         if (hero.map != SELL_MAP) main.setModule(new MapModule()).setTarget(SELL_MAP);
@@ -238,4 +252,5 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
             }
         }
     }
+
 }

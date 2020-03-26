@@ -73,6 +73,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
         this.main = m;
         this.hangarChange = new HangarChange(main);
         this.lostConnection = main.guiManager.lostConnection;
+        this.lastCheck = 0;
         AdvertisingMessage.showAdverMessage();
         if (!main.hero.map.gg) {
             AdvertisingMessage.newUpdateMessage(main.featureRegistry.getFeatureDefinition(this));
@@ -168,7 +169,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
     }
 
     private void updateProfileToUse() {
-        if (lastCheck < System.currentTimeMillis() - 600000) {
+        if (lastCheck < System.currentTimeMillis() - 300000) {
             LocalDateTime da = LocalDateTime.now();
             int currentHour = da.getHour();
             Hour hour = this.weeklyConfig.Hours_Changes.get(String.valueOf(currentHour));
@@ -224,6 +225,14 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
                 main.config.GENERAL = profileToUse.GENERAL;
                 main.config.changed = true;
             }
+            if (main.config.GROUP != profileToUse.GROUP) {
+                main.config.GROUP = profileToUse.GROUP;
+                main.config.changed = true;
+            }
+            if (main.config.LOOT.SAB != profileToUse.SAB) {
+                main.config.LOOT.SAB = profileToUse.SAB;
+                main.config.changed = true;
+            }
         }
     }
 
@@ -255,6 +264,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
             }
         }
         weeklyConfig.updateHangarList = true;
+        updateProfileToUse();
     }
     private void goNextMap() {
         if (stopBot) return;
