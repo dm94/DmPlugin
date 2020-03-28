@@ -220,7 +220,7 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
     private boolean canBeDisconnected() {
         if (configPa.goPortalChange) {
             return super.canRefresh();
-        } else if(hero.health.hpPercent() > 0.90 && SharedFunctions.getAttacker(hero,main,hero,null) != null) {
+        } else if(hero.health.hpPercent() >= 0.9 && SharedFunctions.getAttacker(hero,main,hero,null) == null) {
             return true;
         }
 
