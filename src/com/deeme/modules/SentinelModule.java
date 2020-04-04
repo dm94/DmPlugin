@@ -11,7 +11,7 @@ import com.github.manolo8.darkbot.core.entities.Ship;
 import com.github.manolo8.darkbot.core.itf.Configurable;
 import com.github.manolo8.darkbot.core.itf.InstructionProvider;
 import com.github.manolo8.darkbot.core.itf.Module;
-import com.github.manolo8.darkbot.core.objects.swf.group.GroupMember;
+import com.github.manolo8.darkbot.core.objects.group.GroupMember;
 import com.github.manolo8.darkbot.core.utils.Drive;
 import com.github.manolo8.darkbot.core.utils.Location;
 import com.github.manolo8.darkbot.extensions.features.Feature;

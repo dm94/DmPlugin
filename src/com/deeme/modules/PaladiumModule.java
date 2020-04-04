@@ -46,6 +46,7 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
 
     private HangarChange hangarChange;
     private String hangarToChange = "";
+    private int cargos = 0;
 
     @Override
     public String instructions() {
@@ -90,7 +91,6 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
         this.bases = main.mapManager.entities.basePoints;
         this.oreTrade = main.guiManager.oreTrade;
         this.hangarChange = new HangarChange(main);
-
         currentStatus = State.WAIT;
 
         AdvertisingMessage.showAdverMessage();
@@ -165,7 +165,7 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
 
     @Override
     public String status() {
-        return  currentStatus.message + " | " + super.status();
+        return  currentStatus.message + " | "+ cargos + " | " + super.status();
     }
 
     @Override
@@ -238,6 +238,7 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
                     && System.currentTimeMillis() - 60_000 > sellClick) {
                 oreTrade.sellOre(OreTradeGui.Ore.PALLADIUM);
                 sellClick = System.currentTimeMillis();
+                cargos++;
             }
         });
     }
