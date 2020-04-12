@@ -2,7 +2,6 @@ package com.deeme.modules;
 
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.PlayerTag;
-import com.github.manolo8.darkbot.config.types.Editor;
 import com.github.manolo8.darkbot.config.types.Option;
 import com.github.manolo8.darkbot.config.types.Tag;
 import com.github.manolo8.darkbot.config.types.TagDefault;
@@ -15,7 +14,6 @@ import com.github.manolo8.darkbot.core.objects.group.GroupMember;
 import com.github.manolo8.darkbot.core.utils.Drive;
 import com.github.manolo8.darkbot.core.utils.Location;
 import com.github.manolo8.darkbot.extensions.features.Feature;
-import com.github.manolo8.darkbot.gui.tree.components.JPlayerTagField;
 import com.github.manolo8.darkbot.modules.MapModule;
 import com.github.manolo8.darkbot.modules.utils.NpcAttacker;
 import com.github.manolo8.darkbot.modules.utils.SafetyFinder;
@@ -71,7 +69,7 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
 
     public static class SentinelConfig  {
         @Option (value = "Sentinel Tag", description = "He'll follow every ship with that tag")
-        @Editor(JPlayerTagField.class) @Tag(TagDefault.ALL)
+        @Tag(TagDefault.ALL)
         public PlayerTag SENTINEL_TAG = null;
     }
 
