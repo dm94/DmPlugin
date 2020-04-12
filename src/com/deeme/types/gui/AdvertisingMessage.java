@@ -20,16 +20,16 @@ public class AdvertisingMessage {
 
         latestVersion = Utils.getLastValidVersion(Utils.getVersions(), botVersion);
 
-        if (Utils.newVersionAvailable(latestVersion, featureDefinition)) {
+        if (latestVersion != null && Utils.newVersionAvailable(latestVersion, featureDefinition)) {
             JButton download = new JButton("Download");
             download.addActionListener(e -> {
-                SystemUtils.openUrl("https://gist.github.com/dm94/58c42d0a5957a300bbacd59dc7cbb752/raw/DmPlugin.jar");
+                SystemUtils.openUrl(latestVersion.getDownloadLink());
                 SwingUtilities.getWindowAncestor(download).setVisible(false);
             });
 
             JButton changelog = new JButton("Changelog");
             changelog.addActionListener(e -> {
-                SystemUtils.openUrl("https://gist.githubusercontent.com/dm94/58c42d0a5957a300bbacd59dc7cbb752/raw/Changelog.txt");
+                SystemUtils.openUrl(latestVersion.getChangelog());
             });
 
             JButton ignore = new JButton("Ignore");

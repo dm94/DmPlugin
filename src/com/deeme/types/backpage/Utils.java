@@ -3,6 +3,7 @@ package com.deeme.types.backpage;
 import com.deeme.types.VersionJson;
 import com.github.manolo8.darkbot.extensions.features.FeatureDefinition;
 import com.github.manolo8.darkbot.extensions.util.Version;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
@@ -61,11 +62,11 @@ public class Utils {
     }
 
     public static List<VersionJson> getVersions() {
-        String params = "https://gist.githubusercontent.com/dm94/58c42d0a5957a300bbacd59dc7cbb752/raw/DmPlugin.json";
+        String params = "https://raw.githubusercontent.com/dm94/gitDmPlugin/master/allVersions.json";
         List<VersionJson> allVersions = new ArrayList<>();
 
         try (InputStreamReader in = new InputStreamReader((new URL(params)).openStream())) {
-            JsonObject data = JSON_PARSER.parse(in).getAsJsonObject().getAsJsonObject("data");
+            JsonObject data = JSON_PARSER.parse(in).getAsJsonObject();
             allVersions = GSON.fromJson(data.get("versions"), VERSIONJSON_LIST);
         } catch (IOException e) {
             e.printStackTrace();
