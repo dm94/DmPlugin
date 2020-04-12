@@ -76,7 +76,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
         this.lastCheck = 0;
         AdvertisingMessage.showAdverMessage();
         if (!main.hero.map.gg) {
-            AdvertisingMessage.newUpdateMessage(main.featureRegistry.getFeatureDefinition(this));
+            AdvertisingMessage.newUpdateMessage(main.featureRegistry.getFeatureDefinition(this),main.VERSION);
         }
         setup();
     }

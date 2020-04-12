@@ -34,6 +34,9 @@ import java.util.List;
         this.statsManager = main.statsManager;
 
         AdvertisingMessage.showAdverMessage();
+        if (!main.hero.map.gg) {
+            AdvertisingMessage.newUpdateMessage(main.featureRegistry.getFeatureDefinition(this),main.VERSION);
+        }
     }
 
     @Override

@@ -30,7 +30,7 @@ public class Skylab implements Task,Configurable<Skylab.SkylabConfig> {
 
         AdvertisingMessage.showAdverMessage();
         if (!main.hero.map.gg) {
-            AdvertisingMessage.newUpdateMessage(main.featureRegistry.getFeatureDefinition(this));
+            AdvertisingMessage.newUpdateMessage(main.featureRegistry.getFeatureDefinition(this),main.VERSION);
         }
     }
 

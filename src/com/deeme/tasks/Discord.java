@@ -48,7 +48,7 @@ import java.text.DecimalFormat;
 
         AdvertisingMessage.showAdverMessage();
         if (!main.hero.map.gg) {
-            AdvertisingMessage.newUpdateMessage(main.featureRegistry.getFeatureDefinition(this));
+            AdvertisingMessage.newUpdateMessage(main.featureRegistry.getFeatureDefinition(this),main.VERSION);
         }
     }
 

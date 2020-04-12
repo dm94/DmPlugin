@@ -4,6 +4,7 @@ import com.deeme.types.VerifierChecker;
 import com.deeme.types.VersionJson;
 import com.deeme.types.backpage.Utils;
 import com.github.manolo8.darkbot.extensions.features.FeatureDefinition;
+import com.github.manolo8.darkbot.extensions.util.Version;
 import com.github.manolo8.darkbot.gui.utils.Popups;
 import com.github.manolo8.darkbot.utils.SystemUtils;
 
@@ -14,10 +15,10 @@ public class AdvertisingMessage {
     public static volatile boolean singOpen = false;
     public static volatile VersionJson latestVersion = null;
 
-    public static synchronized void newUpdateMessage(FeatureDefinition featureDefinition) {
+    public static synchronized void newUpdateMessage(FeatureDefinition featureDefinition, Version botVersion) {
         if (latestVersion != null) return;
 
-        latestVersion = Utils.updateLastVersion();
+        latestVersion = Utils.getLastValidVersion(Utils.getVersions(), botVersion);
 
         if (Utils.newVersionAvailable(latestVersion, featureDefinition)) {
             JButton download = new JButton("Download");

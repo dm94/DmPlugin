@@ -96,7 +96,7 @@ public class GGModule extends CollectorModule implements Module, Configurable<GG
             }
         }
         if (!main.hero.map.gg) {
-            AdvertisingMessage.newUpdateMessage(main.featureRegistry.getFeatureDefinition(this));
+            AdvertisingMessage.newUpdateMessage(main.featureRegistry.getFeatureDefinition(this),main.VERSION);
         }
     }
 

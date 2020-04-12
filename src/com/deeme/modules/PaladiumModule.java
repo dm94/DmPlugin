@@ -96,7 +96,7 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
         AdvertisingMessage.showAdverMessage();
 
         if (!main.hero.map.gg) {
-            AdvertisingMessage.newUpdateMessage(main.featureRegistry.getFeatureDefinition(this));
+            AdvertisingMessage.newUpdateMessage(main.featureRegistry.getFeatureDefinition(this),main.VERSION);
         }
         setup();
     }
