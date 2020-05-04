@@ -213,7 +213,17 @@ import java.text.DecimalFormat;
         best += "\"fields\": [";
         best += "{" +
                 " \"name\": \"Map\"," +
-                " \"value\": \""+main.hero.map.name+"\"" +
+                " \"value\": \""+main.hero.map.name+"\"," +
+                " \"inline\": true" +
+                "},";
+        best += "{" +
+                " \"name\": \"Group size\",";
+        if (main.guiManager.group.group.isValid()) {
+            best += " \"value\": \"" + main.guiManager.group.group.size + "\",";
+        } else {
+            best += " \"value\": \" No Group \",";
+        }
+        best += " \"inline\": true" +
                 "},";
         best += "{" +
                 " \"name\": \"cre/h\"," +

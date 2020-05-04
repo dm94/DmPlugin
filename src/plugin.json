@@ -1,7 +1,7 @@
 {
   "name": "Dmplugin",
   "author": "Dm94Dani",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "minVersion": "1.13.17 alpha 14",
   "supportedVersion": "1.13.17 alpha 15",
   "features": [
@@ -16,5 +16,5 @@
     "com.deeme.behaviours.DefenseMode"
   ],
   "donation" : "https://www.paypal.me/dm94dani/5",
-  "download" : "https://gist.github.com/dm94/58c42d0a5957a300bbacd59dc7cbb752/raw/DmPlugin.jar"
+  "download" : "https://github.com/dm94/gitDmPlugin/releases"
 }
