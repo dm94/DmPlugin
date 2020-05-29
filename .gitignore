@@ -23,3 +23,7 @@
 hs_err_pid*
 .idea/*
 out/*
+DmPlugin.iml
+dmplugin.properties
+dmplugin.xml
+module_dmplugin.xml
