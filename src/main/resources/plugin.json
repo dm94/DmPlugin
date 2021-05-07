@@ -1,9 +1,9 @@
 {
-  "name": "Dmplugin",
+  "name": "DmPlugin",
   "author": "Dm94Dani",
-  "version": "1.4.3",
-  "minVersion": "1.13.17 alpha 14",
-  "supportedVersion": "1.13.17 alpha 15",
+  "version": "1.5.0",
+  "minVersion": "1.13.17 beta 87",
+  "supportedVersion": "1.13.17 beta 90",
   "features": [
     "com.deeme.modules.GGModule",
     "com.deeme.modules.PaladiumModule",
@@ -16,5 +16,6 @@
     "com.deeme.behaviours.DefenseMode"
   ],
   "donation" : "https://www.paypal.me/dm94dani/5",
-  "download" : "https://github.com/dm94/gitDmPlugin/releases"
+  "download": "https://github.com/darkbot-reloaded/DmPlugin/releases/download/v1.5.0/DmPlugin.jar",
+  "update": "https://raw.githubusercontent.com/darkbot-reloaded/DmPlugin/master/src/main/resources/plugin.json"
 }
