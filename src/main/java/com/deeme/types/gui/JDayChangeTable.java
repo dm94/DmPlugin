@@ -16,7 +16,7 @@ public class JDayChangeTable extends InfoTable<GenericTableModel, Hour> implemen
 
     public JDayChangeTable(WeeklySchedule.WeeklyConfig weeklyConfig) {
         super(Hour.class, weeklyConfig.Hours_Changes);
-        DefaultCellEditor editor = new DefaultCellEditor(new JComboBox(VALUES));
+        DefaultCellEditor editor = new DefaultCellEditor(new JComboBox<>(VALUES));
         RenderColors render = new RenderColors();
         super.setDefaultEditor(String.class, editor);
         super.setDefaultRenderer(String.class, render);

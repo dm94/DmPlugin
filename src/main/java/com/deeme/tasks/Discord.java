@@ -1,5 +1,6 @@
 package com.deeme.tasks;
 
+import com.deeme.types.VerifierChecker;
 import com.deeme.types.VersionJson;
 import com.deeme.types.backpage.Utils;
 import com.deeme.types.gui.AdvertisingMessage;
@@ -17,6 +18,7 @@ import com.github.manolo8.darkbot.utils.Time;
 
 import javax.swing.*;
 import java.text.DecimalFormat;
+import java.util.Arrays;
 
 @Feature(name = "Discord", description = "Used to send statistics to discord")
   public class Discord implements Task,Configurable<Discord.DiscordConfig>, InstructionProvider {
@@ -43,6 +45,8 @@ import java.text.DecimalFormat;
 
     @Override
     public void install(Main main) {
+        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) return;
+        VerifierChecker.checkAuthenticity();
         this.main = main;
         this.statsManager = main.statsManager;
 

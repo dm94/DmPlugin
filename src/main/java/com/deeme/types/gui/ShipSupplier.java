@@ -1,60 +1,64 @@
 package com.deeme.types.gui;
 
-import com.github.manolo8.darkbot.backpage.entities.ShipInfo;
+import com.github.manolo8.darkbot.backpage.hangar.ShipInfo;
 import com.github.manolo8.darkbot.config.types.suppliers.OptionList;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
-public class ShipSupplier extends OptionList<String> {
+public class ShipSupplier extends OptionList<Integer> {
 
-    private static HashMap<String, String> shipsOwned;
-
-    public ShipSupplier() {
-        if (shipsOwned == null) {
-            shipsOwned = new HashMap<>();
-        }
-    }
+    private static final Set<ShipSupplier> INSTANCES = Collections.newSetFromMap(new WeakHashMap<>());
+    private static Map<Integer, ShipInfo> HANGARS = new HashMap<>();
+    private static List<String> SHIPS;
 
     public static boolean updateOwnedShips(List<ShipInfo> shipInfos) {
-        if (shipInfos == null) return false;
-        shipsOwned = new HashMap<>();
-        for (ShipInfo e : shipInfos) {
-            if (e.getOwned() == 1) {
-                shipsOwned.put(e.getLootId().replace("ship_",""),e.getHangarId());
-            }
-        }
+        if (shipInfos == null || shipInfos.isEmpty()) return false;
 
-        if (shipsOwned.size() > 0) return true;
+        HANGARS = shipInfos.stream()
+                .filter(sh -> sh.getOwned() == 1)
+                .collect(Collectors.toMap(ShipInfo::getHangarId, Function.identity()));
+        SHIPS = HANGARS.values().stream()
+                .map(ShipSupplier::toShipName)
+                .collect(Collectors.toList());
 
-        return false;
+        forceUpdate(INSTANCES, SHIPS.size());
+
+        return HANGARS.size() > 0;
+    }
+
+    private static String toShipName(ShipInfo ship) {
+        return ship.getLootId().replace("ship_", "");
+    }
+
+    public ShipSupplier() {
+        INSTANCES.add(this);
     }
 
     @Override
-    public String getValue(String name) {
-        if (shipsOwned == null || shipsOwned.size() < 1) {
-            return name;
-        } else {
-            return shipsOwned.get(name);
-        }
+    public Integer getValue(String name) {
+        return HANGARS.entrySet()
+                .stream()
+                .filter(e -> toShipName(e.getValue()).equals(name))
+                .map(Map.Entry::getKey)
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
-    public String getText(String id) {
-        for (Map.Entry<String, String> e : shipsOwned.entrySet()) {
-            String key = e.getKey();
-            String value = e.getValue();
-            if (value.equals(id)) {
-                return key;
-            }
-        }
-        return id;
+    public String getText(Integer id) {
+        ShipInfo sh = HANGARS.get(id);
+        return sh == null ? null : toShipName(sh);
     }
 
     @Override
     public List<String> getOptions() {
-        return new ArrayList<>(shipsOwned.keySet());
+        return SHIPS;
     }
 }

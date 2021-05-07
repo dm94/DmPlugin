@@ -1,7 +1,7 @@
 package com.deeme.tasks;
 
 import com.deeme.types.VerifierChecker;
-import com.deeme.types.backpage.HangarChange;
+import com.deeme.types.backpage.HangarChanger;
 import com.deeme.types.config.Hour;
 import com.deeme.types.config.MapData;
 import com.deeme.types.config.Profile;
@@ -42,9 +42,9 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
     private long lastCheck = 0;
 
     private long waitingTimeNextMap = 0;
-    private Random rand = new Random();
+    private final Random rand = new Random();
     private int mapMaxDeaths = 0;
-    private HangarChange hangarChange;
+    private HangarChanger hangarChanger;
     private boolean changingHangar = false;
     private boolean stopBot = false;
     private long nextStop = 0;
@@ -70,13 +70,15 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
 
     @Override
     public void install(Main m) {
+        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) return;
+        VerifierChecker.checkAuthenticity();
         this.main = m;
-        this.hangarChange = new HangarChange(main);
+        this.hangarChanger = new HangarChanger(main);
         this.lostConnection = main.guiManager.lostConnection;
         this.lastCheck = 0;
         AdvertisingMessage.showAdverMessage();
         if (!main.hero.map.gg) {
-            AdvertisingMessage.newUpdateMessage(main.featureRegistry.getFeatureDefinition(this),main.VERSION);
+            AdvertisingMessage.newUpdateMessage(main.featureRegistry.getFeatureDefinition(this), Main.VERSION);
         }
         setup();
     }
@@ -93,21 +95,23 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
             return;
         }
         if (weeklyConfig.updateHangarList) {
-            String sid = main.statsManager.sid, instance = main.statsManager.instance;
-            if (!(sid == null || sid.isEmpty() || instance == null || instance.isEmpty())) {
-                main.backpage.hangarManager.updateHangarData(60000);
-                weeklyConfig.updateHangarList = !ShipSupplier.updateOwnedShips(main.backpage.hangarManager.getShipInfos());
+            try {
+                main.backpage.hangarManager.updateHangarList();
+                if (ShipSupplier.updateOwnedShips(main.backpage.hangarManager.getHangarList().getData().getRet().getShipInfos()))
+                    weeklyConfig.updateHangarList = false;
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
         if (main.hero.map.gg) return;
 
-        if (weeklyConfig.changeHangar && profileToUse != null && profileToUse.hangar != null && !profileToUse.hangar.isEmpty() && !main.config.GENERAL.CURRENT_MODULE.contains("Palladium Hangar")) {
-            if (hangarChange.hangarActive != null && hangarChange.hangarActive.length() > 1) {
-                if (!profileToUse.hangar.equals(hangarChange.hangarActive)) {
-                    if (hangarChange.isDisconnect()) {
-                        hangarChange.disconnectChangeHangarAndReload(profileToUse.hangar);
+        if (weeklyConfig.changeHangar && profileToUse != null && profileToUse.hangar != null && !main.config.GENERAL.CURRENT_MODULE.contains("Palladium Hangar")) {
+            if (hangarChanger.activeHangar != null) {
+                if (!profileToUse.hangar.equals(hangarChanger.activeHangar)) {
+                    if (hangarChanger.isDisconnect()) {
+                        hangarChanger.disconnectChangeHangarAndReload(profileToUse.hangar);
                     } else {
-                        hangarChange.setDisconnectModule("WeeklySchedule: To change hangar");
+                        hangarChanger.setDisconnectModule("WeeklySchedule: To change hangar");
                     }
                     changingHangar = true;
                     return;
@@ -115,7 +119,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
                     changingHangar = false;
                 }
             } else {
-                hangarChange.updateHangarActive();
+                hangarChanger.updateHangarActive();
                 changingHangar = false;
                 return;
             }
@@ -156,13 +160,13 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
                 }
             }
 
-            if (stopBot || (totalStopTime != 0 && profileToUse.randomPause)) {
+            if (stopBot || (totalStopTime != 0 && profileToUse != null && profileToUse.randomPause)) {
                 if (!main.hero.map.gg && !lostConnection.visible) {
-                    hangarChange.disconectTime = System.currentTimeMillis();
-                    hangarChange.setDisconnectModule("Stop by WeeklySchedule");
+                    hangarChanger.disconectTime = System.currentTimeMillis();
+                    hangarChanger.setDisconnectModule("Stop by WeeklySchedule");
                 }
-            } else if (hangarChange.disconectTime > 0) {
-                hangarChange.reloadAfterDisconnect(true);
+            } else if (hangarChanger.disconectTime > 0) {
+                hangarChanger.reloadAfterDisconnect(true);
             }
         }
 
@@ -217,22 +221,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
 
     private void setProfile() {
         if (profileToUse != null && !main.hero.map.gg) {
-            if (main.config.PET != profileToUse.PET) {
-                main.config.PET = profileToUse.PET;
-                main.config.changed = true;
-            }
-            if (main.config.GENERAL != profileToUse.GENERAL) {
-                main.config.GENERAL = profileToUse.GENERAL;
-                main.config.changed = true;
-            }
-            if (main.config.GROUP != profileToUse.GROUP) {
-                main.config.GROUP = profileToUse.GROUP;
-                main.config.changed = true;
-            }
-            if (main.config.LOOT.SAB != profileToUse.SAB) {
-                main.config.LOOT.SAB = profileToUse.SAB;
-                main.config.changed = true;
-            }
+            main.setConfig(profileToUse.BOT_PROFILE);
         }
     }
 
@@ -270,7 +259,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
         if (stopBot) return;
 
         HashMap<String, MapData> avaibleMaps = new HashMap<>();
-        int map = 0;
+        int map;
 
         for (Map.Entry<String, MapData> oneMap : weeklyConfig.Maps_Changes.entrySet()) {
             if ((oneMap.getValue().time > 0 || oneMap.getValue().deaths > 0) && !oneMap.getKey().equals(main.hero.map.name)) {
@@ -285,7 +274,8 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
         for (Map.Entry<String, MapData> chosseMap : avaibleMaps.entrySet()) {
             if (i == mapChosse) {
                 if (chosseMap.getValue().time > 0) {
-                    waitingTimeNextMap = System.currentTimeMillis() + ((chosseMap.getValue().time + rand.nextInt(10)) * 60000);
+                    waitingTimeNextMap = System.currentTimeMillis() +
+                            (chosseMap.getValue().time + rand.nextInt(10)) * 60000L;
                 }
 
                 if (chosseMap.getValue().deaths > 0) {
@@ -295,7 +285,6 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
                 }
                 map = this.main.starManager.byName(chosseMap.getKey()).id;
                 this.main.config.GENERAL.WORKING_MAP = map;
-                this.profileToUse.GENERAL.WORKING_MAP = map;
                 return;
             }
             i++;

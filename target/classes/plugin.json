@@ -1,9 +1,9 @@
 {
   "name": "DmPlugin",
   "author": "Dm94Dani",
-  "version": "1.5.0",
-  "minVersion": "1.13.17 beta 92",
-  "supportedVersion": "1.13.17 beta 92",
+  "version": "1.5.0 beta 2",
+  "minVersion": "1.13.17 beta 87",
+  "supportedVersion": "1.13.17 beta 90",
   "features": [
     "com.deeme.modules.PaladiumModule",
     "com.deeme.modules.SentinelModule",

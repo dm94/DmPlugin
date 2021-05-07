@@ -1,5 +1,6 @@
 package com.deeme.tasks;
 
+import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 import com.deeme.types.gui.AdvertisingMessage;
 import com.github.manolo8.darkbot.Main;
@@ -30,6 +31,8 @@ import java.util.List;
 
     @Override
     public void install(Main main) {
+        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) return;
+        VerifierChecker.checkAuthenticity();
         this.main = main;
         this.statsManager = main.statsManager;
 
