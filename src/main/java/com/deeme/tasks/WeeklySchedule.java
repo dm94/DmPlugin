@@ -105,11 +105,11 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
         }
         if (main.hero.map.gg) return;
 
-        if (weeklyConfig.changeHangar && profileToUse != null && profileToUse.hangar != null && !main.config.GENERAL.CURRENT_MODULE.contains("Palladium Hangar")) {
+        if (weeklyConfig.changeHangar && profileToUse != null && profileToUse.hangarId != null && !main.config.GENERAL.CURRENT_MODULE.contains("Palladium Hangar")) {
             if (hangarChanger.activeHangar != null) {
-                if (!profileToUse.hangar.equals(hangarChanger.activeHangar)) {
+                if (!profileToUse.hangarId.equals(hangarChanger.activeHangar)) {
                     if (hangarChanger.isDisconnect()) {
-                        hangarChanger.disconnectChangeHangarAndReload(profileToUse.hangar);
+                        hangarChanger.disconnectChangeHangarAndReload(profileToUse.hangarId);
                     } else {
                         hangarChanger.setDisconnectModule("WeeklySchedule: To change hangar");
                     }

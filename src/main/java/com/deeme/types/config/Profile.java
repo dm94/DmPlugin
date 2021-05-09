@@ -13,7 +13,7 @@ public class Profile {
     @Option(value = "Hangar ID", description = "Hangar to use.")
     @Editor(JListField.class)
     @Options(ShipSupplier.class)
-    public Integer hangar = null;
+    public Integer hangarId = null;
 
     @Option(value = "Map Timetable", description = "If you want to use the map timetable to change the map every x time or death")
     public boolean useMapTimetable = false;
