@@ -1,7 +1,6 @@
 package com.deeme.behaviours;
 
 import com.deeme.types.VerifierChecker;
-import com.deeme.types.gui.AdvertisingMessage;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.types.Num;
 import com.github.manolo8.darkbot.config.types.Option;
@@ -30,21 +29,10 @@ public class Others implements Behaviour, Configurable<Others.LCConfig> {
         VerifierChecker.checkAuthenticity();
 
         this.main = main;
-
-        AdvertisingMessage.showAdverMessage();
-
-        if (!main.hero.map.gg) {
-            AdvertisingMessage.newUpdateMessage(main.featureRegistry.getFeatureDefinition(this),main.VERSION);
-        }
     }
 
     @Override
     public void tick() {
-        if (!AdvertisingMessage.hasAccepted) {
-            main.featureRegistry.getFeatureDefinition(this).setStatus(false);
-            main.pluginHandler.updatePluginsSync();
-            return;
-        }
         if (lcConfig.maxDeathsKO > 0 && main.backpage.sidStatus().contains("KO")) {
             main.config.GENERAL.SAFETY.MAX_DEATHS = lcConfig.maxDeathsKO;
         }

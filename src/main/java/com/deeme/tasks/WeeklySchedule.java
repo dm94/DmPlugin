@@ -6,7 +6,6 @@ import com.deeme.types.config.Hour;
 import com.deeme.types.config.MapData;
 import com.deeme.types.config.Profile;
 import com.deeme.types.config.RandomPauses;
-import com.deeme.types.gui.AdvertisingMessage;
 import com.deeme.types.gui.JDayChangeTable;
 import com.deeme.types.gui.ShipSupplier;
 import com.github.manolo8.darkbot.Main;
@@ -76,10 +75,6 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
         this.hangarChanger = new HangarChanger(main);
         this.lostConnection = main.guiManager.lostConnection;
         this.lastCheck = 0;
-        AdvertisingMessage.showAdverMessage();
-        if (!main.hero.map.gg) {
-            AdvertisingMessage.newUpdateMessage(main.featureRegistry.getFeatureDefinition(this), Main.VERSION);
-        }
         setup();
     }
     @Override
@@ -89,11 +84,6 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
 
     @Override
     public void tick() {
-        if (!AdvertisingMessage.hasAccepted) {
-            main.featureRegistry.getFeatureDefinition(this).setStatus(false);
-            main.pluginHandler.updatePluginsSync();
-            return;
-        }
         if (weeklyConfig.updateHangarList) {
             try {
                 main.backpage.hangarManager.updateHangarList();

@@ -2,7 +2,6 @@ package com.deeme.tasks;
 
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
-import com.deeme.types.gui.AdvertisingMessage;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.types.*;
 import com.github.manolo8.darkbot.config.types.suppliers.OptionList;
@@ -35,16 +34,11 @@ import java.util.List;
         VerifierChecker.checkAuthenticity();
         this.main = main;
         this.statsManager = main.statsManager;
-
-        AdvertisingMessage.showAdverMessage();
-        if (!main.hero.map.gg) {
-            AdvertisingMessage.newUpdateMessage(main.featureRegistry.getFeatureDefinition(this),main.VERSION);
-        }
     }
 
     @Override
     public void tick() {
-        if (this.nextSend <= System.currentTimeMillis() && AdvertisingMessage.hasAccepted){
+        if (this.nextSend <= System.currentTimeMillis()){
             nextSend = (60000*iftttConfig.intervalMessage) + System.currentTimeMillis();
             sendTrigger();
         }

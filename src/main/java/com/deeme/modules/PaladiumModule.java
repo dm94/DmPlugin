@@ -3,7 +3,6 @@ package com.deeme.modules;
 import com.deeme.types.SharedFunctions;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.HangarChanger;
-import com.deeme.types.gui.AdvertisingMessage;
 import com.deeme.types.gui.ShipSupplier;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.backpage.HangarManager;
@@ -14,7 +13,6 @@ import com.github.manolo8.darkbot.core.entities.BasePoint;
 import com.github.manolo8.darkbot.core.itf.Configurable;
 import com.github.manolo8.darkbot.core.itf.InstructionProvider;
 import com.github.manolo8.darkbot.core.itf.Module;
-import com.github.manolo8.darkbot.core.itf.Task;
 import com.github.manolo8.darkbot.core.manager.HeroManager;
 import com.github.manolo8.darkbot.core.manager.StatsManager;
 import com.github.manolo8.darkbot.core.objects.Map;
@@ -100,12 +98,6 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
         this.hangarManager = main.backpage.hangarManager;
         this.hangarChanger = new HangarChanger(main);
         currentStatus = State.WAIT;
-
-        AdvertisingMessage.showAdverMessage();
-
-        if (!main.hero.map.gg) {
-            AdvertisingMessage.newUpdateMessage(main.featureRegistry.getFeatureDefinition(this), Main.VERSION);
-        }
     }
 
     @Override
@@ -176,10 +168,6 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
 
     @Override
     public void tick() {
-        if (!AdvertisingMessage.hasAccepted) {
-            currentStatus = State.NO_ACCEPT;
-            return;
-        }
         tryUpdateHangarList();
 
         if (hangarChanger.activeHangar == null) {
