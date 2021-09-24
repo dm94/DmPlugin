@@ -2,26 +2,25 @@ package com.deeme.tasks;
 
 import com.deeme.types.VerifierChecker;
 import com.github.manolo8.darkbot.Main;
+import com.github.manolo8.darkbot.backpage.BackpageManager;
 import com.github.manolo8.darkbot.config.types.Num;
 import com.github.manolo8.darkbot.config.types.Option;
 import com.github.manolo8.darkbot.core.itf.Configurable;
 import com.github.manolo8.darkbot.core.itf.Task;
 import com.github.manolo8.darkbot.extensions.features.Feature;
+import com.github.manolo8.darkbot.utils.http.Method;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URLEncoder;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 
 @Feature(name = "Skylab", description = "Control the skylab")
 public class Skylab implements Task,Configurable<Skylab.SkylabConfig> {
-
     private long deliveryTime = 0;
     private Main main;
-    private SkylabConfig skylabConfig;
+    private BackpageManager backpageManager;
+    private SkylabConfig config;
     private long nextCheck = 0;
     private boolean waitingTransport = true;
 
@@ -30,17 +29,23 @@ public class Skylab implements Task,Configurable<Skylab.SkylabConfig> {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) return;
         VerifierChecker.checkAuthenticity();
         this.main = main;
+        this.backpageManager = main.backpage;
     }
 
     @Override
     public void tick() {
-        sendResources();
+        try {
+            sendResources();
+        } catch (Exception e) {
+            System.err.println("SKYLAB SENDER: Unable to send for values from BackPage (SID KO)");
+            e.printStackTrace();
+        }
     }
 
 
     @Override
     public void setConfig(SkylabConfig skylabConfig) {
-        this.skylabConfig = skylabConfig;
+        this.config = skylabConfig;
     }
 
     public static class SkylabConfig {
@@ -58,94 +63,75 @@ public class Skylab implements Task,Configurable<Skylab.SkylabConfig> {
     }
 
     private int sendResources() {
-        String sid = main.statsManager.sid;
-        String instance = main.statsManager.instance;
-        if (sid == null || instance == null || sid.isEmpty() || instance.isEmpty()) {
+        String sid = this.main.statsManager.sid;
+        String instance = this.main.statsManager.instance;
+        if (sid == null || instance == null || sid.isEmpty() || instance.isEmpty())
             return 1;
-        }
 
-        int cargo = main.statsManager.depositTotal - (main.statsManager.deposit+100);
-        if (cargo > 2000) { cargo = 2000; }
+        if (this.config.sepromToSend == 0 && this.config.promeriumToSend == 0)
+            return 1;
 
+        int cargo = this.main.statsManager.depositTotal - this.main.statsManager.deposit + 50;
         int seprom = 0;
         int promerium = 0;
 
-        if (skylabConfig.sepromToSend + skylabConfig.promeriumToSend > cargo) {
-            if (skylabConfig.sepromToSend < cargo) {
-                seprom = skylabConfig.sepromToSend;
-                cargo = cargo - skylabConfig.sepromToSend;
+        if (this.config.sepromToSend + this.config.promeriumToSend > cargo) {
+            if (this.config.sepromToSend < cargo) {
+                seprom = this.config.sepromToSend;
+                cargo -= this.config.sepromToSend;
             }
-            if (skylabConfig.promeriumToSend > 0) {
+            if (this.config.promeriumToSend > 0)
                 promerium = cargo;
-            }
         } else {
-            seprom = skylabConfig.sepromToSend;
-            promerium = skylabConfig.promeriumToSend;
+            seprom = this.config.sepromToSend;
+            promerium = this.config.promeriumToSend;
         }
-
-        if (seprom == 0 && promerium == 0) {
+        if (seprom == 0 && promerium == 0)
             return 1;
-        }
-
-        if (cargo > 100 && this.deliveryTime <= System.currentTimeMillis() && (this.nextCheck <= System.currentTimeMillis() || !waitingTransport)) {
+        if (cargo > 50 && this.deliveryTime <= System.currentTimeMillis() && (this.nextCheck <= System.currentTimeMillis() || !this.waitingTransport)) {
             try {
-                nextCheck = System.currentTimeMillis() + 300000;
-                if (waitingTransport) {
-                    waitingTransport = checkTransport(main.backpage.getConnection("indexInternal.es?action=internalSkylab").getInputStream());
-                    if (waitingTransport) {
-                        System.out.println("Waiting Transport");
+                this.nextCheck = System.currentTimeMillis() + 300000L; //wait 5 minutes to check again
+                if (this.waitingTransport) {
+                    this.waitingTransport = this.backpageManager.getConnection("indexInternal.es?action=internalSkylab", Method.GET).consumeInputStream(this::checkTransport);
+                    if (this.waitingTransport) {
+                        System.out.println("SKYLAB SENDER: Waiting Transport");
+                        return 1;
                     }
-                    return 1;
-                } else {
-                    String token = main.backpage.getReloadToken(main.backpage.getConnection("indexInternal.es?action=internalSkylab").getInputStream());
-                    if (token.isEmpty()) {
-                        System.out.println("No reload Token");
-                        this.deliveryTime = System.currentTimeMillis() + 60000;
-                    } else {
-                        HttpURLConnection conn = main.backpage.getConnection("indexInternal.es?action=internalSkylab",30000);
-                        LinkedHashMap<String,Object> params = new LinkedHashMap<>();
-                        params.put("reloadToken", token);
-                        params.put("action", "internalSkylab");
-                        params.put("subaction", "startTransport");
-                        params.put("mode", "normal");
-                        params.put("construction", "TRANSPORT_MODULE");
-                        params.put("count_prometium", "0");
-                        params.put("count_endurium", "0");
-                        params.put("count_terbium", "0");
-                        params.put("count_prometid", "0");
-                        params.put("count_duranium", "0");
-                        params.put("count_xenomit", "0");
-                        params.put("count_promerium", String.valueOf(promerium));
-                        params.put("count_seprom", String.valueOf(seprom));
-                        StringBuilder postData = new StringBuilder();
-                        for (java.util.Map.Entry<String,Object> param : params.entrySet()) {
-                            if (postData.length() != 0) postData.append('&');
-                            postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
-                            postData.append('=');
-                            postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
-                        }
-                        byte[] postDataBytes = postData.toString().getBytes();
-                        conn.setRequestMethod("POST");
-                        conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-                        conn.setRequestProperty("Content-Length", String.valueOf(postDataBytes.length));
-                        conn.setDoOutput(true);
-                        conn.getOutputStream().write(postDataBytes);
-                        conn.getResponseCode();
-                        conn.disconnect();
-
-                        System.out.println("Cargo sended");
-                        if (skylabConfig.premium) {
-                            deliveryTime = System.currentTimeMillis() + ((cargo/1000) * 3600000);
-                        } else {
-                            deliveryTime = System.currentTimeMillis() + ((cargo/500) * 3600000);
-                        }
-
-                        waitingTransport = true;
-                    }
-
-                    return cargo;
                 }
-            } catch (Exception e){
+                String token = this.backpageManager.getConnection("indexInternal.es", Method.GET)
+                        .setRawParam("action", "internalSkylab")
+                        .consumeInputStream(backpageManager::getReloadToken);
+
+                if (token.isEmpty()) {
+                    System.out.println("SKYLAB SENDER: No reload Token");
+                    this.deliveryTime = System.currentTimeMillis() + 60000L; // wait 1 minute to check for reload token again
+                } else {
+                    backpageManager.getConnection("indexInternal.es", Method.POST)
+                            .setRawParam("reloadToken", token)
+                            .setRawParam("action", "internalSkylab")
+                            .setRawParam("subaction", "startTransport")
+                            .setRawParam("mode", "normal")
+                            .setRawParam("construction", "TRANSPORT_MODULE")
+                            .setRawParam("count_prometium", "0")
+                            .setRawParam("count_endurium", "0")
+                            .setRawParam("count_terbium", "0")
+                            .setRawParam("count_prometid", "0")
+                            .setRawParam("count_duranium", "0")
+                            .setRawParam("count_xenomit", "0")
+                            .setRawParam("count_promerium", String.valueOf(promerium))
+                            .setRawParam("count_seprom", String.valueOf(seprom))
+                            .getContent();
+
+                    System.out.println("SKYLAB SENDER: Cargo Sent");
+                    if (this.config.premium) {
+                        this.deliveryTime = System.currentTimeMillis() + ((promerium + seprom) / 1000 * 3600000L);
+                    } else {
+                        this.deliveryTime = System.currentTimeMillis() + ((promerium + seprom) / 500 * 3600000L);
+                    }
+                    this.waitingTransport = true;
+                }
+                return cargo;
+            } catch (Exception e) {
                 System.out.println(e.getLocalizedMessage());
                 return 1;
             }
@@ -154,22 +140,16 @@ public class Skylab implements Task,Configurable<Skylab.SkylabConfig> {
     }
 
     private boolean checkTransport(InputStream input) {
-        try {
-            BufferedReader in = new BufferedReader(new InputStreamReader(input));
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(input))) {
             String currentLine;
-
-            while ((currentLine = in.readLine()) != null){
+            while ((currentLine = in.readLine()) != null) {
                 if (currentLine.contains("progress_timer_transportModule")) {
-                    in.close();
                     return true;
                 }
             }
-            in.close();
-        } catch (Exception e){
+        } catch (Exception e) {
             System.out.println(e.getLocalizedMessage());
         }
-
         return false;
     }
-
 }
