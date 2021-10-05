@@ -1,6 +1,6 @@
 package com.deeme.behaviours;
 
-import com.deeme.types.gui.AdvertisingMessage;
+import com.deeme.types.VerifierChecker;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.types.Num;
 import com.github.manolo8.darkbot.config.types.Option;
@@ -8,6 +8,8 @@ import com.github.manolo8.darkbot.core.entities.Portal;
 import com.github.manolo8.darkbot.core.itf.Behaviour;
 import com.github.manolo8.darkbot.core.itf.Configurable;
 import com.github.manolo8.darkbot.extensions.features.Feature;
+
+import java.util.Arrays;
 
 @Feature(name = "Others", description = "Many options")
 public class Others implements Behaviour, Configurable<Others.LCConfig> {
@@ -23,22 +25,14 @@ public class Others implements Behaviour, Configurable<Others.LCConfig> {
 
     @Override
     public void install(Main main) {
+        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) return;
+        VerifierChecker.checkAuthenticity();
+
         this.main = main;
-
-        AdvertisingMessage.showAdverMessage();
-
-        if (!main.hero.map.gg) {
-            AdvertisingMessage.newUpdateMessage(main.featureRegistry.getFeatureDefinition(this),main.VERSION);
-        }
     }
 
     @Override
     public void tick() {
-        if (!AdvertisingMessage.hasAccepted) {
-            main.featureRegistry.getFeatureDefinition(this).setStatus(false);
-            main.pluginHandler.updatePluginsSync();
-            return;
-        }
         if (lcConfig.maxDeathsKO > 0 && main.backpage.sidStatus().contains("KO")) {
             main.config.GENERAL.SAFETY.MAX_DEATHS = lcConfig.maxDeathsKO;
         }

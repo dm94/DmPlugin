@@ -16,6 +16,7 @@ import java.util.Random;
 import java.util.stream.Collectors;
 
 import static com.github.manolo8.darkbot.Main.API;
+
 public class ShipAttacker {
     protected Config config;
     protected HeroManager hero;

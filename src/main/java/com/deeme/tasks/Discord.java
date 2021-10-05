@@ -1,8 +1,7 @@
 package com.deeme.tasks;
 
-import com.deeme.types.VersionJson;
+import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
-import com.deeme.types.gui.AdvertisingMessage;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.types.Length;
 import com.github.manolo8.darkbot.config.types.Num;
@@ -17,6 +16,7 @@ import com.github.manolo8.darkbot.utils.Time;
 
 import javax.swing.*;
 import java.text.DecimalFormat;
+import java.util.Arrays;
 
 @Feature(name = "Discord", description = "Used to send statistics to discord")
   public class Discord implements Task,Configurable<Discord.DiscordConfig>, InstructionProvider {
@@ -29,7 +29,6 @@ import java.text.DecimalFormat;
     private double lastUridium = 0;
     private double lastCargo = 0;
     private boolean firstTick = true;
-    private VersionJson lastVersion = null;
 
     @Override
     public JComponent beforeConfig() {
@@ -43,13 +42,10 @@ import java.text.DecimalFormat;
 
     @Override
     public void install(Main main) {
+        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) return;
+        VerifierChecker.checkAuthenticity();
         this.main = main;
         this.statsManager = main.statsManager;
-
-        AdvertisingMessage.showAdverMessage();
-        if (!main.hero.map.gg) {
-            AdvertisingMessage.newUpdateMessage(main.featureRegistry.getFeatureDefinition(this),main.VERSION);
-        }
     }
 
     @Override
@@ -57,15 +53,10 @@ import java.text.DecimalFormat;
 
         if (firstTick) {
             firstTick = false;
-            lastVersion = Utils.updateLastVersion();
             sendInfoHelp();
         } else if (this.nextSend <= System.currentTimeMillis()) {
-            if (AdvertisingMessage.hasAccepted) {
-                sendStatistics();
-            } else {
-                sendAdverMessage();
-            }
-            nextSend = (60000*discordConfig.intervalMessage) + System.currentTimeMillis();
+            sendStatistics();
+            nextSend = (60000L * discordConfig.intervalMessage) + System.currentTimeMillis();
         }
     }
 
@@ -95,40 +86,9 @@ import java.text.DecimalFormat;
 
     }
 
-    private void sendAdverMessage() {
-        String help = "{";
-            help += " \"embeds\": [";
-                help += "{";
-                help += "\"color\": 16312092,";
-                help += "\"author\": {";
-                help += "\"name\": \"Dm94 Discord\",";
-                help += "\"url\": \"https://discord.gg/7sndXDR\",";
-                help += "\"title\": \"You have not accepted to open the link\",";
-                help += "\"description\": \"As you have not accepted to open the link you can not use this plugin. Reload the plugins and accept to open the link if you want to use it.\",";
-                help += "\"icon_url\": \"https://comunidadgzone.es/wp-content/uploads/2019/08/fenix-32.png\"";
-                help += "}";
-                help += "}";
-            help += "]";
-        help += "}";
-
-        if (discordConfig.discordWebHook == null || discordConfig.discordWebHook.isEmpty()) { return; }
-        Utils.sendMessage(help,discordConfig.discordWebHook);
-    }
-
     private void sendInfoHelp() {
         String help = "{";
             help += " \"embeds\": [";
-                if (lastVersion != null) {
-                    help += "{";
-                    help += "\"title\": \"Download the latest version\",";
-                    help += "\"color\": 8311585,";
-                    help += "\"url\": \""+lastVersion.getDownloadLink()+"\",";
-                    help += "\"description\": \"Changelog: "+lastVersion.getChangelog()+"\",";
-                    help += "\"footer\": {";
-                        help += "\"text\": \"Latest version: "+lastVersion.getVersionNumber()+"\"";
-                        help += "}";
-                    help += "},";
-                }
                 help += "{";
                 help += "\"color\": 4886754,";
                 help += "\"author\": {";

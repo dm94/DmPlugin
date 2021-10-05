@@ -1,5 +1,6 @@
 package com.deeme.modules;
 
+import com.deeme.types.VerifierChecker;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.PlayerTag;
 import com.github.manolo8.darkbot.config.types.Option;
@@ -18,6 +19,7 @@ import com.github.manolo8.darkbot.modules.MapModule;
 import com.github.manolo8.darkbot.modules.utils.NpcAttacker;
 import com.github.manolo8.darkbot.modules.utils.SafetyFinder;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -36,6 +38,8 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
 
     @Override
     public void install(Main main) {
+        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) return;
+        VerifierChecker.checkAuthenticity();
         this.main = main;
         this.ships = main.mapManager.entities.ships;
         this.npcs = main.mapManager.entities.npcs;

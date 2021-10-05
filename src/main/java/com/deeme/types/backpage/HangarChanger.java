@@ -2,23 +2,24 @@ package com.deeme.types.backpage;
 
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.backpage.HangarManager;
+import com.github.manolo8.darkbot.backpage.hangar.Hangar;
 import com.github.manolo8.darkbot.core.objects.Gui;
 import com.github.manolo8.darkbot.modules.DisconnectModule;
 import com.github.manolo8.darkbot.utils.Time;
 
 import static com.github.manolo8.darkbot.Main.API;
 
-public class HangarChange {
+public class HangarChanger {
 
-    public static transient String hangarActive = "";
-    private Main main;
-    private HangarManager hangarManager;
-    public static transient long disconectTime = 0;
-    private static transient long lastStopChangeHangar = 0;
-    private Gui lostConnection;
-    private Gui logout;
+    public Integer activeHangar = null;
+    private final Main main;
+    private final HangarManager hangarManager;
+    public long disconectTime = 0;
+    private long lastStopChangeHangar = 0;
+    private final Gui lostConnection;
+    private final Gui logout;
 
-    public HangarChange(Main m) {
+    public HangarChanger(Main m) {
         this.main = m;
         this.hangarManager = main.backpage.hangarManager;
         this.lostConnection = main.guiManager.lostConnection;
@@ -27,16 +28,22 @@ public class HangarChange {
 
     public void updateHangarActive() {
         try {
-            hangarManager.updateHangars();
-            hangarActive = hangarManager.getActiveHangar();
-        } catch (Exception e){}
+            hangarManager.updateHangarList();
+            activeHangar = hangarManager.getHangarList().getData().getRet().getHangars().stream()
+                    .filter(Hangar::isActive)
+                    .map(Hangar::getHangarId)
+                    .findFirst()
+                    .orElse(null);
+        } catch (Exception ignored) {
+            activeHangar = null;
+        }
     }
 
-    public void changeHangar(String hangar, boolean inBase) {
-        if ((inBase || lostConnection.visible) && hangar.length() > 0) {
+    public void changeHangar(Integer hangar, boolean inBase) {
+        if ((inBase || lostConnection.visible) && hangar != null) {
             System.out.println("Hangar change to: " + hangar);
-            if (changeHangar(hangar.trim())) {
-                hangarActive = "";
+            if (changeHangar(hangar)) {
+                activeHangar = null;
                 updateHangarActive();
             }
         }
@@ -66,13 +73,13 @@ public class HangarChange {
         main.hero.drive.checkMove();
     }
 
-    public void disconnectChangeHangarAndReload(String hangar) {
+    public void disconnectChangeHangarAndReload(Integer hangar) {
         if (lastStopChangeHangar < System.currentTimeMillis() - 60000 && main.backpage.sidStatus().contains("OK")) {
             if (disconectTime == 0 && !main.hero.locationInfo.isMoving()) {
                 lastStopChangeHangar = System.currentTimeMillis();
                 disconnect(true);
                 Time.sleep(40000);
-                changeHangar(hangar,false);
+                changeHangar(hangar, false);
                 Time.sleep(40000);
                 reloadAfterDisconnect(true);
             }
@@ -84,13 +91,13 @@ public class HangarChange {
     }
 
     public void setDisconnectModule(String reason) {
-        if (!isDisconnect() && !main.hero.map.gg && main.module.getClass().getCanonicalName() != DisconnectModule.class.getCanonicalName()) {
+        if (!isDisconnect() && !main.hero.map.gg && !(main.module instanceof DisconnectModule)) {
             System.out.println("Set Disconnect Module: "+ reason);
-            main.setModule(new DisconnectModule(null,reason));
+            main.setModule(new DisconnectModule(null, reason));
         }
     }
 
-    private boolean changeHangar(String hangarId) {
+    private boolean changeHangar(Integer hangarId) {
         String token = "";
         try {
             token = main.backpage.getReloadToken(main.backpage.getConnection("indexInternal.es?action=internalDock").getInputStream());
