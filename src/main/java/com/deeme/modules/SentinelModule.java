@@ -82,9 +82,11 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
         main.guiManager.pet.setEnabled(true);
         if (main.guiManager.group.group != null && main.guiManager.group.group.isValid()) {
             if (shipAround()) {
-                if (!isAttacking() && main.hero.target != sentinel) {
+                if (!isAttacking() && main.hero.getTarget() != sentinel) {
                     main.hero.roamMode();
-                    drive.move(sentinel);
+                    if (drive.getDistanceBetween(main.hero.locationInfo, sentinel.locationInfo) > 300) {
+                        drive.move(sentinel);
+                    }
                 } else {
                     drive.move(Location.of(attacker.target.locationInfo.now, rnd.nextInt(360), attacker.target.npcInfo.radius));
                 }
@@ -102,6 +104,7 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
                 .findAny().orElse(null)) == null) {
             return false;
         }
+
         main.hero.attackMode(attacker.target);
         attacker.doKillTargetTick();
 

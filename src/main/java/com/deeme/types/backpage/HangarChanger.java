@@ -39,6 +39,7 @@ public class HangarChanger {
     public void updateHangarActive() {
         try {
             hangarManager.updateHangarList();
+            hangarManager.updateCurrentHangar();
             activeHangar = hangarManager.getHangarList().getData().getRet().getHangars().stream()
                     .filter(Hangar::isActive)
                     .map(Hangar::getHangarId)

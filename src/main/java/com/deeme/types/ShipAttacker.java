@@ -45,7 +45,6 @@ public class ShipAttacker {
         this.defense = defense;
         this.safety = new SafetyFinder(main);
         this.rnd = new Random();
-
     }
 
     public void tick() {
@@ -113,7 +112,7 @@ public class ShipAttacker {
 
     void lockAndSetTarget() {
         if (hero.locationInfo.distance(target) > 700 || System.currentTimeMillis() - clickDelay < 400) return;
-        hero.setTarget(target);
+        hero.setLocalTarget(target);
         setRadiusAndClick(true);
         clickDelay = System.currentTimeMillis();
         fixTimes = 0;
@@ -136,8 +135,9 @@ public class ShipAttacker {
     }
 
     private boolean shouldSab() {
-        return defense.SAB.ENABLED && hero.health.shieldPercent() < defense.SAB.PERCENT
-                && target.health.shield > defense.SAB.NPC_AMOUNT;
+        return defense.SAB.ENABLED && hero.getHealth().shieldPercent() <= defense.SAB.PERCENT
+        && target.getHealth().getShield() > defense.SAB.NPC_AMOUNT
+        && (defense.SAB.CONDITION == null || defense.SAB.CONDITION.get(this.main.pluginAPI).toBoolean());
     }
 
     private char getAttackKey() {
@@ -215,6 +215,11 @@ public class ShipAttacker {
             if (ships.isEmpty()) return false;
 
             for (Ship ship : ships) {
+                if (defense.helpAttack && ship.isAttacking() && ship.getTarget() != null) {
+                    target = (Ship) ship.getTarget();
+                    return target != null;
+                }
+
                 target = SharedFunctions.getAttacker(ship,main,this.hero,target);
                 if (target != null) {
                     return target != null;

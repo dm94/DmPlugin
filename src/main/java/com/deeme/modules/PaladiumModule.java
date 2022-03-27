@@ -4,11 +4,13 @@ import com.deeme.types.SharedFunctions;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.HangarChanger;
 import com.deeme.types.gui.ShipSupplier;
+
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.backpage.HangarManager;
 import com.github.manolo8.darkbot.config.types.Editor;
 import com.github.manolo8.darkbot.config.types.Option;
 import com.github.manolo8.darkbot.config.types.Options;
+
 import com.github.manolo8.darkbot.core.entities.BasePoint;
 import com.github.manolo8.darkbot.core.itf.Configurable;
 import com.github.manolo8.darkbot.core.itf.InstructionProvider;
@@ -19,16 +21,20 @@ import com.github.manolo8.darkbot.core.objects.Map;
 import com.github.manolo8.darkbot.core.objects.OreTradeGui;
 import com.github.manolo8.darkbot.core.utils.Drive;
 import com.github.manolo8.darkbot.core.utils.Location;
+
 import com.github.manolo8.darkbot.extensions.features.Feature;
 import com.github.manolo8.darkbot.gui.tree.components.JListField;
+
 import com.github.manolo8.darkbot.modules.LootNCollectorModule;
 import com.github.manolo8.darkbot.modules.MapModule;
+
+import eu.darkbot.api.managers.OreAPI.Ore;
 
 import java.util.Arrays;
 import java.util.List;
 
 @Feature(name = "Palladium Hangar", description = "Collect palladium and change hangars to sell")
-public class PaladiumModule extends LootNCollectorModule implements Module, Configurable<PaladiumModule.PalladiumConfig>, InstructionProvider {
+public class PaladiumModule extends LootNCollectorModule implements Configurable<PaladiumModule.PalladiumConfig>, InstructionProvider {
 
     private HeroManager hero;
     private Drive drive;
@@ -51,6 +57,7 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
     private HangarChanger hangarChanger;
     private Integer hangarToChange = null;
     private int cargos = 0;
+    private boolean firstTick = true;
 
     @Override
     public String instructions() {
@@ -109,7 +116,7 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
 
     @Override
     public boolean canRefresh() {
-        return hero.target == null;
+        return !hero.hasTarget();
     }
 
     @Override
@@ -119,8 +126,12 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
                 currentStatus == State.DISCONNECTING || currentStatus == State.SWITCHING_HANGAR || currentStatus == State.RELOAD_GAME) {
             if (hangarChanger.activeHangar != null) {
                 if (hangarChanger.disconectTime == 0 && !hangarChanger.isDisconnect()) {
-                    currentStatus = State.DISCONNECTING;
-                    hangarChanger.disconnect(true);
+                    if (!canBeDisconnected()) {
+                        main.setRunning(true);
+                    } else {
+                        currentStatus = State.DISCONNECTING;
+                        hangarChanger.disconnect(true);
+                    }
                 } else if (hangarChanger.isDisconnect() && currentStatus == State.DISCONNECTING && hangarChanger.disconectTime <= System.currentTimeMillis() - 30000) {
                     currentStatus = State.SWITCHING_HANGAR;
                     hangarChanger.changeHangar(hangarToChange, false);
@@ -130,6 +141,7 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
                 }
             }
             if (!hangarChanger.isDisconnect() && currentStatus != State.DISCONNECTING && (hero.map == SELL_MAP || hero.map == ACTIVE_MAP)) {
+                this.firstTick = true;
                 main.setRunning(true);
                 hangarChanger.disconectTime = 0;
                 drive.stop(true);
@@ -160,7 +172,7 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
 
     @Override
     public String status() {
-        return  currentStatus.message + " | " + cargos + " | " + super.status();
+        return currentStatus.message + " | " + cargos + " | " + super.status();
     }
 
     @Override
@@ -178,7 +190,13 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
             return;
         }
 
-        if (statsManager.deposit >= statsManager.depositTotal) {
+        if (this.firstTick) {
+            this.firstTick = false;
+            return;
+        }
+
+        
+        if (statsManager.getCargo() >= statsManager.getMaxCargo() && this.main.guiManager.refinement.getAmount(Ore.PALLADIUM) > 15) {
             if (hangarChanger.activeHangar.equals(configPa.sellHangar)) {
                 this.currentStatus = State.HANGAR_AND_MAP_BASE;
                 sell();
@@ -190,7 +208,6 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
                 super.tick();
                 currentStatus = State.SEARCHING_PORTALS;
             }
-
         } else if (hangarChanger.activeHangar.equals(configPa.collectHangar) &&
                 !main.guiManager.lostConnection.visible && !main.guiManager.logout.visible) {
             if (hero.map.id == 93) {
@@ -210,7 +227,7 @@ public class PaladiumModule extends LootNCollectorModule implements Module, Conf
 
     private boolean canBeDisconnected() {
         if (configPa.goPortalChange) return super.canRefresh();
-        else return hero.health.hpPercent() >= 0.9 && SharedFunctions.getAttacker(hero, main, hero, null) == null;
+        return !hero.isAttacking() && SharedFunctions.getAttacker(hero, main, hero, null) == null;
     }
 
     private void sell() {
