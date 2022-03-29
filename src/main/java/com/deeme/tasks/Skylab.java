@@ -71,7 +71,7 @@ public class Skylab implements Task,Configurable<Skylab.SkylabConfig> {
         if (this.config.sepromToSend == 0 && this.config.promeriumToSend == 0)
             return 1;
 
-        int cargo = this.main.statsManager.depositTotal - this.main.statsManager.deposit + 50;
+        int cargo = this.main.statsManager.getMaxCargo() - this.main.statsManager.getCargo() + 50;
         int seprom = 0;
         int promerium = 0;
 

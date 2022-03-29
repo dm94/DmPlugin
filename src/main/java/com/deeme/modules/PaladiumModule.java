@@ -13,8 +13,6 @@ import com.github.manolo8.darkbot.config.types.Options;
 
 import com.github.manolo8.darkbot.core.entities.BasePoint;
 import com.github.manolo8.darkbot.core.itf.Configurable;
-import com.github.manolo8.darkbot.core.itf.InstructionProvider;
-import com.github.manolo8.darkbot.core.itf.Module;
 import com.github.manolo8.darkbot.core.manager.HeroManager;
 import com.github.manolo8.darkbot.core.manager.StatsManager;
 import com.github.manolo8.darkbot.core.objects.Map;
@@ -34,7 +32,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Feature(name = "Palladium Hangar", description = "Collect palladium and change hangars to sell")
-public class PaladiumModule extends LootNCollectorModule implements Configurable<PaladiumModule.PalladiumConfig>, InstructionProvider {
+public class PaladiumModule extends LootNCollectorModule implements Configurable<PaladiumModule.PalladiumConfig> {
 
     private HeroManager hero;
     private Drive drive;
@@ -59,15 +57,6 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
     private int cargos = 0;
     private boolean firstTick = true;
 
-    @Override
-    public String instructions() {
-        return "Palladium Hangar Module: \n"+
-                "It is necessary that a portal allows refresh to change the hangar \n" +
-                "Use in 5-2 a ship with less cargo than 5-3 \n" +
-                "Select palladium hangar and 5-2 hangar \n" +
-                "If the hangar list does not appear, click on \"Update HangarList\", close the config windows and it will be updated within minutes.";
-    }
-
     private enum State {
         WAIT ("Waiting"),
         HANGAR_AND_MAP_BASE ("Selling palladium"),
@@ -81,7 +70,8 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
         NO_ACCEPT("You haven't opened the link"),
         LOADING_HANGARS("Waiting - Loading hangars"),
         SEARCHING_PORTALS("Looking for a portal to change hangar"),
-        DEFENSE_MODE("DEFENSE MODE");
+        DEFENSE_MODE("DEFENSE MODE"),
+        WAITING_HANGARS("Waiting - For change hangars");
 
         private final String message;
 
@@ -121,9 +111,12 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
 
     @Override
     public void tickStopped() {
+        if (main.repairManager.isDead()) {
+            main.guiManager.tryRevive();
+        }
         tryUpdateHangarList();
         if (currentStatus == State.SWITCHING_PALA_HANGAR || currentStatus == State.DEPOSIT_FULL_SWITCHING_HANGAR ||
-                currentStatus == State.DISCONNECTING || currentStatus == State.SWITCHING_HANGAR || currentStatus == State.RELOAD_GAME) {
+                currentStatus == State.DISCONNECTING || currentStatus == State.SWITCHING_HANGAR || currentStatus == State.RELOAD_GAME ||  currentStatus == State.WAITING_HANGARS) {
             if (hangarChanger.activeHangar != null) {
                 if (hangarChanger.disconectTime == 0 && !hangarChanger.isDisconnect()) {
                     if (!canBeDisconnected()) {
@@ -131,16 +124,23 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
                     } else {
                         currentStatus = State.DISCONNECTING;
                         hangarChanger.disconnect(true);
+                        hangarChanger.disconectTime = System.currentTimeMillis();
                     }
                 } else if (hangarChanger.isDisconnect() && currentStatus == State.DISCONNECTING && hangarChanger.disconectTime <= System.currentTimeMillis() - 30000) {
                     currentStatus = State.SWITCHING_HANGAR;
                     hangarChanger.changeHangar(hangarToChange, false);
                 } else if (hangarChanger.disconectTime <= System.currentTimeMillis() - 40000 && currentStatus == State.SWITCHING_HANGAR) {
+                    currentStatus = State.WAITING_HANGARS;
+                } else if (hangarChanger.disconectTime <= System.currentTimeMillis() - 50000 && currentStatus == State.WAITING_HANGARS) {
                     currentStatus = State.RELOAD_GAME;
                     hangarChanger.reloadAfterDisconnect(true);
+                } else if (!hangarChanger.isDisconnect() && currentStatus == State.DISCONNECTING && hangarChanger.disconectTime <= System.currentTimeMillis() - 60000) {
+                    hangarChanger.disconnect(true);
+                    hangarChanger.disconectTime = System.currentTimeMillis();
                 }
-            }
+            } 
             if (!hangarChanger.isDisconnect() && currentStatus != State.DISCONNECTING && (hero.map == SELL_MAP || hero.map == ACTIVE_MAP)) {
+                currentStatus = State.WAIT;
                 this.firstTick = true;
                 main.setRunning(true);
                 hangarChanger.disconectTime = 0;
@@ -151,12 +151,14 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
 
 
     public static class PalladiumConfig {
-
         @Option(value = "Update HangarList", description = "Mark it to update the hangar list")
         public transient boolean updateHangarList = true;
 
         @Option(value = "Travel to portal before switch", description = "Go to the portal to change the hangar")
         public boolean goPortalChange = true;
+
+        @Option(value = "Sell when it is on map 5-2", description = "If your collection ship passes 5-2 and has palladium it will go to sell and then go to 5-3")
+        public boolean sellOnDie = true;
 
         @Option(value = "Collecting Hangar (5-3)", description = "Ship 5-3 Hangar ID")
         @Editor(JListField.class)
@@ -177,12 +179,16 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
 
     @Override
     public String stoppedStatus() {
-        return currentStatus.message;
+        return currentStatus.message + " | H:" + hangarChanger.activeHangar;
     }
 
     @Override
     public void tick() {
         tryUpdateHangarList();
+
+        if (State.RELOAD_GAME == currentStatus) {
+            this.firstTick = true;
+        }
 
         if (hangarChanger.activeHangar == null) {
             currentStatus = State.LOADING_HANGARS;
@@ -200,7 +206,7 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
             if (hangarChanger.activeHangar.equals(configPa.sellHangar)) {
                 this.currentStatus = State.HANGAR_AND_MAP_BASE;
                 sell();
-            } else if (canBeDisconnected()) {
+            } else if (configPa.sellHangar != null && hangarChanger.activeHangar != null && configPa.sellHangar != hangarChanger.activeHangar && canBeDisconnected()) {
                 this.currentStatus = State.DEPOSIT_FULL_SWITCHING_HANGAR;
                 hangarToChange = configPa.sellHangar;
                 main.setRunning(false);
@@ -210,15 +216,26 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
             }
         } else if (hangarChanger.activeHangar.equals(configPa.collectHangar) &&
                 !main.guiManager.lostConnection.visible && !main.guiManager.logout.visible) {
-            if (hero.map.id == 93) {
+            if (hero.map.id == this.ACTIVE_MAP.id) {
                 this.currentStatus = State.LOOT_PALADIUM;
                 super.tick();
             } else {
                 this.currentStatus = State.HANGAR_PALA_OTHER_MAP;
                 hero.roamMode();
-                this.main.setModule(new MapModule()).setTarget(this.main.starManager.byId(93));
+                if (configPa.sellOnDie && this.main.guiManager.refinement.getAmount(Ore.PALLADIUM) > 15) {
+                    sell();
+                } else {
+                    if (oreTrade.isVisible()) {
+                        oreTrade.show(false);
+                        if (oreTrade.isVisible()) {
+                            hangarChanger.reloadAfterDisconnect(true);
+                        }
+                    } else {
+                        this.main.setModule(new MapModule()).setTarget(this.ACTIVE_MAP);
+                    }
+                }
             }
-        } else if (configPa.collectHangar != null) {
+        } else if (configPa.collectHangar != null && hangarChanger.activeHangar != null && configPa.collectHangar != hangarChanger.activeHangar) {
             this.currentStatus = State.SWITCHING_PALA_HANGAR;
             hangarToChange = configPa.collectHangar;
             main.setRunning(false);
@@ -243,6 +260,8 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
                 oreTrade.sellOre(OreTradeGui.Ore.PALLADIUM);
                 sellClick = System.currentTimeMillis();
                 cargos++;
+                oreTrade.showTrade(false, base);
+                oreTrade.show(false);
             }
         });
     }
@@ -253,8 +272,9 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
 
         try {
             hangarManager.updateHangarList();
-            if (ShipSupplier.updateOwnedShips(hangarManager.getHangarList().getData().getRet().getShipInfos()))
+            if (ShipSupplier.updateOwnedShips(hangarManager.getHangarList().getData().getRet().getShipInfos())) {
                 configPa.updateHangarList = false;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
