@@ -50,16 +50,6 @@ public class HangarChanger {
         }
     }
 
-    public void changeHangar(Integer hangar, boolean inBase) {
-        if ((inBase || lostConnection.visible) && hangar != null) {
-            System.out.println("Hangar change to: " + hangar);
-            if (changeHangar(hangar)) {
-                activeHangar = null;
-                updateHangarActive();
-            }
-        }
-    }
-
     public void disconnect(boolean stop) {
         if (hero.map.id > 0 && (maps == null || maps.contains(hero.map))
                 && !logout.visible && !main.hero.locationInfo.isMoving()) {
@@ -107,6 +97,18 @@ public class HangarChanger {
             System.out.println("Set Disconnect Module: "+ reason);
             main.setModule(new DisconnectModule(null, reason));
         }
+    }
+
+    public boolean changeHangar(Integer hangar, boolean inBase) {
+        if ((inBase || lostConnection.visible) && hangar != null) {
+            System.out.println("Hangar change to: " + hangar);
+            if (changeHangar(hangar)) {
+                activeHangar = null;
+                updateHangarActive();
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean changeHangar(Integer hangarId) {

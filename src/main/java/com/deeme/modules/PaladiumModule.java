@@ -71,7 +71,8 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
         LOADING_HANGARS("Waiting - Loading hangars"),
         SEARCHING_PORTALS("Looking for a portal to change hangar"),
         DEFENSE_MODE("DEFENSE MODE"),
-        WAITING_HANGARS("Waiting - For change hangars");
+        WAITING_HANGARS("Waiting - For change hangars"),
+        HANGAR_ERROR("Error when changing hangar");
 
         private final String message;
 
@@ -113,10 +114,12 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
     public void tickStopped() {
         if (main.repairManager.isDead()) {
             main.guiManager.tryRevive();
+            hangarChanger.reloadAfterDisconnect(true);
         }
         tryUpdateHangarList();
         if (currentStatus == State.SWITCHING_PALA_HANGAR || currentStatus == State.DEPOSIT_FULL_SWITCHING_HANGAR ||
-                currentStatus == State.DISCONNECTING || currentStatus == State.SWITCHING_HANGAR || currentStatus == State.RELOAD_GAME ||  currentStatus == State.WAITING_HANGARS) {
+                currentStatus == State.DISCONNECTING || currentStatus == State.SWITCHING_HANGAR || currentStatus == State.RELOAD_GAME ||  
+                currentStatus == State.WAITING_HANGARS || currentStatus == State.HANGAR_ERROR) {
             if (hangarChanger.activeHangar != null) {
                 if (hangarChanger.disconectTime == 0 && !hangarChanger.isDisconnect()) {
                     if (!canBeDisconnected()) {
@@ -126,9 +129,13 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
                         hangarChanger.disconnect(true);
                         hangarChanger.disconectTime = System.currentTimeMillis();
                     }
-                } else if (hangarChanger.isDisconnect() && currentStatus == State.DISCONNECTING && hangarChanger.disconectTime <= System.currentTimeMillis() - 30000) {
-                    currentStatus = State.SWITCHING_HANGAR;
-                    hangarChanger.changeHangar(hangarToChange, false);
+                } else if (hangarChanger.isDisconnect() && (currentStatus == State.DISCONNECTING || currentStatus == State.HANGAR_ERROR) && hangarChanger.disconectTime <= System.currentTimeMillis() - 30000) {
+                    if (hangarChanger.changeHangar(hangarToChange, false)) {
+                        currentStatus = State.SWITCHING_HANGAR;
+                    } else {
+                        currentStatus = State.HANGAR_ERROR;
+                        hangarChanger.disconectTime = System.currentTimeMillis();
+                    }
                 } else if (hangarChanger.disconectTime <= System.currentTimeMillis() - 40000 && currentStatus == State.SWITCHING_HANGAR) {
                     currentStatus = State.WAITING_HANGARS;
                 } else if (hangarChanger.disconectTime <= System.currentTimeMillis() - 50000 && currentStatus == State.WAITING_HANGARS) {
@@ -179,7 +186,7 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
 
     @Override
     public String stoppedStatus() {
-        return currentStatus.message + " | H:" + hangarChanger.activeHangar;
+        return currentStatus.message;
     }
 
     @Override
