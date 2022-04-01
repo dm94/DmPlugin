@@ -114,7 +114,6 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
     public void tickStopped() {
         if (main.repairManager.isDead()) {
             main.guiManager.tryRevive();
-            hangarChanger.reloadAfterDisconnect(true);
         }
         tryUpdateHangarList();
         if (currentStatus == State.SWITCHING_PALA_HANGAR || currentStatus == State.DEPOSIT_FULL_SWITCHING_HANGAR ||
