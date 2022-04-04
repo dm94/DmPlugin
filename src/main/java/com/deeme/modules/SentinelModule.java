@@ -99,6 +99,7 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
     }
 
     private boolean isAttacking() {
+        if (this.npcs == null) { return false; }
         if ((attacker.target = this.npcs.stream()
                 .filter(s -> sentinel.isAttacking(s))
                 .findAny().orElse(null)) == null) {
@@ -112,6 +113,7 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
     }
 
     private boolean shipAround() {
+        if (this.ships == null) { return false; } 
         sentinel = this.ships.stream()
                 .filter(ship -> (sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(ship.id))))
                 .findAny().orElse(null);

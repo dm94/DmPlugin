@@ -232,7 +232,7 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
                     sell();
                 } else {
                     if (oreTrade.isVisible()) {
-                        oreTrade.show(false);
+                        oreTrade.showTrade(false, (BasePoint) null);
                         if (oreTrade.isVisible()) {
                             hangarChanger.reloadAfterDisconnect(true);
                         }
@@ -267,7 +267,6 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
                 sellClick = System.currentTimeMillis();
                 cargos++;
                 oreTrade.showTrade(false, base);
-                oreTrade.show(false);
             }
         });
     }
