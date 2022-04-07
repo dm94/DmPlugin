@@ -57,7 +57,7 @@ public class ShipAttacker {
             return;
         }
 
-        if (hero.locationInfo.distance(target) < 575 &&
+        if (hero.getLocationInfo().distance(target) < 575 &&
                 useKeyWithConditions(defense.ability)) {
             defense.ability.lastUse = System.currentTimeMillis();
         }
@@ -80,7 +80,7 @@ public class ShipAttacker {
         } else if (defense.movementMode == 3) {
             if (!drive.isMoving() || drive.isOutOfMap()) drive.moveRandom();
         } else if (defense.movementMode == 4) {
-            if (hero.health.hpPercent() <= config.GENERAL.SAFETY.REPAIR_HP_RANGE.min){
+            if (hero.getHealth().hpPercent() <= config.GENERAL.SAFETY.REPAIR_HP_RANGE.min){
                 safety.tick();
             } else {
                 vsMove();
@@ -98,7 +98,7 @@ public class ShipAttacker {
 
     private void setConfigToUse() {
         if (defense.useSecondConfig &&
-                hero.health.shieldPercent() < 0.1 && !shouldSab() && defense.healthToChange <= hero.health.shieldPercent()){
+                hero.getHealth().shieldPercent() < 0.1 && !shouldSab() && defense.healthToChange <= hero.getHealth().shieldPercent()){
             attackConfigLost = true;
         }
 
@@ -111,7 +111,7 @@ public class ShipAttacker {
     }
 
     void lockAndSetTarget() {
-        if (hero.locationInfo.distance(target) > 700 || System.currentTimeMillis() - clickDelay < 400) return;
+        if (hero.getLocationInfo().distance(target) > 700 || System.currentTimeMillis() - clickDelay < 400) return;
         hero.setLocalTarget(target);
         setRadiusAndClick(true);
         clickDelay = System.currentTimeMillis();
@@ -121,7 +121,7 @@ public class ShipAttacker {
 
     protected void tryAttackOrFix() {
         boolean bugged = hero.isAttacking(target)
-                && (!hero.isAiming(target) || (!target.health.hpDecreasedIn(3000) && hero.locationInfo.distance(target) < 650))
+                && (!hero.isAiming(target) || (!target.getHealth().hpDecreasedIn(3000) && hero.getLocationInfo().distance(target) < 650))
                 && System.currentTimeMillis() > (laserTime + fixTimes * 3000);
         boolean sabChanged = shouldSab() != sab;
         if ((sabChanged || !hero.isAttacking(target) || bugged) && System.currentTimeMillis() > laserTime) {
@@ -157,8 +157,8 @@ public class ShipAttacker {
     }
 
     private void vsMove() {
-        double distance = hero.locationInfo.now.distance(target.locationInfo.now);
-        Location targetLoc = target.locationInfo.destinationInTime(400);
+        double distance = hero.getLocationInfo().now.distance(target.getLocationInfo().now);
+        Location targetLoc = target.getLocationInfo().destinationInTime(400);
 
         if (distance > 700) {
             if (drive.canMove(target.getLocationInfo().now)) {
@@ -177,8 +177,8 @@ public class ShipAttacker {
         if (System.currentTimeMillis() - clickDelay < 1000) return false;
 
         if (extra.Key != null && extra.lastUse < System.currentTimeMillis() - (extra.countdown*1000)) {
-            if (hero.health.hpPercent() < extra.HEALTH_RANGE.max && hero.health.hpPercent() > extra.HEALTH_RANGE.min
-                    && target.health.hpPercent() < extra.HEALTH_ENEMY_RANGE.max && target.health.hpPercent() > extra.HEALTH_ENEMY_RANGE.min) {
+            if (hero.getHealth().hpPercent() < extra.HEALTH_RANGE.max && hero.getHealth().hpPercent() > extra.HEALTH_RANGE.min
+                    && target.getHealth().hpPercent() < extra.HEALTH_ENEMY_RANGE.max && target.getHealth().hpPercent() > extra.HEALTH_ENEMY_RANGE.min) {
                 API.keyboardClick(extra.Key);
                 clickDelay = System.currentTimeMillis();
                 return true;
@@ -212,18 +212,25 @@ public class ShipAttacker {
                             || (defense.helpGroup && inGroupAttacked(s.id)))
                     .collect(Collectors.toList());
 
-            if (ships.isEmpty()) return false;
+            if (!ships.isEmpty()) {
+                for (Ship ship : ships) {
+                    if (defense.helpAttack && ship.isAttacking() && ship.getTarget() != null) {
+                        target = (Ship) ship.getTarget();
+                        return target != null;
+                    }
 
-            for (Ship ship : ships) {
-                if (defense.helpAttack && ship.isAttacking() && ship.getTarget() != null) {
-                    target = (Ship) ship.getTarget();
-                    return target != null;
+                    target = SharedFunctions.getAttacker(ship,main,this.hero,target);
+                    if (target != null) {
+                        return target != null;
+                    }
                 }
+            }
+        }
 
-                target = SharedFunctions.getAttacker(ship,main,this.hero,target);
-                if (target != null) {
-                    return target != null;
-                }
+        if (target == null && defense.goToGroup) {
+            GroupMember member = getMemberGroupAttacked();
+            if (member != null) {
+                drive.moveTo(member.getLocation());
             }
         }
 
@@ -235,15 +242,29 @@ public class ShipAttacker {
     private boolean inGroupAttacked(int id) {
         if (main.guiManager.group == null) return false;
 
-        if (main.guiManager.group.group.isValid()) {
+        if (main.guiManager.group.hasGroup()) {
             for (GroupMember member : main.guiManager.group.group.members) {
-                if (member.id == id && member.isAttacked) {
+                if (member.id == id && member.isAttacked()) {
                     return true;
                 }
             }
         }
         return false;
     }
+
+    private GroupMember getMemberGroupAttacked() {
+        if (main.guiManager.group == null) return null;
+
+        if (main.guiManager.group.hasGroup()) {
+            for (GroupMember member : main.guiManager.group.group.members) {
+                if (member.getMapId() == hero.getMap().getId() && member.isAttacked()) {
+                    return member;
+                }
+            }
+        }
+        return null;
+    }
+
 
     private void resetDefenseData() {
         attackConfigLost = false;

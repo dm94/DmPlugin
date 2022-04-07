@@ -20,6 +20,9 @@ public class Defense {
     @Option(value = "Help Group Members", description = "Help group members defend themselves")
     public boolean helpGroup = true;
 
+    @Option(value = "Go to Group Members", description = "If any member is attacked on your map it goes to the member.")
+    public boolean goToGroup = false;
+
     @Option(value = "Help everyone", description = "Help all those who are not enemies")
     public boolean helpEveryone = true;
 

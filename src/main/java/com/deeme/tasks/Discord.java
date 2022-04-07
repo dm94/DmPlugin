@@ -98,14 +98,6 @@ import java.util.Arrays;
                     help += "}";
                 help += "}";
                 help += ",{";
-                help += "\"color\": 16312092,";
-                help += "\"author\": {";
-                    help += "\"name\": \"Dm94 Discord\",";
-                    help += "\"url\": \"https://discord.gg/7sndXDR\",";
-                    help += "\"icon_url\": \"https://comunidadgzone.es/wp-content/uploads/2019/08/fenix-32.png\"";
-                    help += "}";
-                help += "}";
-                help += ",{";
                 help += "\"title\": \"WebHook Color Info\",";
                 help += "\"color\": 4886754,";
                 help += " \"description\": \"The color of the webhook changes depending on the uridium/hour\",";
@@ -145,7 +137,7 @@ import java.util.Arrays;
         }
         int color = 8311585;
 
-        if (lastUridium == statsManager.uridium || statsManager.earnedUridium() < 1000) {
+        if (lastUridium == statsManager.getTotalUridium() || statsManager.earnedUridium() < 1000) {
             color = 13632027;
         } else if (statsManager.earnedUridium() < 5000) {
             color = 16098851;
@@ -157,8 +149,7 @@ import java.util.Arrays;
         best += " \"embeds\": [";
         best += "{";
         best += "\"title\": \""+discordConfig.discordName+"\",";
-        best += " \"description\": \""+"Total Uridium: " + formatter.format(statsManager.uridium) + " | Total Credits: " + formatter.format(statsManager.credits)+"\",";
-        best += "\"url\": \"https://discord.gg/7sndXDR\",";
+        best += " \"description\": \""+"Total Uridium: " + formatter.format(statsManager.getTotalUridium()) + " | Total Credits: " + formatter.format(statsManager.getTotalCredits())+"\",";
         best += "\"color\": "+color+",";
         best += "\"footer\": {";
         best += "\"text\": \""+(main.isRunning() ? "RUNNING " : "WAITING ") + Time.toString(statsManager.runningTime()) + " | " +
@@ -168,17 +159,17 @@ import java.util.Arrays;
         best += "\"author\": {";
         best += "\"name\": \"Dm94 | DmPlugin\",";
         best += "\"url\": \"https://github.com/dm94/\",";
-        best += "\"icon_url\": \"https://comunidadgzone.es/wp-content/uploads/2019/08/fenix-32.png\"";
+        best += "\"icon_url\": \"https://raw.githubusercontent.com/dm94/dm94/master/FENIX-dm94dani.png\"";
         best += "},";
         best += "\"fields\": [";
         best += "{" +
                 " \"name\": \"Map\"," +
-                " \"value\": \""+main.hero.map.name+"\"," +
+                " \"value\": \""+main.hero.getMap().getName()+"\"," +
                 " \"inline\": true" +
                 "},";
         best += "{" +
                 " \"name\": \"Group size\",";
-        if (main.guiManager.group.group.isValid()) {
+        if (main.guiManager.group.hasGroup()) {
             best += " \"value\": \"" + main.guiManager.group.group.size + "\",";
         } else {
             best += " \"value\": \" No Group \",";
@@ -207,7 +198,7 @@ import java.util.Arrays;
                 "},";
         best += "{" +
                 " \"name\": \"cargo\"," +
-                " \"value\": \""+main.statsManager.deposit+"/" + main.statsManager.depositTotal+"\"," +
+                " \"value\": \""+main.statsManager.getCargo()+"/" + main.statsManager.getMaxCargo()+"\"," +
                 " \"inline\": true" +
                 "},";
         best += "{" +
@@ -224,33 +215,33 @@ import java.util.Arrays;
             best += "\"author\": {";
             best += "\"name\": \"Dm94 | DmPlugin\",";
             best += "\"url\": \"https://github.com/dm94/\",";
-            best += "\"icon_url\": \"https://comunidadgzone.es/wp-content/uploads/2019/08/fenix-32.png\"";
+            best += "\"icon_url\": \"https://raw.githubusercontent.com/dm94/dm94/master/FENIX-dm94dani.png\"";
             best += "},";
             best += "\"color\": 4886754,";
             best += "\"fields\": [";
             best += "{" +
                     " \"name\": \"Credits\"," +
-                    " \"value\": \""+formatter.format(statsManager.earnedCredits)+"\"," +
+                    " \"value\": \""+formatter.format(statsManager.getEarnedCredits())+"\"," +
                     " \"inline\": true" +
                     "},";
             best += "{" +
                     " \"name\": \"Uridium\"," +
-                    " \"value\": \""+formatter.format(statsManager.earnedUridium)+"\"," +
+                    " \"value\": \""+formatter.format(statsManager.getEarnedUridium())+"\"," +
                     " \"inline\": true" +
                     "},";
             best += "{" +
                     " \"name\": \"Experiencie\"," +
-                    " \"value\": \""+formatter.format(statsManager.earnedExperience)+"\"," +
+                    " \"value\": \""+formatter.format(statsManager.getEarnedExperience())+"\"," +
                     " \"inline\": true" +
                     "},";
             best += "{" +
                     " \"name\": \"Honor\"," +
-                    " \"value\": \""+formatter.format(statsManager.earnedHonor)+"\"," +
+                    " \"value\": \""+formatter.format(statsManager.getEarnedHonor())+"\"," +
                     " \"inline\": true" +
                     "},";
             best += "{" +
                     " \"name\": \"Rank\"," +
-                    " \"value\": \"±"+formatter.format((statsManager.earnedHonor/100) + (statsManager.earnedExperience/100000))+"\"," +
+                    " \"value\": \"±"+formatter.format((statsManager.getEarnedHonor()/100) + (statsManager.getTotalExperience()/100000))+"\"," +
                     " \"inline\": true" +
                     "}";
             best += "]";
@@ -265,7 +256,7 @@ import java.util.Arrays;
             best += "\"description\": \"[SID Login]("+url+")\"";
             best += "}";
         }
-        if (lastUridium == statsManager.uridium && lastCargo == main.statsManager.deposit) {
+        if (lastUridium == statsManager.getTotalUridium() && lastCargo == main.statsManager.getCargo()) {
             best += ",{";
             best += "\"title\": \"Bot stopped\",";
             best += "\"description\": \"@here Bot stopped\"";
@@ -281,8 +272,8 @@ import java.util.Arrays;
         best += "]";
         best += "}";
 
-        lastCargo = main.statsManager.deposit;
-        lastUridium = statsManager.uridium;
+        lastCargo = main.statsManager.getCargo();
+        lastUridium = statsManager.getTotalUridium();
 
         if (discordConfig.discordWebHook == null || discordConfig.discordWebHook.isEmpty()) {
             return;

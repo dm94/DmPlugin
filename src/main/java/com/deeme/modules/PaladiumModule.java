@@ -216,12 +216,12 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
                 this.currentStatus = State.DEPOSIT_FULL_SWITCHING_HANGAR;
                 hangarToChange = configPa.sellHangar;
                 main.setRunning(false);
-            } else if (!main.guiManager.lostConnection.visible && !main.guiManager.logout.visible) {
+            } else if (!main.guiManager.lostConnection.isVisible() && !main.guiManager.logout.isVisible()) {
                 super.tick();
                 currentStatus = State.SEARCHING_PORTALS;
             }
         } else if (hangarChanger.activeHangar.equals(configPa.collectHangar) &&
-                !main.guiManager.lostConnection.visible && !main.guiManager.logout.visible) {
+                !main.guiManager.lostConnection.isVisible() && !main.guiManager.logout.isVisible()) {
             if (hero.map.id == this.ACTIVE_MAP.id) {
                 this.currentStatus = State.LOOT_PALADIUM;
                 super.tick();
@@ -256,11 +256,11 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
     private void sell() {
         pet.setEnabled(false);
         if (hero.map != SELL_MAP) main.setModule(new MapModule()).setTarget(SELL_MAP);
-        else bases.stream().filter(b -> b.locationInfo.isLoaded()).findFirst().ifPresent(base -> {
-            if (drive.movingTo().distance(base.locationInfo.now) > 200) { // Move to base
+        else bases.stream().filter(b -> b.getLocationInfo().isLoaded()).findFirst().ifPresent(base -> {
+            if (drive.movingTo().distance(base.getLocationInfo()) > 200) { // Move to base
                 double angle = Math.random() * Math.PI * 2;
                 double distance = 100 + Math.random() * 100;
-                drive.move(Location.of(base.locationInfo.now, angle, distance));
+                drive.move(Location.of(base.getLocationInfo().now, angle, distance));
             } else if (!hero.locationInfo.isMoving() && oreTrade.showTrade(true, base)
                     && System.currentTimeMillis() - 60_000 > sellClick) {
                 oreTrade.sellOre(OreTradeGui.Ore.PALLADIUM);

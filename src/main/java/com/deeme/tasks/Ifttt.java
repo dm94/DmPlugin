@@ -111,13 +111,13 @@ import java.util.List;
 
         switch (type) {
             case "totalUridium":
-                return formatter.format(statsManager.uridium);
+                return formatter.format(statsManager.getTotalUridium());
             case "totalCredits":
-                return formatter.format(statsManager.credits);
+                return formatter.format(statsManager.getTotalCredits());
             case "totalExp":
-                return formatter.format(statsManager.experience);
+                return formatter.format(statsManager.getTotalExperience());
             case "totalHonor":
-                return formatter.format(statsManager.honor);
+                return formatter.format(statsManager.getTotalHonor());
             case "runningTime":
                 return Time.toString(statsManager.runningTime());
             case "ping":
@@ -129,7 +129,7 @@ import java.util.List;
                 if (sid == null || sid.isEmpty() || instance == null || instance.isEmpty()) return "No link";
                 return instance + "?dosid=" + sid;
             case "map":
-                return main.hero.map.name;
+                return main.hero.getMap().getName();
             case "uri/h":
                 return formatter.format(statsManager.earnedUridium());
             case "cre/h":
@@ -141,13 +141,13 @@ import java.util.List;
             case "deaths":
                 return String.valueOf(main.guiManager.deaths);
             case "sessionUridium":
-                return formatter.format(statsManager.earnedUridium);
+                return formatter.format(statsManager.getEarnedUridium());
             case "sessionCredits":
-                return formatter.format(statsManager.earnedCredits);
+                return formatter.format(statsManager.getEarnedCredits());
             case "sessionExp":
-                return formatter.format(statsManager.earnedExperience);
+                return formatter.format(statsManager.getEarnedExperience());
             case "sessionHonor":
-                return formatter.format(statsManager.earnedHonor);
+                return formatter.format(statsManager.getEarnedHonor());
         }
 
         return "";
