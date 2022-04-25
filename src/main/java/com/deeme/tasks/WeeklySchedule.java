@@ -53,7 +53,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
 
     @Override
     public String instructions() {
-        return "You have two different profiles. \n" +
+        return "You have four different profiles. \n" +
                 "Each profile can choose which module, map or if it uses the maptimetable \n" +
                 "The MapTimetable is so that with the same profile the ship changes of map every x time or deaths in that map. \n" +
                 "Example: \n" +

@@ -72,7 +72,10 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
         SEARCHING_PORTALS("Looking for a portal to change hangar"),
         DEFENSE_MODE("DEFENSE MODE"),
         WAITING_HANGARS("Waiting - For change hangars"),
-        HANGAR_ERROR("Error when changing hangar");
+        HANGAR_ERROR("Error when changing hangar"),
+        HANGAR_ERROR_2("Error when changing hangar - Attempt 2"),
+        SID_KO("Error - SID KO - Reconnecting the game"),
+        NO_HANGAR_ERROR("Error - Hangars not configured");;
 
         private final String message;
 
@@ -116,9 +119,20 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
             main.guiManager.tryRevive();
         }
         tryUpdateHangarList();
+
+        if (configPa.collectHangar == null || configPa.sellHangar == null) {
+            currentStatus = State.NO_HANGAR_ERROR;
+            return;
+        }
+
+        if (currentStatus == State.SID_KO) {
+            hangarChanger.reloadAfterDisconnect(true);
+            return;
+        }
+
         if (currentStatus == State.SWITCHING_PALA_HANGAR || currentStatus == State.DEPOSIT_FULL_SWITCHING_HANGAR ||
                 currentStatus == State.DISCONNECTING || currentStatus == State.SWITCHING_HANGAR || currentStatus == State.RELOAD_GAME ||  
-                currentStatus == State.WAITING_HANGARS || currentStatus == State.HANGAR_ERROR) {
+                currentStatus == State.WAITING_HANGARS || currentStatus == State.HANGAR_ERROR || currentStatus == State.HANGAR_ERROR_2) {
             if (hangarChanger.activeHangar != null) {
                 if (hangarChanger.disconectTime == 0 && !hangarChanger.isDisconnect()) {
                     if (!canBeDisconnected()) {
@@ -128,11 +142,19 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
                         hangarChanger.disconnect(true);
                         hangarChanger.disconectTime = System.currentTimeMillis();
                     }
-                } else if (hangarChanger.isDisconnect() && (currentStatus == State.DISCONNECTING || currentStatus == State.HANGAR_ERROR) && hangarChanger.disconectTime <= System.currentTimeMillis() - 30000) {
+                } else if (hangarChanger.isDisconnect() && 
+                            (currentStatus == State.DISCONNECTING || currentStatus == State.HANGAR_ERROR || currentStatus == State.HANGAR_ERROR_2) && 
+                            hangarChanger.disconectTime <= System.currentTimeMillis() - 30000) {
                     if (hangarChanger.changeHangar(hangarToChange, false)) {
                         currentStatus = State.SWITCHING_HANGAR;
                     } else {
-                        currentStatus = State.HANGAR_ERROR;
+                        if (currentStatus == State.DISCONNECTING) {
+                            currentStatus = State.HANGAR_ERROR;
+                        } else if (currentStatus == State.HANGAR_ERROR) {
+                            currentStatus = State.HANGAR_ERROR_2;
+                        } else if (currentStatus == State.HANGAR_ERROR_2) {
+                            currentStatus = State.SID_KO;
+                        }
                         hangarChanger.disconectTime = System.currentTimeMillis();
                     }
                 } else if (hangarChanger.disconectTime <= System.currentTimeMillis() - 40000 && currentStatus == State.SWITCHING_HANGAR) {
