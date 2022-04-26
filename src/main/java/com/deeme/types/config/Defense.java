@@ -37,8 +37,8 @@ public class Defense {
     @Option("Ammo")
     public Character ammoKey;
 
-    @Option("RSB-75")
-    public Character RSB;
+    @Option(value = "RSB-75", description = "Use RSB-75")
+    public boolean useRSB = false;
 
     public @Option(key = "config.loot.sab") Config.Loot.Sab SAB = new Config.Loot.Sab();
 

@@ -2,27 +2,40 @@ package com.deeme.types;
 
 import com.deeme.types.config.Defense;
 import com.deeme.types.config.ExtraKeyConditions;
+import com.deeme.types.DefenseLaserSupplier;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.Config;
+import com.github.manolo8.darkbot.core.api.DarkBoatAdapter;
 import com.github.manolo8.darkbot.core.entities.Ship;
+import com.github.manolo8.darkbot.core.manager.EffectManager;
 import com.github.manolo8.darkbot.core.manager.HeroManager;
+import com.github.manolo8.darkbot.core.objects.facades.SettingsProxy;
 import com.github.manolo8.darkbot.core.objects.group.GroupMember;
 import com.github.manolo8.darkbot.core.utils.Drive;
 import com.github.manolo8.darkbot.core.utils.Location;
 import com.github.manolo8.darkbot.modules.utils.SafetyFinder;
+import eu.darkbot.api.game.items.ItemFlag;
+import eu.darkbot.api.game.items.SelectableItem;
+import eu.darkbot.api.game.items.SelectableItem.Laser;
+import eu.darkbot.api.game.items.SelectableItem.Special;
+import eu.darkbot.api.managers.HeroItemsAPI;
 
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
+import static com.github.manolo8.darkbot.core.objects.facades.SettingsProxy.KeyBind.*;
 import static com.github.manolo8.darkbot.Main.API;
 
 public class ShipAttacker {
+    protected final SettingsProxy keybinds;
+    private final HeroItemsAPI items;
     protected Config config;
     protected HeroManager hero;
     protected Drive drive;
     private Main main;
     private SafetyFinder safety;
+    private DefenseLaserSupplier laserSupplier;
 
     public Ship target;
 
@@ -31,11 +44,13 @@ public class ShipAttacker {
     protected long clickDelay;
     protected boolean sab;
     private Defense defense;
-    private Character currentAmmo;
     private boolean attackConfigLost = false;
     private Random rnd;
 
-    private long lastRsbUse = 0;
+    protected boolean firstAttack;
+    protected long isAttacking;
+    protected int fixedTimes;
+    protected Character lastShot;
 
     public ShipAttacker(Main main, Defense defense) {
         this.main = main;
@@ -45,6 +60,10 @@ public class ShipAttacker {
         this.defense = defense;
         this.safety = new SafetyFinder(main);
         this.rnd = new Random();
+        this.keybinds = main.facadeManager.settings;
+        this.items = main.pluginAPI.getAPI(HeroItemsAPI.class);
+
+        this.laserSupplier = new DefenseLaserSupplier(main, items, defense);
     }
 
     public void tick() {
@@ -58,19 +77,18 @@ public class ShipAttacker {
         }
 
         if (hero.getLocationInfo().distance(target) < 575 &&
-                useKeyWithConditions(defense.ability)) {
+                useKeyWithConditions(defense.ability, null)) {
             defense.ability.lastUse = System.currentTimeMillis();
         }
 
-        if (useKeyWithConditions(defense.ISH)) defense.ISH.lastUse = System.currentTimeMillis();
+        if (useKeyWithConditions(defense.ISH, Special.ISH_01)) defense.ISH.lastUse = System.currentTimeMillis();
 
-        if (useKeyWithConditions(defense.SMB)) defense.SMB.lastUse = System.currentTimeMillis();
+        if (useKeyWithConditions(defense.SMB, Special.SMB_01)) defense.SMB.lastUse = System.currentTimeMillis();
 
-        if (useKeyWithConditions(defense.PEM)) defense.PEM.lastUse = System.currentTimeMillis();
+        if (useKeyWithConditions(defense.PEM, Special.EMP_01)) defense.PEM.lastUse = System.currentTimeMillis();
 
-        if (useKeyWithConditions(defense.otherKey)) defense.otherKey.lastUse = System.currentTimeMillis();
+        if (useKeyWithConditions(defense.otherKey, null)) defense.otherKey.lastUse = System.currentTimeMillis();
 
-        mixerRSB();
         tryAttackOrFix();
 
         if (defense.movementMode == 1) {
@@ -98,7 +116,7 @@ public class ShipAttacker {
 
     private void setConfigToUse() {
         if (defense.useSecondConfig &&
-                hero.getHealth().shieldPercent() < 0.1 && !shouldSab() && defense.healthToChange <= hero.getHealth().shieldPercent()){
+                hero.getHealth().shieldPercent() < 0.1 && defense.healthToChange <= hero.getHealth().shieldPercent()){
             attackConfigLost = true;
         }
 
@@ -111,58 +129,68 @@ public class ShipAttacker {
     }
 
     void lockAndSetTarget() {
-        if (hero.getLocationInfo().distance(target) > 700 || System.currentTimeMillis() - clickDelay < 400) return;
-        hero.setLocalTarget(target);
-        setRadiusAndClick(true);
-        clickDelay = System.currentTimeMillis();
-        fixTimes = 0;
-        laserTime = clickDelay + 50;
-    }
+        if (hero.getLocalTarget() == target && firstAttack) {
+            // On npc death, lock goes away before the npc does, sometimes the bot would try to lock the dead npc.
+            // This adds a bit of delay when any cause makes you lose the lock, until you try to re-lock.
+            clickDelay = System.currentTimeMillis();
+        }
 
-    protected void tryAttackOrFix() {
-        boolean bugged = hero.isAttacking(target)
-                && (!hero.isAiming(target) || (!target.getHealth().hpDecreasedIn(3000) && hero.getLocationInfo().distance(target) < 650))
-                && System.currentTimeMillis() > (laserTime + fixTimes * 3000);
-        boolean sabChanged = shouldSab() != sab;
-        if ((sabChanged || !hero.isAttacking(target) || bugged) && System.currentTimeMillis() > laserTime) {
-            laserTime = System.currentTimeMillis() + 750;
-            if (!bugged || sabChanged) changeAmmo(getAttackKey());
-            else {
-                setRadiusAndClick(false);
-                fixTimes++;
-            }
+        fixedTimes = 0;
+        laserTime = 0;
+        firstAttack = false;
+        if (hero.locationInfo.distance(target) < 800 && System.currentTimeMillis() - clickDelay > 500) {
+            hero.setLocalTarget(target);
+            target.trySelect(false);
+            clickDelay = System.currentTimeMillis();
         }
     }
 
-    private boolean shouldSab() {
-        return defense.SAB.ENABLED && hero.getHealth().shieldPercent() <= defense.SAB.PERCENT
-        && target.getHealth().getShield() > defense.SAB.NPC_AMOUNT
-        && (defense.SAB.CONDITION == null || defense.SAB.CONDITION.get(this.main.pluginAPI).toBoolean());
+    protected void tryAttackOrFix() {
+        if (System.currentTimeMillis() < laserTime) return;
+
+        if (!firstAttack) {
+            firstAttack = true;
+            sendAttack(1500, 5000, true);
+        } else if (lastShot != getAttackKey()) {
+            sendAttack(250, 5000, true);
+        } else if (!hero.isAttacking(target) || !hero.isAiming(target)) {
+            sendAttack(1500, 5000, false);
+        } else if (target.health.hpDecreasedIn(1500) || target.hasEffect(EffectManager.Effect.NPC_ISH)
+                || hero.locationInfo.distance(target) > 700) {
+            isAttacking = Math.max(isAttacking, System.currentTimeMillis() + 2000);
+        } else if (System.currentTimeMillis() > isAttacking) {
+            sendAttack(1500, ++fixedTimes * 3000L, false);
+        }
     }
 
-    private char getAttackKey() {
-        if (sab = shouldSab()) return defense.SAB.KEY;
+    private void sendAttack(long minWait, long bugTime, boolean normal) {
+        laserTime = System.currentTimeMillis() + minWait;
+        isAttacking = Math.max(isAttacking, laserTime + bugTime);
+        if (normal) API.keyboardClick(lastShot = getAttackKey());
+        else if (API instanceof DarkBoatAdapter) API.keyboardClick(keybinds.getCharCode(ATTACK_LASER));
+        else target.trySelect(true);
+    }
+
+
+    private Character getAttackKey() {
+        Laser laser = laserSupplier.get();
+
+        if (laser != null) {
+            Character key = main.facadeManager.slotBars.getKeyBind(laser);
+            if (key != null) return key;
+        }
+
         return defense.ammoKey;
-    }
-
-    private void changeAmmo(Character ammo) {
-        API.keyboardClick(ammo);
-        currentAmmo = ammo;
-    }
-
-    private void setRadiusAndClick(boolean single) {
-        target.clickable.setRadius(800);
-        drive.clickCenter(single, target.locationInfo.now);
-        target.clickable.setRadius(0);
     }
 
     private void vsMove() {
         double distance = hero.getLocationInfo().now.distance(target.getLocationInfo().now);
         Location targetLoc = target.getLocationInfo().destinationInTime(400);
 
-        if (distance > 700) {
+        if (distance > 500) {
             if (drive.canMove(target.getLocationInfo().now)) {
                 drive.move(target.getLocationInfo().now);
+                main.hero.roamMode();
             } else {
                 resetDefenseData();
             }
@@ -173,31 +201,29 @@ public class ShipAttacker {
 
     }
 
-    private boolean useKeyWithConditions(ExtraKeyConditions extra) {
+    private boolean useKeyWithConditions(ExtraKeyConditions extra, SelectableItem selectableItem) {
         if (System.currentTimeMillis() - clickDelay < 1000) return false;
 
-        if (extra.Key != null && extra.lastUse < System.currentTimeMillis() - (extra.countdown*1000)) {
-            if (hero.getHealth().hpPercent() < extra.HEALTH_RANGE.max && hero.getHealth().hpPercent() > extra.HEALTH_RANGE.min
+        if (extra.enable) {
+            boolean isReady = false;
+            if (selectableItem != null) {
+                isReady = items.getItem(selectableItem, ItemFlag.USABLE, ItemFlag.READY).isPresent();
+            } else {
+                isReady = extra.lastUse < System.currentTimeMillis() - (extra.countdown*1000);
+            }
+
+            if (isReady && hero.getHealth().hpPercent() < extra.HEALTH_RANGE.max && hero.getHealth().hpPercent() > extra.HEALTH_RANGE.min
                     && target.getHealth().hpPercent() < extra.HEALTH_ENEMY_RANGE.max && target.getHealth().hpPercent() > extra.HEALTH_ENEMY_RANGE.min) {
-                API.keyboardClick(extra.Key);
+                if (selectableItem != null) {
+                    items.useItem(selectableItem);
+                } else if (extra.Key != null) {
+                    API.keyboardClick(extra.Key);
+                }
                 clickDelay = System.currentTimeMillis();
                 return true;
             }
         }
         return false;
-    }
-
-    protected void mixerRSB() {
-        if (defense.RSB != null) {
-            if (lastRsbUse < System.currentTimeMillis() - 3500 && currentAmmo != defense.RSB) {
-                changeAmmo(defense.RSB);
-                lastRsbUse = System.currentTimeMillis();
-                return;
-            } else if (currentAmmo == defense.RSB) {
-                changeAmmo(getAttackKey());
-                return;
-            }
-        }
     }
 
     public boolean isUnderAttack() {
@@ -265,11 +291,9 @@ public class ShipAttacker {
         return null;
     }
 
-
     private void resetDefenseData() {
         attackConfigLost = false;
-        currentAmmo = null;
         target = null;
+        fixedTimes = 0;
     }
-
 }

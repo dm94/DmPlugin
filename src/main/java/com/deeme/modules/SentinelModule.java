@@ -35,7 +35,6 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
     private Random rnd;
     private SafetyFinder safety;
 
-
     @Override
     public void install(Main main) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) return;
@@ -68,7 +67,8 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
     public String instructions() {
         return "Sentinel Module: \n" +
                 "It's important that the main ship is in a group \n" +
-                "If a \"Sentinel Tag\" is not defined, it will follow the group leader";
+                "If a \"Sentinel Tag\" is not defined, it will follow the group leader \n" +
+                "It is recommended to activate and configure the Defence Mode";
     }
 
     public static class SentinelConfig  {
