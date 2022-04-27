@@ -34,6 +34,22 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
     private Drive drive;
     private Random rnd;
     private SafetyFinder safety;
+    private State currentStatus;
+
+    private enum State {
+        WAIT ("Waiting for group invitation"),
+        TRAVELLING_TO_MASTER ("Travelling to the master's map"),
+        FOLLOWING_MASTER("Following the master"),
+        HELPING_MASTER("Helping the master"),
+        TRAVELING_TO_ENEMY("Travelling to the enemy"),
+        TRAVELING_TO_WORKING_MAP("Travelling to the working map to wait");
+
+        private final String message;
+
+        State(String message) {
+            this.message = message;
+        }
+    }
 
     @Override
     public void install(Main main) {
@@ -46,6 +62,7 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
         this.drive = main.hero.drive;
         this.rnd = new Random();
         this.safety = new SafetyFinder(main);
+        currentStatus = State.WAIT;
     }
 
     @Override
@@ -56,6 +73,11 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
     @Override
     public boolean canRefresh() {
         return safety.tick();
+    }
+
+    @Override
+    public String status() {
+        return safety.state() != SafetyFinder.Escaping.NONE ? safety.status() : currentStatus.message;
     }
 
     @Override
@@ -75,26 +97,39 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
         @Option (value = "Sentinel Tag", description = "He'll follow every ship with that tag")
         @Tag(TagDefault.ALL)
         public PlayerTag SENTINEL_TAG = null;
+
+        @Option(value = "Ignore security", description = "Ignore the config, when enabled, the ship will follow you to death.")
+        public boolean ignoreSecurity = false;
     }
 
     @Override
     public void tick() {
-        main.guiManager.pet.setEnabled(true);
-        if (main.guiManager.group.group != null && main.guiManager.group.group.isValid()) {
-            if (shipAround()) {
-                if (!isAttacking() && main.hero.getTarget() != sentinel) {
-                    main.hero.roamMode();
-                    if (drive.getDistanceBetween(main.hero.locationInfo, sentinel.locationInfo) > 300) {
-                        drive.move(sentinel);
+        if (sConfig.ignoreSecurity || safety.tick()) {
+            main.guiManager.pet.setEnabled(true);
+            if (main.guiManager.group.group != null && main.guiManager.group.group.isValid()) {
+                if (shipAround()) {
+                    if (!isAttacking() && main.hero.getTarget() != sentinel) {
+                        currentStatus = State.FOLLOWING_MASTER;
+                        main.hero.roamMode();
+                        if (drive.getDistanceBetween(main.hero.locationInfo, sentinel.locationInfo) > 300) {
+                            drive.move(sentinel);
+                        }
+                    } else {
+                        currentStatus = State.TRAVELING_TO_ENEMY;
+                        drive.move(Location.of(attacker.target.locationInfo.now, rnd.nextInt(360), attacker.target.npcInfo.radius));
                     }
                 } else {
-                    drive.move(Location.of(attacker.target.locationInfo.now, rnd.nextInt(360), attacker.target.npcInfo.radius));
+                    goToLeader();
                 }
             } else {
-                goToLeader();
+                currentStatus = State.WAIT;
+                acceptGroupSentinel();
+                if (main.config.GENERAL.WORKING_MAP != main.hero.map.id && !main.mapManager.entities.portals.isEmpty()) {
+                    currentStatus = State.TRAVELING_TO_WORKING_MAP;
+                    this.main.setModule(new MapModule())
+                            .setTarget(this.main.starManager.byId(this.main.config.GENERAL.WORKING_MAP));
+                }
             }
-        } else {
-            acceptGroupSentinel();
         }
     }
 
@@ -108,6 +143,7 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
 
         main.hero.attackMode(attacker.target);
         attacker.doKillTargetTick();
+        currentStatus = State.HELPING_MASTER;
 
         return (attacker.target != null);
     }
@@ -125,8 +161,10 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
             if ((m.isLeader || sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(m.id))) && m.id != main.hero.id) {
                 if (m.mapId == main.hero.map.id) {
                     drive.move(m.location);
+                    currentStatus = State.FOLLOWING_MASTER;
                 } else {
                     main.setModule(new MapModule()).setTarget(main.starManager.byId(m.mapId));
+                    currentStatus = State.TRAVELLING_TO_MASTER;
                 }
                 return;
             }

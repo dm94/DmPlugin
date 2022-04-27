@@ -35,7 +35,7 @@ public class PVPLog implements Behaviour {
     private boolean win = false;
 
     //Our Data
-    private int shipId = 0;
+    private String shipId = "";
     private int maxHp = 0;
     private int initialHP = 0;
     private int maxShield = 0;
@@ -85,7 +85,7 @@ public class PVPLog implements Behaviour {
     @Override
     public void tick() {
         try {
-            if (main.isAlive() && main.isRunning() && main.pingManager.ping > 1 && main.hero.getMap() != null) {
+            if (main.pingManager.ping > 1 && main.hero.getMap() != null) {
                 mapID = hero.getMap().getId();
                 if (hero.isAttacking() && hero.getLocalTarget() != null && hero.getLocalTarget().getEntityInfo().isEnemy()) {
                     battleStart = true;
@@ -117,7 +117,7 @@ public class PVPLog implements Behaviour {
 
     private void setOwnInitialData() {
         if (hero.getHealth() != null) {
-            shipId = hero.getShipId();
+            shipId = hero.getShipType();
             maxHp = hero.getHealth().getMaxHp();
             initialHP = hero.getHealth().getHp();
             maxShield = hero.getHealth().getMaxShield();
@@ -158,6 +158,7 @@ public class PVPLog implements Behaviour {
         ourData.put("formation", hero.getFormation() != null ? hero.getFormation().getId() : "");
         ourData.put("speed", hero.getSpeed());
         ourData.put("pet", hero.hasPet());
+        ourData.put("effects", hero.getEffects().toString());
 
         Map<String, Object> enemyData = new HashMap<>();
 
@@ -166,6 +167,7 @@ public class PVPLog implements Behaviour {
         enemyData.put("hull", target.getHealth().getHull());
         enemyData.put("formation", target.formationId);
         enemyData.put("speed", target.getSpeed());
+        enemyData.put("effects", target.getEffects().toString());
 
         if (!lastOurData.equals(ourData) && !lastEnemyData.equals(enemyData)){
             Map<String, Object> globalDetails = new HashMap<>();

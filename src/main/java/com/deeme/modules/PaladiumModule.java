@@ -75,7 +75,7 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
         HANGAR_ERROR("Error when changing hangar"),
         HANGAR_ERROR_2("Error when changing hangar - Attempt 2"),
         SID_KO("Error - SID KO - Reconnecting the game"),
-        NO_HANGAR_ERROR("Error - Hangars not configured");;
+        NO_HANGAR_ERROR("Error - Hangars not configured");
 
         private final String message;
 
