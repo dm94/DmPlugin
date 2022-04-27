@@ -8,7 +8,6 @@ import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.core.api.DarkBoatAdapter;
 import com.github.manolo8.darkbot.core.entities.Ship;
 import com.github.manolo8.darkbot.core.itf.Configurable;
-import com.github.manolo8.darkbot.core.itf.Module;
 import com.github.manolo8.darkbot.core.manager.EffectManager;
 import com.github.manolo8.darkbot.core.manager.HeroManager;
 import com.github.manolo8.darkbot.core.utils.Drive;
@@ -34,7 +33,7 @@ import static com.github.manolo8.darkbot.core.objects.facades.SettingsProxy.KeyB
 import static com.github.manolo8.darkbot.Main.API;
 
 @Feature(name = "PVP Module", description = "PVP Module")
-public class PVPModule extends LootModule implements Module, Configurable<PVPConfig> {
+public class PVPModule extends LootModule implements Configurable<PVPConfig> {
     private PVPConfig pvpConfig;
     private Main main;
     private Drive drive;

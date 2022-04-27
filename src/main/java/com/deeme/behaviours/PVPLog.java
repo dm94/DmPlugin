@@ -17,7 +17,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -63,6 +63,9 @@ public class PVPLog implements Behaviour {
     private boolean battleStart = false;
     ArrayList<Object> battleData = new ArrayList<Object>();
 
+    Map<String, Object> lastOurData = new HashMap<>();
+    Map<String, Object> lastEnemyData = new HashMap<>();
+
     @Override
     public void install(Main main) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) return;
@@ -81,53 +84,58 @@ public class PVPLog implements Behaviour {
 
     @Override
     public void tick() {
-        if (main.isAlive()) {
-            mapID = hero.getMap().getId();
-            if (hero.isAttacking() && hero.getLocalTarget() != null && hero.getLocalTarget().getEntityInfo().isEnemy()) {
-                battleStart = true;
-                if (enemyName != hero.getLocalTarget().getEntityInfo().getUsername()) {
+        try {
+            if (main.isAlive() && main.isRunning() && main.pingManager.ping > 1 && main.hero.getMap() != null) {
+                mapID = hero.getMap().getId();
+                if (hero.isAttacking() && hero.getLocalTarget() != null && hero.getLocalTarget().getEntityInfo().isEnemy()) {
+                    battleStart = true;
+                    if (enemyName != hero.getLocalTarget().getEntityInfo().getUsername()) {
+                        setInitialEnemyData();
+                    }
+                    addBattleData();
+                } else if (hero.hasTarget()) {
                     setInitialEnemyData();
+                } else {
+                    if (battleStart) {
+                        saveData();
+                        battleStart = false;
+                    }
+                    setOwnInitialData();
+                    resetData();
                 }
-                addBattleData();
-            } else if (hero.hasTarget()) {
-                setInitialEnemyData();
             } else {
                 if (battleStart) {
                     saveData();
-                    battleStart = false;
+                    battleStart = false; 
                 }
-                setOwnInitialData();
                 resetData();
             }
-        } else {
-            if (battleStart) {
-                saveData();
-                battleStart = false; 
-            }
-            setOwnInitialData();
-            resetData();
+        } catch(Exception e) {
+            e.printStackTrace();
         }
     }
 
     private void setOwnInitialData() {
-        shipId = hero.getShipId();
-        maxHp = hero.getHealth().getMaxHp();
-        initialHP = hero.getHealth().getHp();
-        maxShield = hero.getHealth().getMaxShield();
-        initialShield = hero.getHealth().getShield();
-        initialHull = hero.getHealth().getHull();
-        initialLaser = hero.getLaser() != null ? hero.getLaser().getId() : "";
-        initialRocket =  hero.getRocket() != null ? hero.getRocket().getId() : "";
-        initialConfig = hero.getConfiguration() != null ? hero.getConfiguration().ordinal() : 0;
-        initialFormation = hero.getFormation() != null ? hero.getFormation().getId() : "";
-        initialSpeed = hero.getSpeed();
-        hasPet = hero.hasPet();
+        if (hero.getHealth() != null) {
+            shipId = hero.getShipId();
+            maxHp = hero.getHealth().getMaxHp();
+            initialHP = hero.getHealth().getHp();
+            maxShield = hero.getHealth().getMaxShield();
+            initialShield = hero.getHealth().getShield();
+            initialHull = hero.getHealth().getHull();
+            initialLaser = hero.getLaser() != null ? hero.getLaser().getId() : "";
+            initialRocket =  hero.getRocket() != null ? hero.getRocket().getId() : "";
+            initialConfig = hero.getConfiguration() != null ? hero.getConfiguration().ordinal() : 0;
+            initialFormation = hero.getFormation() != null ? hero.getFormation().getId() : "";
+            initialSpeed = hero.getSpeed();
+            hasPet = hero.hasPet();
+        }
     }
 
     private void setInitialEnemyData() {
         target = main.hero.target;
-        if (target != null) {
-            enemyName = hero.getLocalTarget().getEntityInfo() != null && hero.getLocalTarget().getEntityInfo().getUsername() != null ? hero.getLocalTarget().getEntityInfo().getUsername() : "";
+        if (target != null && target.getHealth() != null) {
+            enemyName = hero.getLocalTarget() != null && hero.getLocalTarget().getEntityInfo() != null && hero.getLocalTarget().getEntityInfo().getUsername() != null ? hero.getLocalTarget().getEntityInfo().getUsername() : "";
             enemyShipId = target.getShipId();
             enemyMaxHp = target.getHealth().getMaxHp();
             enemyInitialHP = target.getHealth().getHp();
@@ -159,12 +167,16 @@ public class PVPLog implements Behaviour {
         enemyData.put("formation", target.formationId);
         enemyData.put("speed", target.getSpeed());
 
-        Map<String, Object> globalDetails = new HashMap<>();
-        globalDetails.put("time", System.currentTimeMillis());
-        globalDetails.put("ourData", ourData);
-        globalDetails.put("enemyData", enemyData);
+        if (!lastOurData.equals(ourData) && !lastEnemyData.equals(enemyData)){
+            Map<String, Object> globalDetails = new HashMap<>();
+            globalDetails.put("time", System.currentTimeMillis());
+            globalDetails.put("ourData", ourData);
+            globalDetails.put("enemyData", enemyData);
+            battleData.add(globalDetails);
+        }
 
-        battleData.add(globalDetails);
+        lastOurData = ourData;
+        lastEnemyData = enemyData;
     }
 
     private void resetData() {
@@ -207,6 +219,7 @@ public class PVPLog implements Behaviour {
             globalDetails.put("mapID", mapID);
             globalDetails.put("ownInitialData", ownInitialData);
             globalDetails.put("enemyInitialData", enemyInitialData);
+            Collections.reverse(battleData);
             globalDetails.put("battleData", battleData);
 
             File f = new File("battlelog", mapID+"-"+initialTime+".json");
