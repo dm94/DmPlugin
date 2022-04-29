@@ -26,6 +26,7 @@ import com.github.manolo8.darkbot.gui.tree.components.JListField;
 import com.github.manolo8.darkbot.modules.LootNCollectorModule;
 import com.github.manolo8.darkbot.modules.MapModule;
 
+import eu.darkbot.api.game.entities.Station.Refinery;
 import eu.darkbot.api.managers.OreAPI.Ore;
 
 import java.util.Arrays;
@@ -278,12 +279,12 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
     private void sell() {
         pet.setEnabled(false);
         if (hero.map != SELL_MAP) main.setModule(new MapModule()).setTarget(SELL_MAP);
-        else bases.stream().filter(b -> b.getLocationInfo().isLoaded()).findFirst().ifPresent(base -> {
-            if (drive.movingTo().distance(base.getLocationInfo()) > 200) { // Move to base
-                double angle = Math.random() * Math.PI * 2;
-                double distance = 100 + Math.random() * 100;
-                drive.move(Location.of(base.getLocationInfo().now, angle, distance));
-            } else if (!hero.locationInfo.isMoving() && oreTrade.showTrade(true, base)
+        else bases.stream().filter(b -> b instanceof Refinery && b.getLocationInfo().isInitialized())
+        .map(Refinery.class::cast).findFirst().ifPresent(base -> {
+            if (drive.movingTo().distanceTo(base.getLocationInfo()) > 200) {
+                double angle = base.angleTo(hero) + Math.random() * 0.2 - 0.1;
+                drive.moveTo(Location.of((Location) base.getLocationInfo().getCurrent(), angle, 100 + (100 * Math.random())));
+            } else if (!hero.isMoving() && oreTrade.showTrade(true, base)
                     && System.currentTimeMillis() - 60_000 > sellClick) {
                 oreTrade.sellOre(OreTradeGui.Ore.PALLADIUM);
                 sellClick = System.currentTimeMillis();

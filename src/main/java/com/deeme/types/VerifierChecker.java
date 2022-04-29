@@ -30,6 +30,51 @@ public class VerifierChecker {
         if (!api.isAuthenticated() || api.getAuthId() == null) api.setupAuth();
     }
 
+    public static void checkAuthenticity(eu.darkbot.api.managers.AuthAPI auth) {
+        verifyAuthApi(auth);
+        if (!auth.isAuthenticated()) auth.setupAuth();
+        auth.getAuthId();
+    }
+
+    public static void verifyAuthApi(eu.darkbot.api.managers.AuthAPI auth) {
+        try (JarFile jf = new JarFile(findPathJar(auth.getClass()), true)) {
+            Vector<JarEntry> entriesVec = new Vector<>();
+            byte[] buffer = new byte[8192];
+
+            Enumeration<JarEntry> entries = jf.entries();
+            while (entries.hasMoreElements()) {
+                JarEntry je = entries.nextElement();
+                entriesVec.addElement(je);
+
+                try (InputStream is = jf.getInputStream(je)) {
+                    //noinspection StatementWithEmptyBody
+                    while (is.read(buffer, 0, buffer.length) != -1) ;
+                    // we just read. this will throw a SecurityException
+                    // if  a signature/digest check fails.
+                }
+            }
+
+            Manifest man = jf.getManifest();
+
+            if (man == null) throw new SecurityException("Verifier not signed");
+            Enumeration<JarEntry> e = entriesVec.elements();
+
+            // Used to cache allowed certs, no longer needing to check pub byte array for them
+            Set<Certificate> allowedCerts = new HashSet<>();
+
+            while (e.hasMoreElements()) {
+                JarEntry je = e.nextElement();
+                String name = je.getName();
+                if (je.isDirectory() || signatureRelated(name)) continue;
+
+                Boolean signed = checkCertificates(je.getCertificates(), allowedCerts);
+                if (signed == null || !signed) throw new SecurityException("Verifier not properly signed");
+            }
+        } catch (Exception e) {
+            throw new SecurityException("Failed to check verifier signature", e);
+        }
+    }
+
     public static AuthAPI getAuthApi() {
         AuthAPI instance = AuthAPI.getInstance();
         try (JarFile jf = new JarFile(findPathJar(instance.getClass()), true)) {
