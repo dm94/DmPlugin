@@ -1,8 +1,10 @@
 package com.deeme.modules;
 
+import com.deeme.types.ShipAttacker;
 import com.deeme.types.VerifierChecker;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.PlayerTag;
+import com.github.manolo8.darkbot.config.types.Num;
 import com.github.manolo8.darkbot.config.types.Option;
 import com.github.manolo8.darkbot.config.types.Tag;
 import com.github.manolo8.darkbot.config.types.TagDefault;
@@ -19,6 +21,9 @@ import com.github.manolo8.darkbot.modules.MapModule;
 import com.github.manolo8.darkbot.modules.utils.NpcAttacker;
 import com.github.manolo8.darkbot.modules.utils.SafetyFinder;
 
+
+import eu.darkbot.api.game.entities.Entity;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -28,13 +33,12 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
     private SentinelConfig sConfig;
     private Ship sentinel;
     private Main main;
-    private List<Ship> ships;
     private NpcAttacker attacker;
-    private List<Npc> npcs;
     private Drive drive;
     private Random rnd;
     private SafetyFinder safety;
     private State currentStatus;
+    private ShipAttacker shipAttacker;
 
     private enum State {
         WAIT ("Waiting for group invitation"),
@@ -56,13 +60,12 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) return;
         VerifierChecker.checkAuthenticity();
         this.main = main;
-        this.ships = main.mapManager.entities.ships;
-        this.npcs = main.mapManager.entities.npcs;
         this.attacker = new NpcAttacker(main);
         this.drive = main.hero.drive;
         this.rnd = new Random();
         this.safety = new SafetyFinder(main);
         currentStatus = State.WAIT;
+        this.shipAttacker = new ShipAttacker(main,null);
     }
 
     @Override
@@ -100,6 +103,10 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
 
         @Option(value = "Ignore security", description = "Ignore the config, when enabled, the ship will follow you to death.")
         public boolean ignoreSecurity = false;
+
+        @Option(value = "Range towards the leader", description = "Distance it will be from the leader")
+        @Num(min = 10, max = 1000, step = 100)
+        public int rangeToLider = 300;
     }
 
     @Override
@@ -108,10 +115,10 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
             main.guiManager.pet.setEnabled(true);
             if (main.guiManager.group.group != null && main.guiManager.group.group.isValid()) {
                 if (shipAround()) {
-                    if (!isAttacking() && main.hero.getTarget() != sentinel) {
+                    if (!isAttacking()) {
                         currentStatus = State.FOLLOWING_MASTER;
                         main.hero.roamMode();
-                        if (drive.getDistanceBetween(main.hero.locationInfo, sentinel.locationInfo) > 300) {
+                        if (drive.getDistanceBetween(main.hero.locationInfo, sentinel.locationInfo) > sConfig.rangeToLider) {
                             drive.move(sentinel);
                         }
                     } else {
@@ -134,25 +141,37 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
     }
 
     private boolean isAttacking() {
-        if (this.npcs == null) { return false; }
-        if ((attacker.target = this.npcs.stream()
-                .filter(s -> sentinel.isAttacking(s))
+        Entity target = sentinel.isAttacking() ? sentinel.getTarget() : null;
+
+        if (target == null && (target = main.mapManager.entities.ships.stream()
+                .filter(s -> (sentinel.isAttacking(s) || sentinel.getTarget() == s || sentinel.isAiming(s)) && s.playerInfo.isEnemy())
                 .findAny().orElse(null)) == null) {
-            return false;
+                    return false;
         }
 
-        main.hero.attackMode(attacker.target);
-        attacker.doKillTargetTick();
+        System.out.println(target.getId());
+
+        if ((target instanceof Npc)) {
+            attacker.setTarget((Npc) target);
+            main.hero.attackMode((Npc) target);
+            attacker.doKillTargetTick();
+        } else {
+            shipAttacker.setTarget((Ship) target);
+            main.hero.attackMode();
+            shipAttacker.doKillTargetTick();
+        }
         currentStatus = State.HELPING_MASTER;
 
         return (attacker.target != null);
     }
 
     private boolean shipAround() {
-        if (this.ships == null) { return false; } 
-        sentinel = this.ships.stream()
+        if (main.mapManager.entities.ships == null) { return false; } 
+
+        sentinel = main.mapManager.entities.ships.stream()
                 .filter(ship -> (sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(ship.id))))
                 .findAny().orElse(null);
+
         return sentinel != null;
     }
 

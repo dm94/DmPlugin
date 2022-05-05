@@ -14,10 +14,14 @@ import com.github.manolo8.darkbot.core.objects.group.GroupMember;
 import com.github.manolo8.darkbot.core.utils.Drive;
 import com.github.manolo8.darkbot.core.utils.Location;
 import com.github.manolo8.darkbot.modules.utils.SafetyFinder;
+
+import org.jetbrains.annotations.Nullable;
+
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.game.items.SelectableItem.Laser;
 import eu.darkbot.api.game.items.SelectableItem.Special;
+import eu.darkbot.api.game.other.Lockable;
 import eu.darkbot.api.managers.HeroItemsAPI;
 
 import java.util.List;
@@ -63,7 +67,11 @@ public class ShipAttacker {
         this.keybinds = main.facadeManager.settings;
         this.items = main.pluginAPI.getAPI(HeroItemsAPI.class);
 
-        this.laserSupplier = new DefenseLaserSupplier(main, items, defense);
+        if (defense == null) {
+            this.laserSupplier = new DefenseLaserSupplier(main, items, main.config.LOOT.SAB, false);
+        } else {
+            this.laserSupplier = new DefenseLaserSupplier(main, items, defense);
+        }
     }
 
     public void tick() {
@@ -71,10 +79,7 @@ public class ShipAttacker {
         if (target == null) return;
         setConfigToUse();
 
-        if (!main.mapManager.isTarget(target)) {
-            lockAndSetTarget();
-            return;
-        }
+        doKillTargetTick();
 
         if (hero.getLocationInfo().distance(target) < 575 &&
                 useKeyWithConditions(defense.ability, null)) {
@@ -128,7 +133,7 @@ public class ShipAttacker {
 
     }
 
-    void lockAndSetTarget() {
+    public void lockAndSetTarget() {
         if (hero.getLocalTarget() == target && firstAttack) {
             // On npc death, lock goes away before the npc does, sometimes the bot would try to lock the dead npc.
             // This adds a bit of delay when any cause makes you lose the lock, until you try to re-lock.
@@ -143,6 +148,22 @@ public class ShipAttacker {
             target.trySelect(false);
             clickDelay = System.currentTimeMillis();
         }
+    }
+
+    public void setTarget(@Nullable Lockable target) {
+        if (target != null && !(target instanceof Ship))
+            throw new IllegalArgumentException("Only Ship attacking is supported by this implementation");
+        this.target = (Ship) target;
+    }
+
+    public void doKillTargetTick() {
+        if (target == null) return;
+        if (!main.mapManager.isTarget(target)) {
+            lockAndSetTarget();
+            return;
+        }
+
+        tryAttackOrFix();
     }
 
     protected void tryAttackOrFix() {

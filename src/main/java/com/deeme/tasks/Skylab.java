@@ -60,6 +60,9 @@ public class Skylab implements Task,Configurable<Skylab.SkylabConfig> {
         @Option(value = "Premium", description = "Check here if you are premium")
         public boolean premium = false;
 
+        @Option(value = "Force check", description = "It will check every 10 minutes whether it can send cargo or not.")
+        public boolean forceCheck = false;
+
     }
 
     private int sendResources() {
@@ -86,11 +89,12 @@ public class Skylab implements Task,Configurable<Skylab.SkylabConfig> {
             seprom = this.config.sepromToSend;
             promerium = this.config.promeriumToSend;
         }
-        if (seprom == 0 && promerium == 0)
+        if (seprom == 0 && promerium == 0) {
             return 1;
-        if (cargo > 50 && this.deliveryTime <= System.currentTimeMillis() && (this.nextCheck <= System.currentTimeMillis() || !this.waitingTransport)) {
+        }
+        if (cargo > 50 && (this.deliveryTime <= System.currentTimeMillis() || this.config.forceCheck) && (this.nextCheck <= System.currentTimeMillis() || !this.waitingTransport)) {
             try {
-                this.nextCheck = System.currentTimeMillis() + 300000L; //wait 5 minutes to check again
+                this.nextCheck = System.currentTimeMillis() + 600000L;
                 if (this.waitingTransport) {
                     this.waitingTransport = this.backpageManager.getConnection("indexInternal.es?action=internalSkylab", Method.GET).consumeInputStream(this::checkTransport);
                     if (this.waitingTransport) {
