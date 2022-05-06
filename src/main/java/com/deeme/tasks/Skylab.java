@@ -50,11 +50,11 @@ public class Skylab implements Task,Configurable<Skylab.SkylabConfig> {
 
     public static class SkylabConfig {
         @Option(value = "Seprom To Send", description = "Amount of seprom to send")
-        @Num(max = 10000, step = 100)
+        @Num(max = 10000, step = 10)
         public int sepromToSend = 0;
 
         @Option(value = "Promerium To Send", description = "Amount of promerium to send")
-        @Num(max = 10000, step = 100)
+        @Num(max = 10000, step = 10)
         public int promeriumToSend = 0;
 
         @Option(value = "Premium", description = "Check here if you are premium")

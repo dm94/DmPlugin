@@ -3,6 +3,7 @@ package com.deeme.modules;
 import com.deeme.types.ShipAttacker;
 import com.deeme.types.VerifierChecker;
 import com.github.manolo8.darkbot.Main;
+import com.github.manolo8.darkbot.config.Config;
 import com.github.manolo8.darkbot.config.PlayerTag;
 import com.github.manolo8.darkbot.config.types.Num;
 import com.github.manolo8.darkbot.config.types.Option;
@@ -23,9 +24,12 @@ import com.github.manolo8.darkbot.modules.utils.SafetyFinder;
 
 
 import eu.darkbot.api.game.entities.Entity;
+import eu.darkbot.api.game.items.ItemFlag;
+import eu.darkbot.api.game.items.SelectableItem.Formation;
+import eu.darkbot.api.managers.HeroItemsAPI;
+import eu.darkbot.shared.modules.CollectorModule;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Random;
 
 @Feature(name = "Sentinel Module", description = "Follow the main ship or the group leader and do the same")
@@ -39,6 +43,10 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
     private SafetyFinder safety;
     private State currentStatus;
     private ShipAttacker shipAttacker;
+    private HeroItemsAPI items;
+    protected CollectorModule collectorModule;
+
+    protected int masterID = 0;
 
     private enum State {
         WAIT ("Waiting for group invitation"),
@@ -66,6 +74,8 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
         this.safety = new SafetyFinder(main);
         currentStatus = State.WAIT;
         this.shipAttacker = new ShipAttacker(main,null);
+        collectorModule = new CollectorModule(main.pluginAPI);
+        this.items = main.pluginAPI.getAPI(HeroItemsAPI.class);
     }
 
     @Override
@@ -75,7 +85,10 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
 
     @Override
     public boolean canRefresh() {
-        return safety.tick();
+        if (!sConfig.collectorActive || collectorModule.canRefresh()) {
+            return safety.tick();
+        }
+        return false;
     }
 
     @Override
@@ -96,45 +109,37 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
                 "It is recommended to activate and configure the Defence Mode";
     }
 
-    public static class SentinelConfig  {
-        @Option (value = "Sentinel Tag", description = "He'll follow every ship with that tag")
-        @Tag(TagDefault.ALL)
-        public PlayerTag SENTINEL_TAG = null;
-
-        @Option(value = "Ignore security", description = "Ignore the config, when enabled, the ship will follow you to death.")
-        public boolean ignoreSecurity = false;
-
-        @Option(value = "Range towards the leader", description = "Distance it will be from the leader")
-        @Num(min = 10, max = 1000, step = 100)
-        public int rangeToLider = 300;
-    }
-
     @Override
     public void tick() {
-        if (sConfig.ignoreSecurity || safety.tick()) {
+        if ((sConfig.ignoreSecurity || safety.tick()) && (!sConfig.collectorActive || collectorModule.canRefresh())) {
             main.guiManager.pet.setEnabled(true);
-            if (main.guiManager.group.group != null && main.guiManager.group.group.isValid()) {
-                if (shipAround()) {
-                    if (!isAttacking()) {
-                        currentStatus = State.FOLLOWING_MASTER;
-                        main.hero.roamMode();
-                        if (drive.getDistanceBetween(main.hero.locationInfo, sentinel.locationInfo) > sConfig.rangeToLider) {
-                            drive.move(sentinel);
-                        }
-                    } else {
-                        currentStatus = State.TRAVELING_TO_ENEMY;
-                        drive.move(Location.of(attacker.target.locationInfo.now, rnd.nextInt(360), attacker.target.npcInfo.radius));
-                    }
+            if (shipAround()) {
+                if (isAttacking()) {
+                    currentStatus = State.TRAVELING_TO_ENEMY;
+                    drive.move(Location.of(attacker.target.locationInfo.now, rnd.nextInt(360), attacker.target.npcInfo.radius));
                 } else {
-                    goToLeader();
+                    currentStatus = State.FOLLOWING_MASTER;
+                    main.hero.roamMode();
+                    if (main.hero.distanceTo(sentinel.locationInfo.now) > sConfig.rangeToLider) {
+                        drive.move(sentinel.locationInfo.now);
+                    } else if (sConfig.collectorActive) {
+                        collectorModule.findBox();
+                        collectorModule.tryCollectNearestBox();
+                    }
                 }
             } else {
-                currentStatus = State.WAIT;
-                acceptGroupSentinel();
-                if (main.config.GENERAL.WORKING_MAP != main.hero.map.id && !main.mapManager.entities.portals.isEmpty()) {
-                    currentStatus = State.TRAVELING_TO_WORKING_MAP;
-                    this.main.setModule(new MapModule())
-                            .setTarget(this.main.starManager.byId(this.main.config.GENERAL.WORKING_MAP));
+                if (main.guiManager.group.group != null && main.guiManager.group.group.isValid()) {
+                    goToLeader();
+                } else {
+                    currentStatus = State.WAIT;
+                    acceptGroupSentinel();
+                    if (main.config.GENERAL.WORKING_MAP != main.hero.map.id && !main.mapManager.entities.portals.isEmpty()) {
+                        currentStatus = State.TRAVELING_TO_WORKING_MAP;
+                        this.main.setModule(new MapModule())
+                                .setTarget(this.main.starManager.byId(this.main.config.GENERAL.WORKING_MAP));
+                    } else if (sConfig.collectorActive) {
+                        collectorModule.onTickModule();
+                    }
                 }
             }
         }
@@ -144,12 +149,10 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
         Entity target = sentinel.isAttacking() ? sentinel.getTarget() : null;
 
         if (target == null && (target = main.mapManager.entities.ships.stream()
-                .filter(s -> (sentinel.isAttacking(s) || sentinel.getTarget() == s || sentinel.isAiming(s)) && s.playerInfo.isEnemy())
+                .filter(s -> (sentinel.isAttacking(s) || sentinel.getTarget() == s) && s.playerInfo.isEnemy())
                 .findAny().orElse(null)) == null) {
                     return false;
         }
-
-        System.out.println(target.getId());
 
         if ((target instanceof Npc)) {
             attacker.setTarget((Npc) target);
@@ -157,19 +160,19 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
             attacker.doKillTargetTick();
         } else {
             shipAttacker.setTarget((Ship) target);
-            main.hero.attackMode();
+            setMode(main.config.GENERAL.OFFENSIVE);
             shipAttacker.doKillTargetTick();
         }
         currentStatus = State.HELPING_MASTER;
 
-        return (attacker.target != null);
+        return attacker.target != null;
     }
 
     private boolean shipAround() {
         if (main.mapManager.entities.ships == null) { return false; } 
 
         sentinel = main.mapManager.entities.ships.stream()
-                .filter(ship -> (sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(ship.id))))
+                .filter(ship ->  (ship.getId() == masterID || ship.getId() == sConfig.MASTER_ID || sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(ship.id))) && ship.getId() != main.hero.id)
                 .findAny().orElse(null);
 
         return sentinel != null;
@@ -177,7 +180,8 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
 
     private void goToLeader() {
         for (GroupMember m : main.guiManager.group.group.members) {
-            if ((m.isLeader || sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(m.id))) && m.id != main.hero.id) {
+            if ((m.getId() == sConfig.MASTER_ID || sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(m.id)) || m.isLeader()) && m.id != main.hero.id) {
+                masterID = m.getId();
                 if (m.mapId == main.hero.map.id) {
                     drive.move(m.location);
                     currentStatus = State.FOLLOWING_MASTER;
@@ -202,4 +206,51 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
                 .ifPresent(inv -> main.guiManager.group.acceptInvite(inv));
     }
 
+    private void setMode(Config.ShipConfig config) {
+        if (sConfig.copyMasterFormation && sentinel != null) {
+            int sentinelFormation = sentinel.formationId;
+
+            if (!main.hero.isInFormation(sentinelFormation)) {
+                Formation formation = Formation.of(sentinelFormation);
+
+                if (formation != null) {
+                    Boolean canChange = items.getItem(formation, ItemFlag.USABLE, ItemFlag.READY).isPresent();
+
+                    if (canChange) {
+                        main.hero.setMode(config.CONFIG, main.facadeManager.slotBars.getKeyBind(formation));
+                    } else {
+                        main.hero.setMode(config);
+                    }
+                } else {
+                    main.hero.setMode(config);
+                }
+            }
+        } else {
+            main.hero.setMode(config);
+        }
+    }
+
+    public static class SentinelConfig  {
+
+        @Option(value = "Master ID")
+        @Num(max = 2000000000, step = 1)
+        public int MASTER_ID = 0;
+
+        @Option (value = "Sentinel Tag", description = "He'll follow every ship with that tag")
+        @Tag(TagDefault.ALL)
+        public PlayerTag SENTINEL_TAG = null;
+
+        @Option(value = "Ignore security", description = "Ignore the config, when enabled, the ship will follow you to death.")
+        public boolean ignoreSecurity = false;
+
+        @Option(value = "Range towards the leader", description = "Distance it will be from the leader")
+        @Num(min = 10, max = 1000, step = 100)
+        public int rangeToLider = 300;
+
+        @Option(value = "Enable collector", description = "It will use the collector module when it is not doing anything.")
+        public boolean collectorActive = false;
+
+        @Option(value = "Copy master formation", description = "It will try to use the master's formation")
+        public boolean copyMasterFormation = false;
+    }
 }
