@@ -2,7 +2,6 @@ package com.deeme.types;
 
 import com.deeme.types.config.Defense;
 import com.deeme.types.config.ExtraKeyConditions;
-import com.deeme.types.DefenseLaserSupplier;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.Config;
 import com.github.manolo8.darkbot.core.api.DarkBoatAdapter;
@@ -47,7 +46,7 @@ public class ShipAttacker {
     protected long fixTimes;
     protected long clickDelay;
     protected boolean sab;
-    private Defense defense;
+    private Defense defense = null;
     private boolean attackConfigLost = false;
     private Random rnd;
 
@@ -72,6 +71,30 @@ public class ShipAttacker {
         } else {
             this.laserSupplier = new DefenseLaserSupplier(main, items, defense);
         }
+    }
+
+    public ShipAttacker(Main main) {
+        this.main = main;
+        this.hero = main.hero;
+        this.config = main.config;
+        this.drive = hero.drive;
+        this.safety = new SafetyFinder(main);
+        this.rnd = new Random();
+        this.keybinds = main.facadeManager.settings;
+        this.items = main.pluginAPI.getAPI(HeroItemsAPI.class);
+        this.laserSupplier = new DefenseLaserSupplier(main, items, main.config.LOOT.SAB, false);
+    }
+
+    public ShipAttacker(Main main, DefenseLaserSupplier defenseLaserSupplier) {
+        this.main = main;
+        this.hero = main.hero;
+        this.config = main.config;
+        this.drive = hero.drive;
+        this.laserSupplier = defenseLaserSupplier;
+        this.safety = new SafetyFinder(main);
+        this.rnd = new Random();
+        this.keybinds = main.facadeManager.settings;
+        this.items = main.pluginAPI.getAPI(HeroItemsAPI.class);
     }
 
     public void tick() {
@@ -187,7 +210,10 @@ public class ShipAttacker {
     private void sendAttack(long minWait, long bugTime, boolean normal) {
         laserTime = System.currentTimeMillis() + minWait;
         isAttacking = Math.max(isAttacking, laserTime + bugTime);
-        if (normal) API.keyboardClick(lastShot = getAttackKey());
+        if (normal) {
+            lastShot = getAttackKey();
+            API.keyboardClick(lastShot);
+        }
         else if (API instanceof DarkBoatAdapter) API.keyboardClick(keybinds.getCharCode(ATTACK_LASER));
         else target.trySelect(true);
     }
@@ -201,10 +227,13 @@ public class ShipAttacker {
             if (key != null) return key;
         }
 
-        return defense.ammoKey;
+        if (defense != null) {
+            return defense.ammoKey;
+        }
+        return main.config.LOOT.AMMO_KEY;
     }
 
-    private void vsMove() {
+    public void vsMove() {
         double distance = hero.getLocationInfo().now.distance(target.getLocationInfo().now);
         Location targetLoc = target.getLocationInfo().destinationInTime(400);
 
@@ -219,10 +248,9 @@ public class ShipAttacker {
         } else {
             drive.move(Location.of(targetLoc, rnd.nextInt(360), distance));
         }
-
     }
 
-    private boolean useKeyWithConditions(ExtraKeyConditions extra, SelectableItem selectableItem) {
+    public boolean useKeyWithConditions(ExtraKeyConditions extra, SelectableItem selectableItem) {
         if (System.currentTimeMillis() - clickDelay < 1000) return false;
 
         if (extra.enable) {
@@ -312,7 +340,7 @@ public class ShipAttacker {
         return null;
     }
 
-    private void resetDefenseData() {
+    public void resetDefenseData() {
         attackConfigLost = false;
         target = null;
         fixedTimes = 0;
