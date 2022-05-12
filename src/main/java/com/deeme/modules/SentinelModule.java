@@ -51,8 +51,10 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
     protected boolean backwards = false;
     protected int masterID = 0;
     protected long maximumWaitingTime = 0;
+    protected int lastMap = 0;
 
     private enum State {
+        INIT ("Init"),
         WAIT ("Waiting for group invitation"),
         WAIT_GROUP_LOADING ("Waiting while loading the group"),
         TRAVELLING_TO_MASTER ("Travelling to the master's map"),
@@ -76,7 +78,7 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
         this.attacker = new NpcAttacker(main);
         this.drive = main.hero.drive;
         this.safety = new SafetyFinder(main);
-        currentStatus = State.WAIT;
+        currentStatus = State.INIT;
         this.shipAttacker = new ShipAttacker(main);
         collectorModule = new CollectorModule(main.pluginAPI);
         this.items = main.pluginAPI.getAPI(HeroItemsAPI.class);
@@ -118,6 +120,7 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
         if ((sConfig.ignoreSecurity || safety.tick()) && (!sConfig.collectorActive || collectorModule.canRefresh())) {
             main.guiManager.pet.setEnabled(true);
             if (shipAround()) {
+                lastMap = main.hero.getMap().getId();
                 if (isAttacking()) {
                     currentStatus = State.TRAVELING_TO_ENEMY;
                     if (isNpc) {
@@ -141,10 +144,13 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
                 if (main.guiManager.group.hasGroup()) {
                     goToLeader();
                 } else {
+                    if (lastMap != main.hero.getMap().getId()) {
+                        maximumWaitingTime = System.currentTimeMillis() + 120000;
+                    }
                     acceptGroupSentinel();
-                    if (currentStatus !=  State.WAIT && currentStatus != State.WAIT_GROUP_LOADING) {
+                    if (lastMap != main.hero.getMap().getId() && currentStatus != State.WAIT_GROUP_LOADING  && currentStatus != State.WAIT) {
                         currentStatus = State.WAIT_GROUP_LOADING;
-                        maximumWaitingTime = System.currentTimeMillis() + 30000;
+                        maximumWaitingTime = System.currentTimeMillis() + 120000;
                     } else if (maximumWaitingTime <= System.currentTimeMillis()) {
                         currentStatus =  State.WAIT;
                         if (main.config.GENERAL.WORKING_MAP != main.hero.map.id && !main.mapManager.entities.portals.isEmpty()) {

@@ -56,6 +56,7 @@ public class DefenseLaserSupplier implements LaserSelector, PrioritizedSupplier<
         return false;
     }
     
+    @Override
     public Priority getPriority() {
         useRsb = shouldRsb();
         useSab = shouldSab();

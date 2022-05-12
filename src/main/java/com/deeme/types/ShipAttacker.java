@@ -18,7 +18,9 @@ import org.jetbrains.annotations.Nullable;
 
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
+import eu.darkbot.api.game.items.SelectableItem.Formation;
 import eu.darkbot.api.game.items.SelectableItem.Laser;
+import eu.darkbot.api.game.items.SelectableItem.Rocket;
 import eu.darkbot.api.game.items.SelectableItem.Special;
 import eu.darkbot.api.game.other.Lockable;
 import eu.darkbot.api.managers.HeroItemsAPI;
@@ -39,6 +41,8 @@ public class ShipAttacker {
     private Main main;
     private SafetyFinder safety;
     private DefenseLaserSupplier laserSupplier;
+    private FormationSupplier formationSupplier;
+    private RocketSupplier rocketSupplier;
 
     public Ship target;
 
@@ -54,24 +58,7 @@ public class ShipAttacker {
     protected long isAttacking;
     protected int fixedTimes;
     protected Character lastShot;
-
-    public ShipAttacker(Main main, Defense defense) {
-        this.main = main;
-        this.hero = main.hero;
-        this.config = main.config;
-        this.drive = hero.drive;
-        this.defense = defense;
-        this.safety = new SafetyFinder(main);
-        this.rnd = new Random();
-        this.keybinds = main.facadeManager.settings;
-        this.items = main.pluginAPI.getAPI(HeroItemsAPI.class);
-
-        if (defense == null) {
-            this.laserSupplier = new DefenseLaserSupplier(main, items, main.config.LOOT.SAB, false);
-        } else {
-            this.laserSupplier = new DefenseLaserSupplier(main, items, defense);
-        }
-    }
+    protected long rocketTime;
 
     public ShipAttacker(Main main) {
         this.main = main;
@@ -82,54 +69,56 @@ public class ShipAttacker {
         this.rnd = new Random();
         this.keybinds = main.facadeManager.settings;
         this.items = main.pluginAPI.getAPI(HeroItemsAPI.class);
-        this.laserSupplier = new DefenseLaserSupplier(main, items, main.config.LOOT.SAB, false);
+        this.laserSupplier = new DefenseLaserSupplier(main, items, main.config.LOOT.SAB, main.config.LOOT.RSB.ENABLED);
+        this.formationSupplier = new FormationSupplier(main, items);
+        this.rocketSupplier = new RocketSupplier(main, items);
+    }
+
+    public ShipAttacker(Main main, Defense defense) {
+        this(main);
+        this.laserSupplier = new DefenseLaserSupplier(main, items, defense);
     }
 
     public ShipAttacker(Main main, DefenseLaserSupplier defenseLaserSupplier) {
-        this.main = main;
-        this.hero = main.hero;
-        this.config = main.config;
-        this.drive = hero.drive;
+        this(main);
         this.laserSupplier = defenseLaserSupplier;
-        this.safety = new SafetyFinder(main);
-        this.rnd = new Random();
-        this.keybinds = main.facadeManager.settings;
-        this.items = main.pluginAPI.getAPI(HeroItemsAPI.class);
     }
 
     public void tick() {
-        isUnderAttack();
-        if (target == null) return;
-        setConfigToUse();
+        if (defense != null) {
+            isUnderAttack();
+            if (target == null) return;
+            setConfigToUse();
 
-        doKillTargetTick();
+            doKillTargetTick();
 
-        if (hero.getLocationInfo().distance(target) < 575 &&
-                useKeyWithConditions(defense.ability, null)) {
-            defense.ability.lastUse = System.currentTimeMillis();
-        }
+            if (hero.getLocationInfo().distance(target) < 575 &&
+                    useKeyWithConditions(defense.ability, null)) {
+                defense.ability.lastUse = System.currentTimeMillis();
+            }
 
-        if (useKeyWithConditions(defense.ISH, Special.ISH_01)) defense.ISH.lastUse = System.currentTimeMillis();
+            if (useKeyWithConditions(defense.ISH, Special.ISH_01)) defense.ISH.lastUse = System.currentTimeMillis();
 
-        if (useKeyWithConditions(defense.SMB, Special.SMB_01)) defense.SMB.lastUse = System.currentTimeMillis();
+            if (useKeyWithConditions(defense.SMB, Special.SMB_01)) defense.SMB.lastUse = System.currentTimeMillis();
 
-        if (useKeyWithConditions(defense.PEM, Special.EMP_01)) defense.PEM.lastUse = System.currentTimeMillis();
+            if (useKeyWithConditions(defense.PEM, Special.EMP_01)) defense.PEM.lastUse = System.currentTimeMillis();
 
-        if (useKeyWithConditions(defense.otherKey, null)) defense.otherKey.lastUse = System.currentTimeMillis();
+            if (useKeyWithConditions(defense.otherKey, null)) defense.otherKey.lastUse = System.currentTimeMillis();
 
-        tryAttackOrFix();
+            tryAttackOrFix();
 
-        if (defense.movementMode == 1) {
-            vsMove();
-        } else if (defense.movementMode == 2) {
-            safety.tick();
-        } else if (defense.movementMode == 3) {
-            if (!drive.isMoving() || drive.isOutOfMap()) drive.moveRandom();
-        } else if (defense.movementMode == 4) {
-            if (hero.getHealth().hpPercent() <= config.GENERAL.SAFETY.REPAIR_HP_RANGE.min){
-                safety.tick();
-            } else {
+            if (defense.movementMode == 1) {
                 vsMove();
+            } else if (defense.movementMode == 2) {
+                safety.tick();
+            } else if (defense.movementMode == 3) {
+                if (!drive.isMoving() || drive.isOutOfMap()) drive.moveRandom();
+            } else if (defense.movementMode == 4) {
+                if (hero.getHealth().hpPercent() <= config.GENERAL.SAFETY.REPAIR_HP_RANGE.min){
+                    safety.tick();
+                } else {
+                    vsMove();
+                }
             }
         }
     }
@@ -158,8 +147,6 @@ public class ShipAttacker {
 
     public void lockAndSetTarget() {
         if (hero.getLocalTarget() == target && firstAttack) {
-            // On npc death, lock goes away before the npc does, sometimes the bot would try to lock the dead npc.
-            // This adds a bit of delay when any cause makes you lose the lock, until you try to re-lock.
             clickDelay = System.currentTimeMillis();
         }
 
@@ -199,7 +186,7 @@ public class ShipAttacker {
             sendAttack(250, 5000, true);
         } else if (!hero.isAttacking(target) || !hero.isAiming(target)) {
             sendAttack(1500, 5000, false);
-        } else if (target.health.hpDecreasedIn(1500) || target.hasEffect(EffectManager.Effect.NPC_ISH)
+        } else if (target.health.hpDecreasedIn(1500) || target.hasEffect(EffectManager.Effect.NPC_ISH) || target.hasEffect(EffectManager.Effect.ISH)
                 || hero.locationInfo.distance(target) > 700) {
             isAttacking = Math.max(isAttacking, System.currentTimeMillis() + 2000);
         } else if (System.currentTimeMillis() > isAttacking) {
@@ -218,9 +205,16 @@ public class ShipAttacker {
         else target.trySelect(true);
     }
 
-
     private Character getAttackKey() {
-        Laser laser = laserSupplier.get();
+        return getAttackKey(main.config.LOOT.AMMO_KEY);
+    }
+
+    private Laser getBestLaser() {
+        return laserSupplier.get();
+    }
+
+    private Character getAttackKey(Character defaultAmmo) {
+        Laser laser = getBestLaser();
 
         if (laser != null) {
             Character key = main.facadeManager.slotBars.getKeyBind(laser);
@@ -230,21 +224,40 @@ public class ShipAttacker {
         if (defense != null) {
             return defense.ammoKey;
         }
-        return main.config.LOOT.AMMO_KEY;
+        return defaultAmmo;
+    }
+
+    private Rocket getBestRocket() {
+        return rocketSupplier.get();
+    }
+
+    public Formation getBestFormation() {
+        return formationSupplier.get();
+    }
+
+    public void changeRocket() {
+        if (System.currentTimeMillis() < rocketTime) return;
+        Rocket rocket = getBestRocket();
+
+        if (rocket != null && !main.hero.getRocket().getId().equals(rocket.getId())) {
+            items.useItem(rocket);
+            rocketTime = System.currentTimeMillis() + 2000;
+        }
     }
 
     public void vsMove() {
         double distance = hero.getLocationInfo().now.distance(target.getLocationInfo().now);
         Location targetLoc = target.getLocationInfo().destinationInTime(400);
 
-        if (distance > 500) {
+        if (distance > 400) {
             if (drive.canMove(target.getLocationInfo().now)) {
                 drive.move(target.getLocationInfo().now);
-                main.hero.roamMode();
+                if (target.getSpeed() > main.hero.getSpeed()) {
+                    main.hero.runMode();
+                }
             } else {
                 resetDefenseData();
             }
-
         } else {
             drive.move(Location.of(targetLoc, rnd.nextInt(360), distance));
         }
