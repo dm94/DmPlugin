@@ -34,6 +34,12 @@ public class Defense {
     @Options(MovementMode.class)
     public int movementMode = 0;
 
+    @Option(value = "Auto choose the best rocket", description = "Automatically switches missiles")
+    public boolean useBestRocket = false;
+
+    @Option(value = "Auto choose the best formation", description = "Automatically switches formations")
+    public boolean useBestFormation = false;
+
     @Option("Ammo")
     public Character ammoKey;
 

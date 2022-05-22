@@ -76,6 +76,7 @@ public class ShipAttacker {
 
     public ShipAttacker(Main main, Defense defense) {
         this(main);
+        this.defense = defense;
         this.laserSupplier = new DefenseLaserSupplier(main, items, defense);
     }
 
@@ -95,6 +96,10 @@ public class ShipAttacker {
             if (hero.getLocationInfo().distance(target) < 575 &&
                     useKeyWithConditions(defense.ability, null)) {
                 defense.ability.lastUse = System.currentTimeMillis();
+            }
+
+            if (defense.useBestRocket) {
+                changeRocket();
             }
 
             if (useKeyWithConditions(defense.ISH, Special.ISH_01)) defense.ISH.lastUse = System.currentTimeMillis();
@@ -138,9 +143,9 @@ public class ShipAttacker {
         }
 
         if (attackConfigLost && defense.useSecondConfig) {
-            hero.setMode(defense.secondConfig);
+            setMode(defense.secondConfig, false);
         } else {
-            hero.attackMode();
+            setMode(main.config.GENERAL.OFFENSIVE);
         }
 
     }
@@ -351,6 +356,32 @@ public class ShipAttacker {
             }
         }
         return null;
+    }
+
+    public void setMode(Config.ShipConfig config) {
+        if (defense != null) {
+            setMode(config, defense.useBestFormation);
+        } else {
+            setMode(config, true);
+        }
+    }
+
+    public void setMode(Config.ShipConfig config, boolean useBestFormation) {
+        if (useBestFormation) {
+            Formation formation = getBestFormation();
+            if (formation != null) {
+                if (!main.hero.isInFormation(formation)) {
+                    Boolean canChange = items.getItem(formation, ItemFlag.USABLE, ItemFlag.READY).isPresent();
+                    if (canChange) {
+                        main.hero.setMode(config.CONFIG, main.facadeManager.slotBars.getKeyBind(formation));
+                    } else {
+                        main.hero.setMode(config);
+                    }
+                }
+            }
+        } else {
+            main.hero.setMode(config);
+        }
     }
 
     public void resetDefenseData() {

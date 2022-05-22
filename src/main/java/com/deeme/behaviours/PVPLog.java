@@ -6,9 +6,12 @@ import com.google.gson.Gson;
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.game.items.Item;
+import eu.darkbot.api.game.items.ItemCategory;
 import eu.darkbot.api.game.other.Lockable;
 import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.HeroAPI;
+import eu.darkbot.api.managers.HeroItemsAPI;
 import eu.darkbot.api.managers.RepairAPI;
 import eu.darkbot.api.managers.StatsAPI;
 import eu.darkbot.api.utils.Inject;
@@ -23,7 +26,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Feature(name = "PVPLog", description = "Create a log of the PVP battles")
 public class PVPLog implements Behavior {
@@ -34,6 +39,7 @@ public class PVPLog implements Behavior {
     protected final StatsAPI stats;
     protected final HeroAPI hero;
     protected final RepairAPI repair;
+    protected final HeroItemsAPI items;
 
     //Global Data
     private int mapID = 0;
@@ -74,11 +80,12 @@ public class PVPLog implements Behavior {
         this(api, api.requireAPI(HeroAPI.class),
                 api.requireAPI(StatsAPI.class),
                 api.requireAPI(RepairAPI.class),
-                api.requireAPI(AuthAPI.class));
+                api.requireAPI(AuthAPI.class),
+                api.requireAPI(HeroItemsAPI.class));
     }
 
     @Inject
-    public PVPLog(PluginAPI api, HeroAPI hero, StatsAPI stats, RepairAPI repair, AuthAPI auth) {
+    public PVPLog(PluginAPI api, HeroAPI hero, StatsAPI stats, RepairAPI repair, AuthAPI auth, HeroItemsAPI items) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
         
@@ -86,6 +93,7 @@ public class PVPLog implements Behavior {
         this.hero = hero;
         this.stats = stats;
         this.repair = repair;
+        this.items = items;
 
         try {
             if (!Files.exists(BATTLELOG_FOLDER)) {
@@ -101,9 +109,10 @@ public class PVPLog implements Behavior {
         try {
             if (stats.getPing() > 1 && hero.getMap() != null) {
                 mapID = hero.getMap().getId();
-                if (hero.isAttacking() && hero.getLocalTarget() != null && hero.getLocalTarget().getEntityInfo().isEnemy()) {
+
+                if (hero.isAttacking() && hero.getLocalTarget() != null && hero.getLocalTarget().getEntityInfo().isEnemy() && !hero.getLocalTarget().getEntityInfo().getUsername().contains("Saturn")) {
                     battleStart = true;
-                    if (enemyName != hero.getLocalTarget().getEntityInfo().getUsername()) {
+                    if (!enemyName.equals(hero.getLocalTarget().getEntityInfo().getUsername())) {
                         setInitialEnemyData();
                     }
                     addBattleData();
@@ -162,6 +171,7 @@ public class PVPLog implements Behavior {
         ourData.put("speed", hero.getSpeed());
         ourData.put("pet", hero.hasPet());
         ourData.put("effects", hero.getEffects().toString());
+        ourData.put("items", getOurSpecialItems());
 
         Map<String, Object> enemyData = new HashMap<>();
 
@@ -182,9 +192,26 @@ public class PVPLog implements Behavior {
         lastEnemyData = enemyData;
     }
 
+    private Map getOurSpecialItems() {
+        Map<String, Object> ourItems = new HashMap<>();
+
+        List<Item> usableItems = items.getItems(ItemCategory.SPECIAL_ITEMS).stream().filter(Item::isUsable).collect(Collectors.toList());
+        for (Item item : usableItems) {
+            try {
+                if (item.lastUseTime() != 0) {
+                    ourItems.put(item.getId(), item.getItemTimer());
+                }
+            } catch (Exception e){
+                System.out.println(e.getMessage());
+            }
+        }
+
+        return ourItems;
+    }
+
     private void resetData() {
         target = null;
-        if (battleStart || battleData.size() > 0) {
+        if (battleStart || !battleData.isEmpty()) {
             if (deaths == repair.getDeathAmount()) {
                 win = true;
             }

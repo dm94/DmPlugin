@@ -5,7 +5,6 @@ import com.deeme.types.ShipAttacker;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.config.PVPConfig;
 import com.github.manolo8.darkbot.Main;
-import com.github.manolo8.darkbot.config.Config;
 import com.github.manolo8.darkbot.core.entities.Ship;
 import com.github.manolo8.darkbot.core.itf.Module;
 import com.github.manolo8.darkbot.core.itf.Configurable;
@@ -13,8 +12,6 @@ import com.github.manolo8.darkbot.core.manager.HeroManager;
 import com.github.manolo8.darkbot.extensions.features.Feature;
 import com.github.manolo8.darkbot.modules.utils.SafetyFinder;
 
-import eu.darkbot.api.game.items.ItemFlag;
-import eu.darkbot.api.game.items.SelectableItem.Formation;
 import eu.darkbot.api.game.items.SelectableItem.Special;
 import eu.darkbot.api.managers.HeroItemsAPI;
 import eu.darkbot.shared.modules.CollectorModule;
@@ -140,35 +137,17 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     private void setConfigToUse() {
         if (attackConfigLost || hero.getHealth().shieldPercent() < 0.1 && hero.getHealth().hpPercent() < 0.3) {
             attackConfigLost = true;
-            setMode(main.config.GENERAL.RUN);
+            shipAttacker.setMode(main.config.GENERAL.RUN, pvpConfig.useBestFormation);
         } else if (pvpConfig.useRunConfig && target != null) {
             double distance = hero.locationInfo.distance(target);
             if (distance > 400 && distance > lastDistanceTarget && target.getSpeed() > hero.getSpeed()) {
-                setMode(main.config.GENERAL.RUN);
+                shipAttacker.setMode(main.config.GENERAL.RUN, pvpConfig.useBestFormation);
                 lastDistanceTarget = distance;
             } else {
-                setMode(main.config.GENERAL.OFFENSIVE);
+                shipAttacker.setMode(main.config.GENERAL.OFFENSIVE, pvpConfig.useBestFormation);
             }
         } else {
-            setMode(main.config.GENERAL.OFFENSIVE);
-        }
-    }
-
-    private void setMode(Config.ShipConfig config) {
-        if (pvpConfig.useBestFormation) {
-            Formation formation = shipAttacker.getBestFormation();
-            if (formation != null) {
-                if (!main.hero.isInFormation(formation)) {
-                    Boolean canChange = items.getItem(formation, ItemFlag.USABLE, ItemFlag.READY).isPresent();
-                    if (canChange) {
-                        main.hero.setMode(config.CONFIG, main.facadeManager.slotBars.getKeyBind(formation));
-                    } else {
-                        main.hero.setMode(config);
-                    }
-                }
-            }
-        } else {
-            main.hero.setMode(config);
+            shipAttacker.setMode(main.config.GENERAL.OFFENSIVE, pvpConfig.useBestFormation);
         }
     }
 }
