@@ -17,9 +17,6 @@ import eu.darkbot.api.managers.HeroItemsAPI;
 import eu.darkbot.shared.modules.CollectorModule;
 
 import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
 @Feature(name = "PVP Module", description = "PVP Module")
 public class PVPModule implements Module, Configurable<PVPConfig> {
     private PVPConfig pvpConfig;
@@ -67,7 +64,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
 
     @Override
     public boolean canRefresh() {
-        if (target == null && collectorModule.canRefresh()) {
+        if (pvpConfig.move && target == null && collectorModule.canRefresh()) {
             return safety.tick();
         }
         return false;
@@ -81,19 +78,25 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
 
     @Override
     public void tick() {
-        if (safety.tick()) {
+        if (!pvpConfig.move || safety.tick()) {
             getTarget();
             if (target == null || !target.isValid()) {
                 attackConfigLost = false;
                 target = null;
                 shipAttacker.resetDefenseData();
-                main.hero.roamMode();
-                collectorModule.onTickModule();
+                if (!pvpConfig.move) {
+                    if (pvpConfig.changeConfig) {
+                        main.hero.roamMode();
+                    }
+                    collectorModule.onTickModule();
+                }
                 return;
             }
             shipAttacker.setTarget(target);
 
-            setConfigToUse();
+            if (pvpConfig.changeConfig) {
+                setConfigToUse();
+            }
 
             if (!main.mapManager.isTarget(target)) {
                 shipAttacker.lockAndSetTarget();
@@ -117,19 +120,16 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
             if (shipAttacker.useKeyWithConditions(pvpConfig.otherKey, null)) pvpConfig.otherKey.lastUse = System.currentTimeMillis();
 
             shipAttacker.doKillTargetTick();
-            shipAttacker.vsMove();
+            if (pvpConfig.move) {
+                shipAttacker.vsMove();
+            }
         }
     }
 
     private boolean getTarget() {
         if (target != null) return true;
 
-        List<Ship> ships = main.mapManager.entities.ships.stream()
-        .filter(s -> (s.playerInfo.isEnemy())).sorted(Comparator.comparingDouble(s -> s.locationInfo.distance(main.hero))).collect(Collectors.toList());
-
-        if (ships.isEmpty()) return false;
-
-        target = ships.get(0);
+        target = shipAttacker.getEnemy(pvpConfig.rangeForEnemies);
 
         return target != null;
     }

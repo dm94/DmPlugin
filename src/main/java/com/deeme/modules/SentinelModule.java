@@ -2,6 +2,7 @@ package com.deeme.modules;
 
 import com.deeme.types.ShipAttacker;
 import com.deeme.types.VerifierChecker;
+import com.deeme.types.config.AutoAttack;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.Config;
 import com.github.manolo8.darkbot.config.NpcExtra;
@@ -22,7 +23,6 @@ import com.github.manolo8.darkbot.extensions.features.Feature;
 import com.github.manolo8.darkbot.modules.MapModule;
 import com.github.manolo8.darkbot.modules.utils.NpcAttacker;
 import com.github.manolo8.darkbot.modules.utils.SafetyFinder;
-
 
 import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.items.ItemFlag;
@@ -169,11 +169,17 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
     private boolean isAttacking() {
         Entity target = sentinel.isAttacking() ? sentinel.getTarget() : null;
 
-        if (target == null && (target = main.mapManager.entities.ships.stream()
+        if (target == null) {
+            target = main.mapManager.entities.ships.stream()
                 .filter(s -> (sentinel.isAttacking(s) || sentinel.getTarget() == s) && s.playerInfo.isEnemy())
-                .findAny().orElse(null)) == null) {
-                    return false;
+                .findAny().orElse(null);
         }
+
+        if (target == null && sConfig.autoAttack.autoAttackEnemies) {
+            target = shipAttacker.getEnemy(sConfig.autoAttack.rangeForEnemies);
+        }
+
+        if (target == null) { return false; }
 
         if ((target instanceof Npc)) {
             isNpc = true;
@@ -327,7 +333,7 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
 
     public static class SentinelConfig  {
 
-        @Option(value = "Master ID")
+        @Option(value = "Master ID", description = "Can be empty, will use tag or group leader")
         @Num(max = 2000000000, step = 1)
         public int MASTER_ID = 0;
 
@@ -347,5 +353,9 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
 
         @Option(value = "Copy master formation", description = "It will try to use the master's formation")
         public boolean copyMasterFormation = false;
+
+        public @Option(value = "Auto Attack", description = "Will attack even when the master is not attacking")
+        AutoAttack autoAttack = new AutoAttack();
+
     }
 }

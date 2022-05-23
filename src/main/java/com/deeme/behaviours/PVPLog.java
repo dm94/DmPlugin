@@ -41,6 +41,8 @@ public class PVPLog implements Behavior {
     protected final RepairAPI repair;
     protected final HeroItemsAPI items;
 
+    private Gson gson;
+
     //Global Data
     private int mapID = 0;
     private long initialTime = 0;
@@ -94,6 +96,7 @@ public class PVPLog implements Behavior {
         this.stats = stats;
         this.repair = repair;
         this.items = items;
+        this.gson = new Gson();
 
         try {
             if (!Files.exists(BATTLELOG_FOLDER)) {
@@ -259,7 +262,7 @@ public class PVPLog implements Behavior {
 
             File f = new File("battlelog", initialTime+".json");
             Writer writer = new FileWriter(f);
-            new Gson().toJson(globalDetails, writer);
+            gson.toJson(globalDetails, writer);
             writer.close();
         } catch(IOException e) {
             e.printStackTrace();

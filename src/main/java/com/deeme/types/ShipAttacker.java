@@ -25,6 +25,7 @@ import eu.darkbot.api.game.items.SelectableItem.Special;
 import eu.darkbot.api.game.other.Lockable;
 import eu.darkbot.api.managers.HeroItemsAPI;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -382,6 +383,11 @@ public class ShipAttacker {
         } else {
             main.hero.setMode(config);
         }
+    }
+
+    public Ship getEnemy(int maxDistance) {
+        return main.mapManager.entities.ships.stream()
+        .filter(s -> (s.playerInfo.isEnemy() && s.locationInfo.distance(main.hero) <= maxDistance)).sorted(Comparator.comparingDouble(s -> s.locationInfo.distance(main.hero))).findAny().orElse(null);
     }
 
     public void resetDefenseData() {

@@ -1,7 +1,7 @@
 {
   "name": "DmPlugin",
   "author": "Dm94Dani",
-  "version": "1.5.6 alpha 13",
+  "version": "1.5.6 alpha 15",
   "minVersion": "1.13.17 beta 103",
   "supportedVersion": "1.13.17 beta 105",
   "features": [
@@ -11,6 +11,7 @@
     "com.deeme.tasks.Ifttt",
     "com.deeme.tasks.Skylab",
     "com.deeme.tasks.WeeklySchedule",
+    "com.deeme.tasks.AutoChangeMap",
     "com.deeme.behaviours.Others",
     "com.deeme.behaviours.DefenseMode",
     "com.deeme.behaviours.PVPLog"

@@ -28,12 +28,6 @@ public class FormationSupplier implements PrioritizedSupplier<Formation> {
                 return Formation.WHEEL;
             }
         }
-        if (useDiamond) {
-            isAvailable = items.getItem(Formation.DIAMOND, ItemFlag.USABLE, ItemFlag.READY).isPresent();
-            if (isAvailable) {
-                return Formation.DIAMOND;
-            } 
-        }
         if (focusPenetration) {
             isAvailable = items.getItem(Formation.MOTH, ItemFlag.USABLE, ItemFlag.READY).isPresent();
             if (isAvailable) {
@@ -66,6 +60,12 @@ public class FormationSupplier implements PrioritizedSupplier<Formation> {
                 }
             }
         }
+        if (useDiamond) {
+            isAvailable = items.getItem(Formation.DIAMOND, ItemFlag.USABLE, ItemFlag.READY).isPresent();
+            if (isAvailable) {
+                return Formation.DIAMOND;
+            } 
+        }
         
         return Formation.MOTH;
     }
@@ -96,6 +96,6 @@ public class FormationSupplier implements PrioritizedSupplier<Formation> {
             focusSpeed = shoulFocusSpeed(target);
             useDiamond = shoulUseDiamond();
         }
-        return focusSpeed ? Priority.HIGHEST : useDiamond ? Priority.HIGH : focusPenetration ? Priority.MODERATE : focusDamage ? Priority.LOW : Priority.LOWEST;
+        return focusSpeed ? Priority.HIGHEST : focusPenetration ? Priority.HIGH : focusDamage ? Priority.MODERATE : useDiamond ? Priority.LOW : Priority.LOWEST;
     }
 }

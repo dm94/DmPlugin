@@ -10,16 +10,10 @@ import com.github.manolo8.darkbot.gui.tree.components.JListField;
 
 @Option("Profile")
 public class Profile {
-    @Option(value = "Hangar ID", description = "Hangar to use.")
+    @Option(value = "Hangar ID", description = "Hangar to use. Must be in favourites.")
     @Editor(JListField.class)
     @Options(ShipSupplier.class)
     public Integer hangarId = null;
-
-    @Option(value = "Map Timetable", description = "If you want to use the map timetable to change the map every x time or death")
-    public boolean useMapTimetable = false;
-
-    @Option(value = "Random pause", description = "If you want me to make random pauses")
-    public boolean randomPause = false;
 
     @Option(value = "Bot profile to set")
     @Editor(JListField.class)

@@ -189,12 +189,12 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
         @Option(value = "Sell when it is on map 5-2", description = "If your collection ship passes 5-2 and has palladium it will go to sell and then go to 5-3")
         public boolean sellOnDie = true;
 
-        @Option(value = "Collecting Hangar (5-3)", description = "Ship 5-3 Hangar ID")
+        @Option(value = "Collecting Hangar (5-3)", description = "Ship 5-3 Hangar. Must be in favourites")
         @Editor(JListField.class)
         @Options(ShipSupplier.class)
         public Integer collectHangar = -1;
 
-        @Option(value = "Selling Hangar (5-2)", description = "Ship 5-2 Hangar ID")
+        @Option(value = "Selling Hangar (5-2)", description = "Ship 5-2 Hangar. Must be in favourites")
         @Editor(JListField.class)
         @Options(ShipSupplier.class)
         public Integer sellHangar = -1;
@@ -295,7 +295,9 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
     }
 
     private void tryUpdateHangarList() {
-        if (!configPa.updateHangarList) return;
+        if (!configPa.updateHangarList) { return; }
+        if (!main.backpage.isInstanceValid()) {  return; }
+
         currentStatus = State.LOADING_HANGARS;
 
         try {
