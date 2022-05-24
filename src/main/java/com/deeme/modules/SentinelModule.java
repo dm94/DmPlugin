@@ -111,8 +111,8 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
     public String instructions() {
         return "Sentinel Module: \n" +
                 "It's important that the main ship is in a group \n" +
-                "If a \"Sentinel Tag\" is not defined, it will follow the group leader \n" +
-                "It is recommended to activate and configure the Defence Mode";
+                "Following priority: Master ID > Tag > Group Leader \n "+
+                "If a \"Sentinel Tag\" is not defined, it will follow the group leader \n";
     }
 
     @Override

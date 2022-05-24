@@ -21,7 +21,7 @@ public class PVPConfig {
     public boolean useBestFormation = true;
 
     @Option(value = "Maximum range for enemies", description = "Enemies above this range will not be attacked")
-    @Num(min = 0, max = 1000, step = 100)
+    @Num(min = 0, max = 600, step = 50)
     public int rangeForEnemies = 100;
 
     public @Option(value = "Ability", description = "Ability Conditions")

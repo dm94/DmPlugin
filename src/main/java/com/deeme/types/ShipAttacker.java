@@ -20,7 +20,6 @@ import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.game.items.SelectableItem.Formation;
 import eu.darkbot.api.game.items.SelectableItem.Laser;
-import eu.darkbot.api.game.items.SelectableItem.Rocket;
 import eu.darkbot.api.game.items.SelectableItem.Special;
 import eu.darkbot.api.game.other.Lockable;
 import eu.darkbot.api.managers.HeroItemsAPI;
@@ -94,22 +93,18 @@ public class ShipAttacker {
 
             doKillTargetTick();
 
-            if (hero.getLocationInfo().distance(target) < 575 &&
-                    useKeyWithConditions(defense.ability, null)) {
-                defense.ability.lastUse = System.currentTimeMillis();
+            if (hero.getLocationInfo().distance(target) < 575) {
+                useKeyWithConditions(defense.ability, null);
             }
 
             if (defense.useBestRocket) {
                 changeRocket();
             }
 
-            if (useKeyWithConditions(defense.ISH, Special.ISH_01)) defense.ISH.lastUse = System.currentTimeMillis();
-
-            if (useKeyWithConditions(defense.SMB, Special.SMB_01)) defense.SMB.lastUse = System.currentTimeMillis();
-
-            if (useKeyWithConditions(defense.PEM, Special.EMP_01)) defense.PEM.lastUse = System.currentTimeMillis();
-
-            if (useKeyWithConditions(defense.otherKey, null)) defense.otherKey.lastUse = System.currentTimeMillis();
+            useKeyWithConditions(defense.ISH, Special.ISH_01);
+            useKeyWithConditions(defense.SMB, Special.SMB_01);
+            useKeyWithConditions(defense.PEM, Special.EMP_01);
+            useKeyWithConditions(defense.otherKey, null);
 
             tryAttackOrFix();
 
@@ -233,20 +228,19 @@ public class ShipAttacker {
         return defaultAmmo;
     }
 
-    private Rocket getBestRocket() {
+    private SelectableItem getBestRocket() {
         return rocketSupplier.get();
     }
 
-    public Formation getBestFormation() {
+    public SelectableItem getBestFormation() {
         return formationSupplier.get();
     }
 
     public void changeRocket() {
         if (System.currentTimeMillis() < rocketTime) return;
-        Rocket rocket = getBestRocket();
+        SelectableItem rocket = getBestRocket();
 
-        if (rocket != null && !main.hero.getRocket().getId().equals(rocket.getId())) {
-            items.useItem(rocket);
+        if (rocket != null && !main.hero.getRocket().getId().equals(rocket.getId()) && useSelectableReadyWhenReady(rocket)) {
             rocketTime = System.currentTimeMillis() + 2000;
         }
     }
@@ -270,27 +264,30 @@ public class ShipAttacker {
     }
 
     public boolean useKeyWithConditions(ExtraKeyConditions extra, SelectableItem selectableItem) {
-        if (System.currentTimeMillis() - clickDelay < 1000) return false;
-
         if (extra.enable) {
-            boolean isReady = false;
-            if (selectableItem != null) {
-                isReady = items.getItem(selectableItem, ItemFlag.USABLE, ItemFlag.READY).isPresent();
-            } else {
-                isReady = extra.lastUse < System.currentTimeMillis() - (extra.countdown*1000);
+            if (selectableItem == null && extra.Key != null) {
+                selectableItem = this.main.facadeManager.slotBars.getItem(extra.Key);
             }
 
-            if (isReady && hero.getHealth().hpPercent() < extra.HEALTH_RANGE.max && hero.getHealth().hpPercent() > extra.HEALTH_RANGE.min
+            if (hero.getHealth().hpPercent() < extra.HEALTH_RANGE.max && hero.getHealth().hpPercent() > extra.HEALTH_RANGE.min
                     && target.getHealth().hpPercent() < extra.HEALTH_ENEMY_RANGE.max && target.getHealth().hpPercent() > extra.HEALTH_ENEMY_RANGE.min) {
-                if (selectableItem != null) {
-                    items.useItem(selectableItem);
-                } else if (extra.Key != null) {
-                    API.keyboardClick(extra.Key);
-                }
-                clickDelay = System.currentTimeMillis();
-                return true;
+                        return useSelectableReadyWhenReady(selectableItem);
             }
         }
+        return false;
+    }
+
+    public boolean useSelectableReadyWhenReady(SelectableItem selectableItem) {
+        if (System.currentTimeMillis() - clickDelay < 1000) return false;
+        if (selectableItem == null)  return false; 
+
+        boolean isReady = items.getItem(selectableItem, ItemFlag.USABLE, ItemFlag.READY).isPresent();
+
+        if (isReady && items.useItem(selectableItem).isSuccessful()) {
+            clickDelay = System.currentTimeMillis();
+            return true;
+        }
+
         return false;
     }
 
@@ -310,12 +307,12 @@ public class ShipAttacker {
                 for (Ship ship : ships) {
                     if (defense.helpAttack && ship.isAttacking() && ship.getTarget() != null) {
                         target = (Ship) ship.getTarget();
-                        return target != null;
+                        return true;
                     }
 
                     target = SharedFunctions.getAttacker(ship,main,this.hero,target);
                     if (target != null) {
-                        return target != null;
+                        return true;
                     }
                 }
             }
@@ -369,15 +366,12 @@ public class ShipAttacker {
 
     public void setMode(Config.ShipConfig config, boolean useBestFormation) {
         if (useBestFormation) {
-            Formation formation = getBestFormation();
-            if (formation != null) {
-                if (!main.hero.isInFormation(formation)) {
-                    Boolean canChange = items.getItem(formation, ItemFlag.USABLE, ItemFlag.READY).isPresent();
-                    if (canChange) {
-                        main.hero.setMode(config.CONFIG, main.facadeManager.slotBars.getKeyBind(formation));
-                    } else {
-                        main.hero.setMode(config);
-                    }
+            Formation formation = (Formation) getBestFormation();
+            if (formation != null && !main.hero.isInFormation(formation)) {
+                if (items.getItem(formation, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+                    main.hero.setMode(config.CONFIG, main.facadeManager.slotBars.getKeyBind(formation));
+                } else {
+                    main.hero.setMode(config);
                 }
             }
         } else {

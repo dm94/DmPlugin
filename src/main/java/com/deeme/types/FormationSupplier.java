@@ -1,12 +1,18 @@
 package com.deeme.types;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.core.entities.Ship;
 import eu.darkbot.api.extensions.selectors.PrioritizedSupplier;
+import eu.darkbot.api.game.items.ItemCategory;
 import eu.darkbot.api.game.items.ItemFlag;
+import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.game.items.SelectableItem.Formation;
 import eu.darkbot.api.managers.HeroItemsAPI;
 
-public class FormationSupplier implements PrioritizedSupplier<Formation> {
+public class FormationSupplier implements PrioritizedSupplier<SelectableItem> {
     private Main main;
     private final HeroItemsAPI items;
 
@@ -15,12 +21,14 @@ public class FormationSupplier implements PrioritizedSupplier<Formation> {
     private boolean focusSpeed = false;
     private boolean focusPenetration = false;
 
+    List<String> damageOrder = Arrays.asList(Formation.DRILL.getId(), Formation.PINCER.getId(), Formation.STAR.getId(), Formation.DOUBLE_ARROW.getId());
+
     public FormationSupplier(Main main, HeroItemsAPI items) {
         this.main = main;
         this.items = items;
     }
 
-    public Formation get() {
+    public SelectableItem get() {
         boolean isAvailable = false;
         if (focusSpeed) {
             isAvailable = items.getItem(Formation.WHEEL, ItemFlag.USABLE, ItemFlag.READY).isPresent();
@@ -39,32 +47,17 @@ public class FormationSupplier implements PrioritizedSupplier<Formation> {
                 } 
             }
         }
-        if (focusDamage) {
-            isAvailable = items.getItem(Formation.DRILL, ItemFlag.USABLE, ItemFlag.READY).isPresent();
-            if (isAvailable) {
-                return Formation.DRILL;
-            } else {
-                isAvailable = items.getItem(Formation.PINCER, ItemFlag.USABLE, ItemFlag.READY).isPresent();
-                if (isAvailable) {
-                    return Formation.PINCER;
-                } else {
-                    isAvailable = items.getItem(Formation.STAR, ItemFlag.USABLE, ItemFlag.READY).isPresent();
-                    if (isAvailable) {
-                        return Formation.STAR;
-                    } else {
-                        isAvailable = items.getItem(Formation.DOUBLE_ARROW, ItemFlag.USABLE, ItemFlag.READY).isPresent();
-                        if (isAvailable) {
-                            return Formation.DOUBLE_ARROW;
-                        }
-                    }
-                }
-            }
-        }
+
         if (useDiamond) {
             isAvailable = items.getItem(Formation.DIAMOND, ItemFlag.USABLE, ItemFlag.READY).isPresent();
             if (isAvailable) {
                 return Formation.DIAMOND;
             } 
+        }
+
+        if (focusDamage) {
+            return items.getItems(ItemCategory.DRONE_FORMATIONS).stream()
+            .filter(item -> item.isUsable() && item.isAvailable()).sorted(Comparator.comparing(i -> damageOrder.indexOf(i.getId()))).findFirst().orElse(null);
         }
         
         return Formation.MOTH;

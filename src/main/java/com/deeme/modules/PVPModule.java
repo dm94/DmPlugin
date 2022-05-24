@@ -17,7 +17,7 @@ import eu.darkbot.api.managers.HeroItemsAPI;
 import eu.darkbot.shared.modules.CollectorModule;
 
 import java.util.Arrays;
-@Feature(name = "PVP Module", description = "PVP Module")
+@Feature(name = "PVP Module", description = "It is limited so as not to spoil the game")
 public class PVPModule implements Module, Configurable<PVPConfig> {
     private PVPConfig pvpConfig;
     private Main main;
@@ -84,7 +84,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
                 attackConfigLost = false;
                 target = null;
                 shipAttacker.resetDefenseData();
-                if (!pvpConfig.move) {
+                if (pvpConfig.move) {
                     if (pvpConfig.changeConfig) {
                         main.hero.roamMode();
                     }
@@ -107,17 +107,14 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
                 shipAttacker.changeRocket();
             }
 
-            if (hero.getLocationInfo().distance(target) < 575 && shipAttacker.useKeyWithConditions(pvpConfig.ability, null)) {
-                pvpConfig.ability.lastUse = System.currentTimeMillis();
+            if (hero.getLocationInfo().distance(target) < 575) {
+                shipAttacker.useKeyWithConditions(pvpConfig.ability, null);
             }
 
-            if (shipAttacker.useKeyWithConditions(pvpConfig.ISH, Special.ISH_01)) pvpConfig.ISH.lastUse = System.currentTimeMillis();
-
-            if (shipAttacker.useKeyWithConditions(pvpConfig.SMB, Special.SMB_01)) pvpConfig.SMB.lastUse = System.currentTimeMillis();
-
-            if (shipAttacker.useKeyWithConditions(pvpConfig.PEM, Special.EMP_01)) pvpConfig.PEM.lastUse = System.currentTimeMillis();
-
-            if (shipAttacker.useKeyWithConditions(pvpConfig.otherKey, null)) pvpConfig.otherKey.lastUse = System.currentTimeMillis();
+            shipAttacker.useKeyWithConditions(pvpConfig.ISH, Special.ISH_01);
+            shipAttacker.useKeyWithConditions(pvpConfig.SMB, Special.SMB_01);
+            shipAttacker.useKeyWithConditions(pvpConfig.PEM, Special.EMP_01);
+            shipAttacker.useKeyWithConditions(pvpConfig.otherKey, null);
 
             shipAttacker.doKillTargetTick();
             if (pvpConfig.move) {
