@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import javax.swing.RowSorter;
 import javax.swing.SortOrder;
@@ -93,7 +94,7 @@ public class AutoChangeMap implements Task, Configurable<AutoChangeMap.ChangeMap
     private void setup() {
         if (star == null || changeMapConfig == null) return;
 
-        List<String> accessibleMaps = star.getMaps().stream().filter(m -> !m.isGG()).map(m -> m.getName()).toList();
+        List<String> accessibleMaps = star.getMaps().stream().filter(m -> !m.isGG()).map(m -> m.getName()).collect(Collectors.toList());
 
         for (String map : accessibleMaps) {
             MapData info = this.changeMapConfig.Maps_Changes.get(map);
