@@ -36,8 +36,8 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
 
     @Override
     public String instructions() {
-        return "You have four different profiles. \n" +
-                "Each profile can choose which config and map \n";
+        return "You have 4 different profiles, the module will automatically change its configuration according to the timetable you have set. \n" +
+                "Remember that you have to configure it in every config you are going to use.";
     }
 
     @Override
@@ -113,7 +113,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
         if (lastCheck < System.currentTimeMillis() - 300000) {
             LocalDateTime da = LocalDateTime.now();
             int currentHour = da.getHour();
-            Hour hour = this.weeklyConfig.Hours_Changes.get(String.valueOf(currentHour));
+            Hour hour = this.weeklyConfig.Hours_Changes.get(String.format("%02d", currentHour));
             String profile = "";
             if (hour != null) {
                 DayOfWeek currentDay = da.getDayOfWeek();
