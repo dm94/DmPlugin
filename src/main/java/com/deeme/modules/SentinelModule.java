@@ -131,11 +131,11 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
                 } else {
                     currentStatus = State.FOLLOWING_MASTER;
                     main.hero.roamMode();
-                    if (main.hero.distanceTo(sentinel.locationInfo.now) > sConfig.rangeToLider) {
-                        drive.move(sentinel.locationInfo.now);
+                    if (main.hero.distanceTo(sentinel.getLocationInfo().getCurrent()) > sConfig.rangeToLider) {
+                        drive.move(sentinel.getLocationInfo().now);
                     } else if (sConfig.collectorActive) {
                         collectorModule.findBox();
-                        if (collectorModule.currentBox != null && sentinel.locationInfo.distanceTo(collectorModule.currentBox) < sConfig.rangeToLider) {
+                        if (collectorModule.currentBox != null && sentinel.getLocationInfo().distanceTo(collectorModule.currentBox) < sConfig.rangeToLider) {
                             collectorModule.tryCollectNearestBox();
                         }
                     }
@@ -153,7 +153,7 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
                         maximumWaitingTime = System.currentTimeMillis() + 120000;
                     } else if (maximumWaitingTime <= System.currentTimeMillis()) {
                         currentStatus =  State.WAIT;
-                        if (main.config.GENERAL.WORKING_MAP != main.hero.map.id && !main.mapManager.entities.portals.isEmpty()) {
+                        if (main.config.GENERAL.WORKING_MAP != main.hero.getMap().getId() && !main.mapManager.entities.portals.isEmpty()) {
                             currentStatus = State.TRAVELING_TO_WORKING_MAP;
                             this.main.setModule(new MapModule())
                                     .setTarget(this.main.starManager.byId(this.main.config.GENERAL.WORKING_MAP));
@@ -167,11 +167,11 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
     }
 
     private boolean isAttacking() {
-        Entity target = sentinel.isAttacking() ? sentinel.getTarget() : null;
+        Entity target = sentinel.isAttacking() || sentinel.getTarget() != null ? sentinel.getTarget() : null;
 
         if (target == null) {
             target = main.mapManager.entities.ships.stream()
-                .filter(s -> (sentinel.isAttacking(s) || sentinel.getTarget() == s) && s.playerInfo.isEnemy())
+                .filter(s -> (sentinel.getTarget() != null && sentinel.getTarget().getId() == s.getId()) && s.playerInfo.isEnemy())
                 .findAny().orElse(null);
         }
 
@@ -184,7 +184,7 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
         if ((target instanceof Npc)) {
             isNpc = true;
             attacker.setTarget((Npc) target);
-            main.hero.attackMode((Npc) target);
+            setMode(main.config.GENERAL.OFFENSIVE, (Npc) target);
             attacker.doKillTargetTick();
         } else {
             isNpc = false;
@@ -201,7 +201,7 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
         if (main.mapManager.entities.ships == null) { return false; } 
 
         sentinel = main.mapManager.entities.ships.stream()
-                .filter(ship ->  (ship.getId() == masterID || ship.getId() == sConfig.MASTER_ID || sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(ship.id))) && ship.getId() != main.hero.id)
+                .filter(ship ->  (ship.getId() == masterID || ship.getId() == sConfig.MASTER_ID || sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(ship.getId()))) && ship.getId() != main.hero.getId())
                 .findAny().orElse(null);
 
         return sentinel != null;
@@ -209,13 +209,13 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
 
     private void goToLeader() {
         for (GroupMember m : main.guiManager.group.group.members) {
-            if ((m.getId() == sConfig.MASTER_ID || sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(m.id)) || m.isLeader()) && m.id != main.hero.id) {
+            if ((m.getId() == sConfig.MASTER_ID || sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(m.getId())) || m.isLeader()) && m.getId() != main.hero.getId()) {
                 masterID = m.getId();
-                if (m.mapId == main.hero.map.id) {
+                if (m.getMapId() == main.hero.getMap().getId()) {
                     drive.move(m.location);
                     currentStatus = State.FOLLOWING_MASTER;
                 } else {
-                    main.setModule(new MapModule()).setTarget(main.starManager.byId(m.mapId));
+                    main.setModule(new MapModule()).setTarget(main.starManager.byId(m.getMapId()));
                     currentStatus = State.TRAVELLING_TO_MASTER;
                 }
                 return;
@@ -229,10 +229,18 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
         }
 
         main.guiManager.group.invites.stream()
-                .filter(in -> in.incomming && (sConfig.SENTINEL_TAG == null ||
-                        sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(in.inviter.id))))
+                .filter(in -> in.isIncoming() && (sConfig.SENTINEL_TAG == null ||
+                        sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(in.getInviter().getId()))))
                 .findFirst()
                 .ifPresent(inv -> main.guiManager.group.acceptInvite(inv));
+    }
+
+    private void setMode(Config.ShipConfig config, Npc npc) {
+        if (npc != null && npc.npcInfo.attackFormation != null) {
+            main.hero.setMode(config.CONFIG, npc.npcInfo.attackFormation);
+        } else {
+            setMode(config);
+        }
     }
 
     private void setMode(Config.ShipConfig config) {
@@ -262,14 +270,14 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
     public void npcMove() {
         Npc target = attacker.target;
         Location direction = drive.movingTo();
-        Location heroLoc = main.hero.locationInfo.now;
-        Location targetLoc = target.locationInfo.destinationInTime(400);
+        Location heroLoc = main.hero.getLocationInfo().now;
+        Location targetLoc = target.getLocationInfo().destinationInTime(400);
 
-        double distance = heroLoc.distance(target.locationInfo.now);
+        double distance = heroLoc.distance(target.getLocationInfo().now);
         double angle = targetLoc.angle(heroLoc);
 
-        double radius = target.npcInfo.radius;
-        boolean noCircle = target.npcInfo.extra.has(NpcExtra.NO_CIRCLE);
+        double radius = target.getInfo().getRadius();
+        boolean noCircle = target.getInfo().hasExtraFlag(NpcExtra.NO_CIRCLE);
 
         radius = attacker.modifyRadius(radius);
         if (radius > 750) noCircle = false;
@@ -285,10 +293,10 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
             distance = minRad + random() * (radius - minRad - 10);
             angleDiff = (random() * 0.1) - 0.05;
         } else {
-            double maxRadFix = target.npcInfo.radius / 2,
+            double maxRadFix = target.getInfo().getRadius() / 2,
                     radiusFix = (int) Math.max(Math.min(radius - distance, maxRadFix), -maxRadFix);
             distance = (radius += radiusFix);
-            angleDiff = Math.max((main.hero.shipInfo.speed * 0.625) + (min(200, target.locationInfo.speed) * 0.625)
+            angleDiff = Math.max((main.hero.getSpeed() * 0.625) + (min(200, target.getSpeed()) * 0.625)
                     - heroLoc.distance(Location.of(targetLoc, angle, radius)), 0) / radius;
         }
         direction = getBestDir(targetLoc, angle, angleDiff, distance);
@@ -316,18 +324,18 @@ public class SentinelModule implements Module, Configurable<SentinelModule.Senti
     }
 
     protected double score(Location loc) {
-        return (drive.canMove(loc) ? 0 : -1000) - main.mapManager.entities.ships.stream() // Consider barrier as bad as 1000 radius units.
+        return (drive.canMove(loc) ? 0 : -1000) - main.mapManager.entities.ships.stream()
                 .filter(n -> attacker.target != n)
-                .mapToDouble(n -> Math.max(0, 560 - n.locationInfo.now.distance(loc)))
+                .mapToDouble(n -> Math.max(0, 560 - n.getLocationInfo().getCurrent().distanceTo(loc)))
                 .sum();
     }
 
     protected void setNPCConfig(Location direction) {
         if (!attacker.hasTarget()) main.hero.roamMode();
         else if (main.config.LOOT.RUN_CONFIG_IN_CIRCLE
-                && attacker.target.health.hpPercent() < 0.25
-                && main.hero.locationInfo.now.distance(direction) > attacker.target.npcInfo.radius * 2) setMode(main.config.GENERAL.RUN);
-        else if (main.hero.locationInfo.now.distance(direction) > attacker.target.npcInfo.radius * 3) setMode(main.config.GENERAL.ROAM);
+                && attacker.target.getHealth().hpPercent() < 0.25
+                && main.hero.getLocationInfo().getCurrent().distanceTo(direction) > attacker.target.getInfo().getRadius() * 2) setMode(main.config.GENERAL.RUN);
+        else if (main.hero.getLocationInfo().getCurrent().distanceTo(direction) > attacker.target.getInfo().getRadius() * 3) setMode(main.config.GENERAL.ROAM);
         else setMode(main.config.GENERAL.OFFENSIVE);
     }
 

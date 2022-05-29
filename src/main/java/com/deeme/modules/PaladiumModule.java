@@ -68,7 +68,6 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
         SWITCHING_PALA_HANGAR("Switching to the palladium hangar"),
         DISCONNECTING("Disconnecting"),
         RELOAD_GAME("Reloading the game"),
-        NO_ACCEPT("You haven't opened the link"),
         LOADING_HANGARS("Waiting - Loading hangars"),
         SEARCHING_PORTALS("Looking for a portal to change hangar"),
         DEFENSE_MODE("DEFENSE MODE"),
@@ -167,7 +166,12 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
                     hangarChanger.disconnect(true);
                     hangarChanger.disconectTime = System.currentTimeMillis();
                 }
-            } 
+            } else if (currentStatus != State.LOADING_HANGARS) {
+                currentStatus = State.LOADING_HANGARS;
+                hangarChanger.updateHangarActive();
+                hangarChanger.reloadAfterDisconnect(true);
+                return;
+            }
             if (!hangarChanger.isDisconnect() && currentStatus != State.DISCONNECTING && (hero.map == SELL_MAP || hero.map == ACTIVE_MAP)) {
                 currentStatus = State.WAIT;
                 this.firstTick = true;
@@ -273,7 +277,7 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
 
     private boolean canBeDisconnected() {
         if (configPa.goPortalChange) return super.canRefresh();
-        return !hero.isAttacking() && SharedFunctions.getAttacker(hero, main, hero, null) == null;
+        return !hero.isAttacking() && !SharedFunctions.hasAttacker(hero, main);
     }
 
     private void sell() {

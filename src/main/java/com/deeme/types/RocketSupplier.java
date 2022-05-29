@@ -2,27 +2,30 @@ package com.deeme.types;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import com.github.manolo8.darkbot.Main;
-import com.github.manolo8.darkbot.core.entities.Ship;
 import eu.darkbot.api.extensions.selectors.PrioritizedSupplier;
 import eu.darkbot.api.game.items.ItemCategory;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.game.items.SelectableItem.Rocket;
+import eu.darkbot.api.game.other.Lockable;
+import eu.darkbot.api.game.other.Movable;
+import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
 
 public class RocketSupplier implements PrioritizedSupplier<SelectableItem> {
-    private Main main;
+    private final HeroAPI heroapi;
     private final HeroItemsAPI items;
+    private final Double hpMin;
 
     private boolean stopEnemy = false;
     private boolean usePLD = false;
 
     List<String> damageOrder = Arrays.asList(Rocket.PLT_3030.getId(), Rocket.PLT_2021.getId(), Rocket.PLT_2026.getId(), Rocket.R_310.getId());
 
-    public RocketSupplier(Main main, HeroItemsAPI items) {
-        this.main = main;
+    public RocketSupplier(HeroAPI heroapi, HeroItemsAPI items, double hpMin) {
+        this.heroapi = heroapi;
         this.items = items;
+        this.hpMin = hpMin;
     }
 
     public SelectableItem get() {
@@ -50,18 +53,20 @@ public class RocketSupplier implements PrioritizedSupplier<SelectableItem> {
             .filter(item -> item.isUsable() && item.isAvailable()).sorted(Comparator.comparing(i -> damageOrder.indexOf(i.getId()))).findFirst().orElse(null);
     }
 
-    private boolean shoulFocusSpeed(Ship target) {
-        double distance = main.hero.getLocationInfo().now.distance(target.getLocationInfo());
-        return (distance > 400 && target.getSpeed() > main.hero.getSpeed() || main.hero.getHealth().hpPercent() < main.config.GENERAL.SAFETY.REPAIR_HP_RANGE.min);
+    private boolean shoulFocusSpeed(Lockable target) {
+        double distance = heroapi.getLocationInfo().getCurrent().distanceTo(target.getLocationInfo());
+        double speed = target instanceof Movable ? ((Movable) target).getSpeed() : 0;
+
+        return (distance > 400 && speed > heroapi.getSpeed()) || (distance < 600 && speed > heroapi.getSpeed() && heroapi.getHealth().hpPercent() < hpMin);
     }
 
-    private boolean shoulUsePLD(Ship target) {
-        return target.isAiming(main.hero);
+    private boolean shoulUsePLD(Lockable target) {
+        return target instanceof Movable ? ((Movable) target).isAiming(heroapi) : false;
     }
     
     @Override
     public Priority getPriority() {
-        Ship target = this.main.hero.target;
+        Lockable target = heroapi.getLocalTarget();
         if (target != null) {
             stopEnemy = shoulFocusSpeed(target);
             usePLD = shoulUsePLD(target);

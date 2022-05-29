@@ -2,44 +2,48 @@ package com.deeme.types;
 
 import com.deeme.types.config.Defense;
 import com.deeme.types.config.ExtraKeyConditions;
+
 import com.github.manolo8.darkbot.Main;
-import com.github.manolo8.darkbot.config.Config;
-import com.github.manolo8.darkbot.core.api.DarkBoatAdapter;
-import com.github.manolo8.darkbot.core.entities.Ship;
-import com.github.manolo8.darkbot.core.manager.EffectManager;
-import com.github.manolo8.darkbot.core.manager.HeroManager;
-import com.github.manolo8.darkbot.core.objects.facades.SettingsProxy;
-import com.github.manolo8.darkbot.core.objects.group.GroupMember;
-import com.github.manolo8.darkbot.core.utils.Drive;
-import com.github.manolo8.darkbot.core.utils.Location;
-import com.github.manolo8.darkbot.modules.utils.SafetyFinder;
+import com.github.manolo8.darkbot.config.Config.Loot.Sab;
 
-import org.jetbrains.annotations.Nullable;
-
+import eu.darkbot.api.PluginAPI;
+import eu.darkbot.api.config.ConfigSetting;
+import eu.darkbot.api.config.types.PercentRange;
+import eu.darkbot.api.config.types.ShipMode;
+import eu.darkbot.api.config.types.ShipMode.ShipModeImpl;
+import eu.darkbot.api.game.entities.Ship;
+import eu.darkbot.api.game.enums.EntityEffect;
+import eu.darkbot.api.game.group.GroupMember;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.game.items.SelectableItem.Formation;
 import eu.darkbot.api.game.items.SelectableItem.Laser;
-import eu.darkbot.api.game.items.SelectableItem.Special;
+import eu.darkbot.api.game.other.Location;
 import eu.darkbot.api.game.other.Lockable;
+import eu.darkbot.api.managers.ConfigAPI;
+import eu.darkbot.api.managers.EntitiesAPI;
+import eu.darkbot.api.managers.GroupAPI;
+import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
+import eu.darkbot.api.managers.MovementAPI;
 
+import java.util.Collection;
 import java.util.Comparator;
-import java.util.List;
+import java.util.Objects;
 import java.util.Random;
-import java.util.stream.Collectors;
 
-import static com.github.manolo8.darkbot.core.objects.facades.SettingsProxy.KeyBind.*;
 import static com.github.manolo8.darkbot.Main.API;
 
 public class ShipAttacker {
-    protected final SettingsProxy keybinds;
-    private final HeroItemsAPI items;
-    protected Config config;
-    protected HeroManager hero;
-    protected Drive drive;
-    private Main main;
-    private SafetyFinder safety;
+    protected final PluginAPI api;
+    protected final HeroAPI heroapi;
+    protected final HeroItemsAPI items;
+    protected final MovementAPI movement;
+    protected final ConfigAPI configAPI;
+    protected final GroupAPI group;
+    protected final ConfigSetting<PercentRange> repairHpRange;
+    protected final ConfigSetting<Character> ammoKey;
+    protected final Collection<? extends Ship> allShips;
     private DefenseLaserSupplier laserSupplier;
     private FormationSupplier formationSupplier;
     private RocketSupplier rocketSupplier;
@@ -51,7 +55,6 @@ public class ShipAttacker {
     protected long clickDelay;
     protected boolean sab;
     private Defense defense = null;
-    private boolean attackConfigLost = false;
     private Random rnd;
 
     protected boolean firstAttack;
@@ -61,107 +64,53 @@ public class ShipAttacker {
     protected long rocketTime;
 
     public ShipAttacker(Main main) {
-        this.main = main;
-        this.hero = main.hero;
-        this.config = main.config;
-        this.drive = hero.drive;
-        this.safety = new SafetyFinder(main);
+        this(main.pluginAPI.getAPI(PluginAPI.class), main.config.LOOT.SAB, main.config.LOOT.RSB.ENABLED);
+    }
+
+    public ShipAttacker(PluginAPI api, Sab sab, boolean rsbEnabled) {
+        this.api = api;
+        this.heroapi = api.getAPI(HeroAPI.class);
+        this.movement = api.getAPI(MovementAPI.class);
+        this.configAPI = api.getAPI(ConfigAPI.class);
+        this.group = api.getAPI(GroupAPI.class);
+        EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
+        this.allShips = entities.getShips();
         this.rnd = new Random();
-        this.keybinds = main.facadeManager.settings;
-        this.items = main.pluginAPI.getAPI(HeroItemsAPI.class);
-        this.laserSupplier = new DefenseLaserSupplier(main, items, main.config.LOOT.SAB, main.config.LOOT.RSB.ENABLED);
-        this.formationSupplier = new FormationSupplier(main, items);
-        this.rocketSupplier = new RocketSupplier(main, items);
+        this.items = api.getAPI(HeroItemsAPI.class);
+        this.laserSupplier = new DefenseLaserSupplier(api, heroapi, items, sab, rsbEnabled);
+        this.formationSupplier = new FormationSupplier(heroapi, items);
+
+        this.repairHpRange = configAPI.requireConfig("general.safety.repair_hp_range");
+        this.ammoKey = configAPI.requireConfig("loot.ammo_key");
+
+        this.rocketSupplier = new RocketSupplier(heroapi, items, repairHpRange.getValue().getMin());
     }
 
-    public ShipAttacker(Main main, Defense defense) {
-        this(main);
+    public ShipAttacker(PluginAPI api, Defense defense) {
+        this(api, defense.SAB, defense.useRSB);
         this.defense = defense;
-        this.laserSupplier = new DefenseLaserSupplier(main, items, defense);
     }
 
-    public ShipAttacker(Main main, DefenseLaserSupplier defenseLaserSupplier) {
-        this(main);
-        this.laserSupplier = defenseLaserSupplier;
-    }
-
-    public void tick() {
-        if (defense != null) {
-            isUnderAttack();
-            if (target == null) return;
-            setConfigToUse();
-
-            doKillTargetTick();
-
-            if (hero.getLocationInfo().distance(target) < 575) {
-                useKeyWithConditions(defense.ability, null);
-            }
-
-            if (defense.useBestRocket) {
-                changeRocket();
-            }
-
-            useKeyWithConditions(defense.ISH, Special.ISH_01);
-            useKeyWithConditions(defense.SMB, Special.SMB_01);
-            useKeyWithConditions(defense.PEM, Special.EMP_01);
-            useKeyWithConditions(defense.otherKey, null);
-
-            tryAttackOrFix();
-
-            if (defense.movementMode == 1) {
-                vsMove();
-            } else if (defense.movementMode == 2) {
-                safety.tick();
-            } else if (defense.movementMode == 3) {
-                if (!drive.isMoving() || drive.isOutOfMap()) drive.moveRandom();
-            } else if (defense.movementMode == 4) {
-                if (hero.getHealth().hpPercent() <= config.GENERAL.SAFETY.REPAIR_HP_RANGE.min){
-                    safety.tick();
-                } else {
-                    vsMove();
-                }
-            }
-        }
-    }
-
-    public void uninstall() {
-        safety.uninstall();
-    }
-
-    public boolean takeControl() {
-        return defense.movementMode == 0;
-    }
-
-    private void setConfigToUse() {
-        if (defense.useSecondConfig &&
-                hero.getHealth().shieldPercent() < 0.1 && defense.healthToChange <= hero.getHealth().shieldPercent()){
-            attackConfigLost = true;
-        }
-
-        if (attackConfigLost && defense.useSecondConfig) {
-            setMode(defense.secondConfig, false);
-        } else {
-            setMode(main.config.GENERAL.OFFENSIVE);
-        }
-
+    public Ship getTarget() {
+        return target;
     }
 
     public void lockAndSetTarget() {
-        if (hero.getLocalTarget() == target && firstAttack) {
+        if (heroapi.getLocalTarget() == target && firstAttack) {
             clickDelay = System.currentTimeMillis();
         }
 
         fixedTimes = 0;
         laserTime = 0;
         firstAttack = false;
-        if (hero.locationInfo.distance(target) < 800 && System.currentTimeMillis() - clickDelay > 500) {
-            hero.setLocalTarget(target);
+        if (heroapi.getLocationInfo().distanceTo(target) < 800 && System.currentTimeMillis() - clickDelay > 500) {
+            heroapi.setLocalTarget(target);
             target.trySelect(false);
             clickDelay = System.currentTimeMillis();
         }
     }
 
-    public void setTarget(@Nullable Lockable target) {
+    public void setTarget(Lockable target) {
         if (target != null && !(target instanceof Ship))
             throw new IllegalArgumentException("Only Ship attacking is supported by this implementation");
         this.target = (Ship) target;
@@ -169,7 +118,7 @@ public class ShipAttacker {
 
     public void doKillTargetTick() {
         if (target == null) return;
-        if (!main.mapManager.isTarget(target)) {
+        if (!heroapi.isAttacking(target) || !heroapi.isAiming(target)) {
             lockAndSetTarget();
             return;
         }
@@ -177,18 +126,18 @@ public class ShipAttacker {
         tryAttackOrFix();
     }
 
-    protected void tryAttackOrFix() {
+    public void tryAttackOrFix() {
         if (System.currentTimeMillis() < laserTime) return;
 
         if (!firstAttack) {
             firstAttack = true;
             sendAttack(1500, 5000, true);
-        } else if (lastShot != getAttackKey()) {
+        } else if (!Objects.equals(lastShot, getAttackKey())) {
             sendAttack(250, 5000, true);
-        } else if (!hero.isAttacking(target) || !hero.isAiming(target)) {
+        } else if (!heroapi.isAttacking(target) || !heroapi.isAiming(target)) {
             sendAttack(1500, 5000, false);
-        } else if (target.health.hpDecreasedIn(1500) || target.hasEffect(EffectManager.Effect.NPC_ISH) || target.hasEffect(EffectManager.Effect.ISH)
-                || hero.locationInfo.distance(target) > 700) {
+        } else if (target.getHealth().hpDecreasedIn(1500) || target.hasEffect(EntityEffect.NPC_ISH) || target.hasEffect(EntityEffect.ISH)
+                || heroapi.getLocationInfo().distanceTo(target) > 700) {
             isAttacking = Math.max(isAttacking, System.currentTimeMillis() + 2000);
         } else if (System.currentTimeMillis() > isAttacking) {
             sendAttack(1500, ++fixedTimes * 3000L, false);
@@ -201,13 +150,13 @@ public class ShipAttacker {
         if (normal) {
             lastShot = getAttackKey();
             API.keyboardClick(lastShot);
+        } else if (!heroapi.triggerLaserAttack()) {
+            target.trySelect(true);
         }
-        else if (API instanceof DarkBoatAdapter) API.keyboardClick(keybinds.getCharCode(ATTACK_LASER));
-        else target.trySelect(true);
     }
 
     private Character getAttackKey() {
-        return getAttackKey(main.config.LOOT.AMMO_KEY);
+        return getAttackKey(ammoKey.getValue());
     }
 
     private Laser getBestLaser() {
@@ -218,7 +167,7 @@ public class ShipAttacker {
         Laser laser = getBestLaser();
 
         if (laser != null) {
-            Character key = main.facadeManager.slotBars.getKeyBind(laser);
+            Character key = items.getKeyBind(laser);
             if (key != null) return key;
         }
 
@@ -240,37 +189,38 @@ public class ShipAttacker {
         if (System.currentTimeMillis() < rocketTime) return;
         SelectableItem rocket = getBestRocket();
 
-        if (rocket != null && !main.hero.getRocket().getId().equals(rocket.getId()) && useSelectableReadyWhenReady(rocket)) {
+        if (rocket != null && !heroapi.getRocket().getId().equals(rocket.getId()) && useSelectableReadyWhenReady(rocket)) {
             rocketTime = System.currentTimeMillis() + 2000;
         }
     }
 
     public void vsMove() {
-        double distance = hero.getLocationInfo().now.distance(target.getLocationInfo().now);
+        double distance = heroapi.getLocationInfo().distanceTo(target);
         Location targetLoc = target.getLocationInfo().destinationInTime(400);
 
         if (distance > 400) {
-            if (drive.canMove(target.getLocationInfo().now)) {
-                drive.move(target.getLocationInfo().now);
-                if (target.getSpeed() > main.hero.getSpeed()) {
-                    main.hero.runMode();
+            if (movement.canMove(target.getLocationInfo().getCurrent())) {
+                movement.moveTo(target);
+                if (target.getSpeed() > heroapi.getSpeed()) {
+                    heroapi.setRunMode();
                 }
             } else {
                 resetDefenseData();
             }
         } else {
-            drive.move(Location.of(targetLoc, rnd.nextInt(360), distance));
+            movement.moveTo(Location.of(targetLoc, rnd.nextInt(360), distance));
         }
     }
 
     public boolean useKeyWithConditions(ExtraKeyConditions extra, SelectableItem selectableItem) {
         if (extra.enable) {
             if (selectableItem == null && extra.Key != null) {
-                selectableItem = this.main.facadeManager.slotBars.getItem(extra.Key);
+                selectableItem = items.getItem(extra.Key);
             }
 
-            if (hero.getHealth().hpPercent() < extra.HEALTH_RANGE.max && hero.getHealth().hpPercent() > extra.HEALTH_RANGE.min
-                    && target.getHealth().hpPercent() < extra.HEALTH_ENEMY_RANGE.max && target.getHealth().hpPercent() > extra.HEALTH_ENEMY_RANGE.min) {
+            if (heroapi.getHealth().hpPercent() < extra.HEALTH_RANGE.max && heroapi.getHealth().hpPercent() > extra.HEALTH_RANGE.min
+                && target.getHealth().hpPercent() < extra.HEALTH_ENEMY_RANGE.max && target.getHealth().hpPercent() > extra.HEALTH_ENEMY_RANGE.min 
+                && (extra.CONDITION == null || extra.CONDITION.get(api).toBoolean())) {
                         return useSelectableReadyWhenReady(selectableItem);
             }
         }
@@ -291,64 +241,28 @@ public class ShipAttacker {
         return false;
     }
 
-    public boolean isUnderAttack() {
-        if (!defense.respondAttacks) return false;
-
-        target = SharedFunctions.getAttacker(this.hero,main,this.hero,target);
-
-        if (target == null) {
-            List<Ship> ships = main.mapManager.entities.ships.stream()
-                    .filter(s -> (s.playerInfo.clanDiplomacy == 1 && defense.helpAllies) ||
-                            (defense.helpEveryone && !s.playerInfo.isEnemy())
-                            || (defense.helpGroup && inGroupAttacked(s.id)))
-                    .collect(Collectors.toList());
-
-            if (!ships.isEmpty()) {
-                for (Ship ship : ships) {
-                    if (defense.helpAttack && ship.isAttacking() && ship.getTarget() != null) {
-                        target = (Ship) ship.getTarget();
-                        return true;
-                    }
-
-                    target = SharedFunctions.getAttacker(ship,main,this.hero,target);
-                    if (target != null) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        if (target == null && defense.goToGroup) {
-            GroupMember member = getMemberGroupAttacked();
-            if (member != null) {
-                drive.moveTo(member.getLocation());
-            }
-        }
-
-        if (target == null) resetDefenseData();
-
-        return target != null;
-    }
-
-    private boolean inGroupAttacked(int id) {
-        if (main.guiManager.group == null) return false;
-
-        if (main.guiManager.group.hasGroup()) {
-            for (GroupMember member : main.guiManager.group.group.members) {
-                if (member.id == id && member.isAttacked()) {
+    public boolean inGroupAttacked(int id) {
+        if (group.hasGroup()) {
+            for (GroupMember member : group.getMembers()) {
+                if (member.getId() == id && member.isAttacked()) {
                     return true;
                 }
             }
         }
         return false;
     }
+ 
+    public void goToMemberAttacked() {
+        GroupMember member = getMemberGroupAttacked();
+        if (member != null) {
+            movement.moveTo(member.getLocation());
+        }
+    }
 
     private GroupMember getMemberGroupAttacked() {
-        if (main.guiManager.group == null) return null;
-
-        if (main.guiManager.group.hasGroup()) {
-            for (GroupMember member : main.guiManager.group.group.members) {
-                if (member.getMapId() == hero.getMap().getId() && member.isAttacked()) {
+        if (group.hasGroup()) {
+            for (GroupMember member : group.getMembers()) {
+                if (member.getMapId() == heroapi.getMap().getId() && member.isAttacked()) {
                     return member;
                 }
             }
@@ -356,7 +270,7 @@ public class ShipAttacker {
         return null;
     }
 
-    public void setMode(Config.ShipConfig config) {
+    public void setMode(ShipMode config) {
         if (defense != null) {
             setMode(config, defense.useBestFormation);
         } else {
@@ -364,28 +278,28 @@ public class ShipAttacker {
         }
     }
 
-    public void setMode(Config.ShipConfig config, boolean useBestFormation) {
+    public void setMode(ShipMode config, boolean useBestFormation) {
         if (useBestFormation) {
             Formation formation = (Formation) getBestFormation();
-            if (formation != null && !main.hero.isInFormation(formation)) {
+            if (formation != null && !heroapi.isInFormation(formation)) {
                 if (items.getItem(formation, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
-                    main.hero.setMode(config.CONFIG, main.facadeManager.slotBars.getKeyBind(formation));
+                    ShipModeImpl mode = new ShipModeImpl(config.getConfiguration(), formation);
+                    heroapi.setMode(mode);
                 } else {
-                    main.hero.setMode(config);
+                    heroapi.setMode(config);
                 }
             }
         } else {
-            main.hero.setMode(config);
+            heroapi.setMode(config);
         }
     }
 
     public Ship getEnemy(int maxDistance) {
-        return main.mapManager.entities.ships.stream()
-        .filter(s -> (s.playerInfo.isEnemy() && s.locationInfo.distance(main.hero) <= maxDistance)).sorted(Comparator.comparingDouble(s -> s.locationInfo.distance(main.hero))).findAny().orElse(null);
+        return allShips.stream()
+        .filter(s -> (s.getEntityInfo().isEnemy() && !SharedFunctions.isPet(s.getEntityInfo().getUsername()) && s.getLocationInfo().distanceTo(heroapi) <= maxDistance)).sorted(Comparator.comparingDouble(s -> s.getLocationInfo().distanceTo(heroapi))).findAny().orElse(null);
     }
 
     public void resetDefenseData() {
-        attackConfigLost = false;
         target = null;
         fixedTimes = 0;
     }

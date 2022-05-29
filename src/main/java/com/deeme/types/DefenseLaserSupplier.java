@@ -1,34 +1,29 @@
 package com.deeme.types;
 
-import com.deeme.types.config.Defense;
-import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.Config.Loot.Sab;
 
 import org.jetbrains.annotations.NotNull;
 
+import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.extensions.selectors.LaserSelector;
 import eu.darkbot.api.extensions.selectors.PrioritizedSupplier;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem.Laser;
+import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
 
 public class DefenseLaserSupplier implements LaserSelector, PrioritizedSupplier<Laser> {
-    private Main main;
+    protected final PluginAPI api;
+    protected final HeroAPI heroapi;
     private final HeroItemsAPI items;
     private long lastRsbUse = 0;
     private boolean useRsb, useSab, rsbActive;
 
     private Sab sab;
 
-    public DefenseLaserSupplier(Main main, HeroItemsAPI items, Defense defense) {
-        this.main = main;
-        this.items = items;
-        this.sab = defense.SAB;
-        this.rsbActive = defense.useRSB;
-    }
-
-    public DefenseLaserSupplier(Main main, HeroItemsAPI items, Sab sab, boolean rsbActive) {
-        this.main = main;
+    public DefenseLaserSupplier(PluginAPI api, HeroAPI heroapi, HeroItemsAPI items, Sab sab, boolean rsbActive) {
+        this.api = api;
+        this.heroapi = heroapi;
         this.items = items;
         this.sab = sab;
         this.rsbActive = rsbActive;
@@ -41,9 +36,9 @@ public class DefenseLaserSupplier implements LaserSelector, PrioritizedSupplier<
     }
 
     private boolean shouldSab() {
-        return sab.ENABLED && this.main.hero.getHealth().shieldPercent() <= sab.PERCENT
-        && this.main.hero.getLocalTarget().getHealth().getShield() > sab.NPC_AMOUNT
-        && (sab.CONDITION == null || sab.CONDITION.get(main.pluginAPI).toBoolean());
+        return sab.ENABLED && heroapi.getHealth().shieldPercent() <= sab.PERCENT
+        && heroapi.getLocalTarget().getHealth().getShield() > sab.NPC_AMOUNT
+        && (sab.CONDITION == null || sab.CONDITION.get(api).toBoolean());
     }
 
     private boolean shouldRsb() {
