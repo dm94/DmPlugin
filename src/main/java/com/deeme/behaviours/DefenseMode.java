@@ -4,7 +4,6 @@ import com.deeme.types.SharedFunctions;
 import com.deeme.types.ShipAttacker;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.config.Defense;
-
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.config.types.PercentRange;
@@ -14,6 +13,7 @@ import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.game.entities.Ship;
 import eu.darkbot.api.game.items.SelectableItem.Special;
+import eu.darkbot.api.game.other.EntityInfo.Diplomacy;
 import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
@@ -21,7 +21,6 @@ import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.MovementAPI;
 import eu.darkbot.api.utils.Inject;
 import eu.darkbot.shared.utils.SafetyFinder;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -122,7 +121,7 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
             return true;
         }
 
-        Ship tempShip = SharedFunctions.getAttacker(heroapi,allShips, heroapi);
+        Ship tempShip = SharedFunctions.getAttacker(heroapi, allShips, heroapi);
         if (tempShip != null) {
             shipAttacker.setTarget(tempShip);
             return true;
@@ -130,7 +129,7 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
 
         if (shipAttacker.getTarget() == null) {
             List<Ship> ships = allShips.stream()
-                    .filter(s -> (defenseConfig.helpAllies && s.getEntityInfo().getClanDiplomacy().ordinal() == 1) ||
+                    .filter(s -> (defenseConfig.helpAllies && s.getEntityInfo().getClanDiplomacy() == Diplomacy.ALLIED) ||
                             (defenseConfig.helpEveryone && !s.getEntityInfo().isEnemy())
                             || (defenseConfig.helpGroup && shipAttacker.inGroupAttacked(s.getId())))
                     .collect(Collectors.toList());

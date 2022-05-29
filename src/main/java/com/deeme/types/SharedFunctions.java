@@ -8,8 +8,6 @@ import eu.darkbot.api.managers.HeroAPI;
 
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class SharedFunctions {
 
@@ -20,18 +18,16 @@ public class SharedFunctions {
     }
 
     public static Ship getAttacker(Ship assaulted, Collection<? extends Ship> allShips, HeroAPI hero) {
-        List<eu.darkbot.api.game.entities.Ship> ships = allShips.stream()
+        if (allShips == null || allShips.size() <= 0) {
+            return null;
+        }
+        
+        return allShips.stream()
                 .filter(s -> s.getEntityInfo().isEnemy())
                 .filter(s -> s.isAttacking(assaulted))
                 .filter(s -> !isPet(s.getEntityInfo().getUsername()))
                 .sorted(Comparator.comparingDouble(s -> s.getLocationInfo().distanceTo(hero)))
-                .collect(Collectors.toList());
-
-        if (ships.isEmpty()) return null;
-
-        Ship ship = (Ship) ships.get(0);
-
-        return ship;
+                .findFirst().orElse(null);
     }
 
     public static boolean hasAttacker(Ship assaulted, Main main) {

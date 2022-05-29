@@ -49,8 +49,12 @@ public class RocketSupplier implements PrioritizedSupplier<SelectableItem> {
             }
         }
 
-        return items.getItems(ItemCategory.ROCKETS).stream()
+        try {
+            return items.getItems(ItemCategory.ROCKETS).stream()
             .filter(item -> item.isUsable() && item.isAvailable()).sorted(Comparator.comparing(i -> damageOrder.indexOf(i.getId()))).findFirst().orElse(null);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private boolean shoulFocusSpeed(Lockable target) {

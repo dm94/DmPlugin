@@ -294,6 +294,17 @@ public class ShipAttacker {
         }
     }
 
+    public void setMode(ShipMode config, Formation formation) {
+        if (formation != null && !heroapi.isInFormation(formation)) {
+            if (items.getItem(formation, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+                ShipModeImpl mode = new ShipModeImpl(config.getConfiguration(), formation);
+                heroapi.setMode(mode);
+            } else {
+                heroapi.setMode(config);
+            }
+        }
+    }
+
     public Ship getEnemy(int maxDistance) {
         return allShips.stream()
         .filter(s -> (s.getEntityInfo().isEnemy() && !SharedFunctions.isPet(s.getEntityInfo().getUsername()) && s.getLocationInfo().distanceTo(heroapi) <= maxDistance)).sorted(Comparator.comparingDouble(s -> s.getLocationInfo().distanceTo(heroapi))).findAny().orElse(null);

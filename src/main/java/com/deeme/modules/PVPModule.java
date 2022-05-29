@@ -112,10 +112,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
                 setConfigToUse();
             }
 
-            if (!heroapi.isAttacking(target) || !heroapi.isAiming(target)) {
-                shipAttacker.lockAndSetTarget();
-                return;
-            }
+            shipAttacker.doKillTargetTick();
 
             if (pvpConfig.useBestRocket) {
                 shipAttacker.changeRocket();
@@ -130,7 +127,8 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
             shipAttacker.useKeyWithConditions(pvpConfig.PEM, Special.EMP_01);
             shipAttacker.useKeyWithConditions(pvpConfig.otherKey, null);
 
-            shipAttacker.doKillTargetTick();
+            shipAttacker.tryAttackOrFix();
+
             if (pvpConfig.move) {
                 shipAttacker.vsMove();
             }
@@ -138,9 +136,9 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     }
 
     private boolean getTarget() {
-        if (target != null) return true;
+        if (target != null && target.isValid()) return true;
 
-        target = (Ship) shipAttacker.getEnemy(pvpConfig.rangeForEnemies);
+        target = shipAttacker.getEnemy(pvpConfig.rangeForEnemies);
 
         return target != null;
     }

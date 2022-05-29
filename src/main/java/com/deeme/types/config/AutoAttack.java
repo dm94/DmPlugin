@@ -5,6 +5,12 @@ import com.github.manolo8.darkbot.config.types.Option;
 
 @Option(value = "Auto Attack", description = "Will attack even when the master is not attacking")
 public class AutoAttack {
+    @Option(value = "Help to attack NPCs", description = "Will help to attack NPCs")
+    public boolean helpAttackNPCs = true;
+
+    @Option(value = "Help to attack Players", description = "Will help to attack Players")
+    public boolean helpAttackPlayers = true;
+
     @Option(value = "Auto Attack Enemies", description = "Attack enemies in range")
     public boolean autoAttackEnemies = false;
 
