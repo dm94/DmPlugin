@@ -4,40 +4,50 @@ import com.deeme.types.ShipAttacker;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.config.SentinelConfig;
 import com.github.manolo8.darkbot.Main;
-import com.github.manolo8.darkbot.config.Config;
-import com.github.manolo8.darkbot.config.NpcExtra;
-import com.github.manolo8.darkbot.core.entities.Npc;
 import com.github.manolo8.darkbot.core.entities.Ship;
 import com.github.manolo8.darkbot.core.itf.Configurable;
 import com.github.manolo8.darkbot.core.itf.InstructionProvider;
 import com.github.manolo8.darkbot.core.itf.Module;
-import com.github.manolo8.darkbot.core.manager.HeroManager;
 import com.github.manolo8.darkbot.core.objects.group.GroupMember;
-import com.github.manolo8.darkbot.core.utils.Drive;
-import com.github.manolo8.darkbot.core.utils.Location;
 import com.github.manolo8.darkbot.extensions.features.Feature;
 import com.github.manolo8.darkbot.modules.MapModule;
-import com.github.manolo8.darkbot.modules.utils.NpcAttacker;
 import com.github.manolo8.darkbot.modules.utils.SafetyFinder;
 
+import eu.darkbot.api.PluginAPI;
+import eu.darkbot.api.config.ConfigSetting;
+import eu.darkbot.api.config.types.NpcFlag;
+import eu.darkbot.api.config.types.ShipMode;
 import eu.darkbot.api.game.entities.Entity;
+import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.items.SelectableItem.Cpu;
 import eu.darkbot.api.game.items.SelectableItem.Formation;
+import eu.darkbot.api.game.other.Locatable;
+import eu.darkbot.api.game.other.Location;
+import eu.darkbot.api.game.other.Lockable;
+import eu.darkbot.api.game.other.Movable;
+import eu.darkbot.api.managers.AttackAPI;
+import eu.darkbot.api.managers.ConfigAPI;
+import eu.darkbot.api.managers.HeroAPI;
+import eu.darkbot.api.managers.MovementAPI;
 import eu.darkbot.shared.modules.CollectorModule;
 
 import java.util.Arrays;
 
-import static java.lang.Double.min;
-import static java.lang.Math.random;
-
-@Feature(name = "Sentinel Module", description = "Follow the main ship or the group leader and do the same")
+@Feature(name = "Sentinel", description = "Follow the main ship or the group leader and do the same")
 public class SentinelModule implements Module, Configurable<SentinelConfig>, InstructionProvider {
+    protected PluginAPI api;
+    protected HeroAPI heroapi;
+    protected MovementAPI movement;
+    protected AttackAPI attacker;
+    protected ConfigSetting<Integer> workingMap;
+    protected ConfigSetting<Integer> maxCircleIterations;
+    protected ConfigSetting<ShipMode> configOffensive;
+    protected ConfigSetting<ShipMode> configRun;
+    protected ConfigSetting<ShipMode> configRoam;
+
     private SentinelConfig sConfig;
     private Ship sentinel;
     private Main main;
-    private HeroManager hero;
-    private NpcAttacker attacker;
-    private Drive drive;
     private SafetyFinder safety;
     private State currentStatus;
     private ShipAttacker shipAttacker;
@@ -72,13 +82,22 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) return;
         VerifierChecker.checkAuthenticity();
         this.main = main;
-        this.hero = main.hero;
-        this.attacker = new NpcAttacker(main);
-        this.drive = main.hero.drive;
         this.safety = new SafetyFinder(main);
         currentStatus = State.INIT;
         this.shipAttacker = new ShipAttacker(main);
-        collectorModule = new CollectorModule(main.pluginAPI);
+
+        this.api = main.pluginAPI.getAPI(PluginAPI.class);
+        this.heroapi = api.getAPI(HeroAPI.class);
+        this.movement = api.getAPI(MovementAPI.class);
+        this.attacker = api.getAPI(AttackAPI.class);
+        ConfigAPI configApi = api.getAPI(ConfigAPI.class);
+        this.collectorModule = new CollectorModule(api);
+
+        this.workingMap = configApi.requireConfig("general.working_map");
+        this.maxCircleIterations = configApi.requireConfig("loot.max_circle_iterations");
+        this.configOffensive = configApi.requireConfig("general.offensive");
+        this.configRun = configApi.requireConfig("general.run");
+        this.configRoam = configApi.requireConfig("general.roam");
     }
 
     @Override
@@ -117,7 +136,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         if ((sConfig.ignoreSecurity || safety.tick()) && (!sConfig.collectorActive || collectorModule.canRefresh())) {
             main.guiManager.pet.setEnabled(true);
             if (shipAround()) {
-                lastMap = hero.getMap().getId();
+                lastMap = heroapi.getMap() != null ? heroapi.getMap().getId() : null;
                 if (isAttacking()) {
                     lastTimeAttack = System.currentTimeMillis();
                     currentStatus = State.TRAVELING_TO_ENEMY;
@@ -128,9 +147,9 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                     }
                 } else {
                     currentStatus = State.FOLLOWING_MASTER;
-                    setMode(main.config.GENERAL.ROAM);
-                    if (hero.distanceTo(sentinel.getLocationInfo().getCurrent()) > sConfig.rangeToLider) {
-                        drive.move(sentinel.getLocationInfo().now);
+                    setMode(configRoam.getValue());
+                    if (heroapi.distanceTo(sentinel.getLocationInfo().getCurrent()) > sConfig.rangeToLider) {
+                        movement.moveTo(sentinel.getLocationInfo().getCurrent());
                     } else if (sConfig.collectorActive) {
                         collectorModule.findBox();
                         if (collectorModule.currentBox != null && sentinel.getLocationInfo().distanceTo(collectorModule.currentBox) < sConfig.rangeToLider) {
@@ -138,7 +157,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                         }
                     }
 
-                    if (sConfig.autoCloak.autoCloakShip && !hero.isInvisible() && lastTimeAttack < (System.currentTimeMillis() + (sConfig.autoCloak.secondsOfWaiting * 1000))) {
+                    if (sConfig.autoCloak.autoCloakShip && !heroapi.isInvisible() && lastTimeAttack < (System.currentTimeMillis() + (sConfig.autoCloak.secondsOfWaiting * 1000))) {
                         shipAttacker.useSelectableReadyWhenReady(Cpu.CL04K);
                     }
                 }
@@ -147,19 +166,19 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                 if (main.guiManager.group.hasGroup()) {
                     goToLeader();
                 } else {
-                    if (lastMap != hero.getMap().getId()) {
+                    if (lastMap != heroapi.getMap().getId()) {
                         maximumWaitingTime = System.currentTimeMillis() + 120000;
                     }
                     acceptGroupSentinel();
-                    if (lastMap != hero.getMap().getId() && currentStatus != State.WAIT_GROUP_LOADING  && currentStatus != State.WAIT) {
+                    if (lastMap != heroapi.getMap().getId() && currentStatus != State.WAIT_GROUP_LOADING  && currentStatus != State.WAIT) {
                         currentStatus = State.WAIT_GROUP_LOADING;
                         maximumWaitingTime = System.currentTimeMillis() + 120000;
                     } else if (maximumWaitingTime <= System.currentTimeMillis()) {
                         currentStatus =  State.WAIT;
-                        if (main.config.GENERAL.WORKING_MAP != hero.getMap().getId() && !main.mapManager.entities.portals.isEmpty()) {
+                        if (workingMap.getValue() != heroapi.getMap().getId() && !main.mapManager.entities.portals.isEmpty()) {
                             currentStatus = State.TRAVELING_TO_WORKING_MAP;
                             this.main.setModule(new MapModule())
-                                    .setTarget(this.main.starManager.byId(this.main.config.GENERAL.WORKING_MAP));
+                                    .setTarget(this.main.starManager.byId(workingMap.getValue()));
                         } else if (sConfig.collectorActive) {
                             collectorModule.onTickModule();
                         }
@@ -183,7 +202,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
             targetEnemy = shipAttacker.getEnemy(sConfig.autoAttack.rangeForEnemies);
             isNpc = false;
             shipAttacker.setTarget((Ship) targetEnemy);
-            setMode(main.config.GENERAL.OFFENSIVE);
+            setMode(configOffensive.getValue());
             shipAttacker.doKillTargetTick();
         }
 
@@ -192,24 +211,24 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         if (target instanceof Npc && sConfig.autoAttack.helpAttackNPCs) {
             isNpc = true;
             attacker.setTarget((Npc) target);
-            setMode(main.config.GENERAL.OFFENSIVE, (Npc) target);
-            attacker.doKillTargetTick();
+            setMode(configOffensive.getValue(), (Npc) target);
+            attacker.tryLockAndAttack();
         } else if (sConfig.autoAttack.helpAttackPlayers) {
             isNpc = false;
             shipAttacker.setTarget((Ship) target);
-            setMode(main.config.GENERAL.OFFENSIVE);
+            setMode(configOffensive.getValue());
             shipAttacker.doKillTargetTick();
         }
         currentStatus = State.HELPING_MASTER;
 
-        return attacker.target != null;
+        return attacker.getTarget() != null;
     }
 
     private boolean shipAround() {
         if (main.mapManager.entities.ships == null) { return false; } 
 
         sentinel = main.mapManager.entities.ships.stream()
-                .filter(ship ->  (ship.getId() != hero.getId() && (
+                .filter(ship ->  (ship.getId() != heroapi.getId() && (
                     ship.getId() == masterID ||
                     (sConfig.MASTER_ID != 0 && ship.getId() == sConfig.MASTER_ID) || 
                     sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(ship.getId())) ||
@@ -222,15 +241,15 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
 
     private void goToLeader() {
         for (GroupMember m : main.guiManager.group.group.members) {
-            if (m.getId() != hero.getId() && ((sConfig.MASTER_ID != 0 && m.getId() == sConfig.MASTER_ID) || 
+            if (m.getId() != heroapi.getId() && ((sConfig.MASTER_ID != 0 && m.getId() == sConfig.MASTER_ID) || 
                 sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(m.getId())) || 
                 (sConfig.followGroupLeader && m.isLeader()))) {
                     if (m.isLeader()) {
                         groupLeaderID = m.getId();
                     }
                     masterID = m.getId();
-                    if (m.getMapId() == hero.getMap().getId()) {
-                        drive.move(m.location);
+                    if (m.getMapId() == heroapi.getMap().getId()) {
+                        movement.moveTo(m.getLocation());
                         currentStatus = State.FOLLOWING_MASTER;
                     } else {
                         main.setModule(new MapModule()).setTarget(main.starManager.byId(m.getMapId()));
@@ -253,12 +272,16 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                 .ifPresent(inv -> main.guiManager.group.acceptInvite(inv));
     }
 
-    private void setMode(Config.ShipConfig config, Npc npc) {
-        if (npc != null && npc.npcInfo.attackFormation != null) {
-            Formation formation = Formation.of(npc.npcInfo.attackFormation);
-            if (formation != null) {
-                shipAttacker.setMode(config, formation);
-            } else {
+    private void setMode(ShipMode config, Npc npc) {
+        if (npc != null && npc.getInfo().getFormation() != null) {
+            try {
+                Formation formation = npc.getInfo().getFormation().get();
+                if (formation != null) {
+                    shipAttacker.setMode(config, formation);
+                } else {
+                    setMode(config);
+                }
+            } catch(Exception e) {
                 setMode(config);
             }
         } else {
@@ -266,11 +289,11 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         }
     }
 
-    private void setMode(Config.ShipConfig config) {
+    private void setMode(ShipMode config) {
         if (sConfig.copyMasterFormation && sentinel != null) {
             int sentinelFormation = sentinel.formationId;
 
-            if (!hero.isInFormation(sentinelFormation)) {
+            if (!heroapi.isInFormation(sentinelFormation)) {
                 Formation formation = Formation.of(sentinelFormation);
 
                 if (formation != null) {
@@ -284,75 +307,84 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         }
     }
 
-    public void npcMove() {
-        Npc target = attacker.target;
-        Location direction = drive.movingTo();
-        Location heroLoc = hero.getLocationInfo().now;
+    protected double getRadius(Lockable target) {
+        if (!(target instanceof Npc)) {
+            return 550;
+        }
+        return attacker.modifyRadius(((Npc) target).getInfo().getRadius());
+    }
+
+    protected void npcMove() {
+        if (!attacker.hasTarget()) return;
+        Lockable target = attacker.getTarget();
+
+        Location direction = movement.getDestination();
         Location targetLoc = target.getLocationInfo().destinationInTime(400);
 
-        double distance = heroLoc.distance(target.getLocationInfo().now);
-        double angle = targetLoc.angle(heroLoc);
+        double distance = heroapi.distanceTo(attacker.getTarget());
+        double angle = targetLoc.angleTo(heroapi);
+        double radius = getRadius(target);
+        double speed = target instanceof Movable ? ((Movable) target).getSpeed() : 0;
+        boolean noCircle = attacker.hasExtraFlag(NpcFlag.NO_CIRCLE);
 
-        double radius = target.getInfo().getRadius();
-        boolean noCircle = target.getInfo().hasExtraFlag(NpcExtra.NO_CIRCLE);
-
-        radius = attacker.modifyRadius(radius);
         if (radius > 750) noCircle = false;
 
         double angleDiff;
         if (noCircle) {
-            double dist = targetLoc.distance(direction);
+            double dist = targetLoc.distanceTo(direction);
             double minRad = Math.max(0, Math.min(radius - 200, radius * 0.5));
             if (dist <= radius && dist >= minRad) {
                 setNPCConfig(direction);
                 return;
             }
-            distance = minRad + random() * (radius - minRad - 10);
-            angleDiff = (random() * 0.1) - 0.05;
+            distance = minRad + Math.random() * (radius - minRad - 10);
+            angleDiff = (Math.random() * 0.1) - 0.05;
         } else {
-            double maxRadFix = target.getInfo().getRadius() / 2,
+            double maxRadFix = radius / 2,
                     radiusFix = (int) Math.max(Math.min(radius - distance, maxRadFix), -maxRadFix);
             distance = (radius += radiusFix);
-            angleDiff = Math.max((hero.getSpeed() * 0.625) + (min(200, target.getSpeed()) * 0.625)
-                    - heroLoc.distance(Location.of(targetLoc, angle, radius)), 0) / radius;
+            // Moved distance + speed - distance to chosen radius same angle, divided by radius
+            angleDiff = Math.max((heroapi.getSpeed() * 0.625) + (Math.max(200, speed) * 0.625)
+                    - heroapi.distanceTo(Location.of(targetLoc, angle, radius)), 0) / radius;
         }
         direction = getBestDir(targetLoc, angle, angleDiff, distance);
 
-        while (!drive.canMove(direction) && distance < 10000)
+        while (!movement.canMove(direction) && distance < 10000)
             direction.toAngle(targetLoc, angle += backwards ? -0.3 : 0.3, distance += 2);
         if (distance >= 10000) direction.toAngle(targetLoc, angle, 500);
 
         setNPCConfig(direction);
 
-        drive.move(direction);
+        movement.moveTo(direction);
     }
 
-    protected Location getBestDir(Location targetLoc, double angle, double angleDiff, double distance) {
-        int iteration = 1;
+    protected Location getBestDir(Locatable targetLoc, double angle, double angleDiff, double distance) {
+        int maxCircleIterations = this.maxCircleIterations.getValue(), iteration = 1;
         double forwardScore = 0, backScore = 0;
         do {
-            forwardScore += score(Location.of(targetLoc, angle + (angleDiff * iteration), distance));
-            backScore += score(Location.of(targetLoc, angle - (angleDiff * iteration), distance));
+            forwardScore += score(Locatable.of(targetLoc, angle + (angleDiff * iteration), distance));
+            backScore += score(Locatable.of(targetLoc, angle - (angleDiff * iteration), distance));
             if (forwardScore < 0 != backScore < 0 || Math.abs(forwardScore - backScore) > 300) break;
-        } while (iteration++ < main.config.LOOT.MAX_CIRCLE_ITERATIONS);
+        } while (iteration++ < maxCircleIterations);
 
-        if (iteration <= main.config.LOOT.MAX_CIRCLE_ITERATIONS) backwards = backScore > forwardScore;
+        if (iteration <= maxCircleIterations) backwards = backScore > forwardScore;
         return Location.of(targetLoc, angle + angleDiff * (backwards ? -1 : 1), distance);
     }
 
-    protected double score(Location loc) {
-        return (drive.canMove(loc) ? 0 : -1000) - main.mapManager.entities.ships.stream()
-                .filter(n -> attacker.target != n)
-                .mapToDouble(n -> Math.max(0, 560 - n.getLocationInfo().getCurrent().distanceTo(loc)))
+    protected double score(Locatable loc) {
+        return (movement.canMove(loc) ? 0 : -1000) - main.mapManager.entities.npcs.stream() // Consider barrier as bad as 1000 radius units.
+                .filter(n -> attacker.getTarget() != n)
+                .mapToDouble(n -> Math.max(0, n.getInfo().getRadius() - n.distanceTo(loc)))
                 .sum();
     }
 
     protected void setNPCConfig(Location direction) {
-        if (!attacker.hasTarget()) setMode(main.config.GENERAL.ROAM);
+        Npc target = attacker.getTargetAs(Npc.class);
+        if (target == null || !target.isValid()) setMode(configRoam.getValue());
         else if (main.config.LOOT.RUN_CONFIG_IN_CIRCLE
-                && attacker.getTarget().getHealth().hpPercent() < 0.25
-                && hero.getLocationInfo().getCurrent().distanceTo(direction) > attacker.target.getInfo().getRadius() * 2) setMode(main.config.GENERAL.RUN);
-        else if (hero.getLocationInfo().getCurrent().distanceTo(direction) > attacker.target.getInfo().getRadius() * 3) setMode(main.config.GENERAL.ROAM);
-        else setMode(main.config.GENERAL.OFFENSIVE);
+                && target.getHealth().hpPercent() < 0.25
+                && heroapi.getLocationInfo().getCurrent().distanceTo(direction) > target.getInfo().getRadius() * 2) setMode(configRun.getValue());
+        else if (heroapi.getLocationInfo().getCurrent().distanceTo(direction) > target.getInfo().getRadius() * 3) setMode(configRoam.getValue());
+        else setMode(configOffensive.getValue());
     }
 }

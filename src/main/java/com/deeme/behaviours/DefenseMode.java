@@ -4,6 +4,7 @@ import com.deeme.types.SharedFunctions;
 import com.deeme.types.ShipAttacker;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.config.Defense;
+
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.config.types.PercentRange;
@@ -11,6 +12,8 @@ import eu.darkbot.api.config.types.ShipMode;
 import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.game.entities.Entity;
+import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.entities.Ship;
 import eu.darkbot.api.game.items.SelectableItem.Special;
 import eu.darkbot.api.game.other.EntityInfo.Diplomacy;
@@ -122,7 +125,7 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
         }
 
         Ship tempShip = SharedFunctions.getAttacker(heroapi, allShips, heroapi);
-        if (tempShip != null) {
+        if (tempShip != null && !(tempShip instanceof Npc)) {
             shipAttacker.setTarget(tempShip);
             return true;
         }
@@ -137,8 +140,11 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
             if (!ships.isEmpty()) {
                 for (Ship ship : ships) {
                     if (defenseConfig.helpAttack && ship.isAttacking() && ship.getTarget() != null) {
-                        shipAttacker.setTarget((Ship) ship.getTarget());
-                        return true;
+                        Entity tar = ship.getTarget();
+                        if (tar != null && !(tar instanceof Npc)) {
+                            shipAttacker.setTarget((Ship) tar);
+                            return true;
+                        }
                     }
 
                     tempShip = SharedFunctions.getAttacker(ship, allShips, heroapi);

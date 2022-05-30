@@ -51,8 +51,8 @@ public class HangarChanger {
     }
 
     public void disconnect(boolean stop) {
-        if (hero.map.id > 0 && (maps == null || maps.contains(hero.map))
-                && !logout.visible && !main.hero.locationInfo.isMoving()) {
+        if (hero.getMap() != null && hero.getMap().getId() > 0 && (maps == null || maps.contains(hero.map))
+                && !logout.visible && !hero.locationInfo.isMoving()) {
             System.out.println("Disconnecting...");
             logout.show(true);
             if (stop) {
@@ -71,8 +71,8 @@ public class HangarChanger {
         if (play) {
             main.setRunning(true);
         }
-        main.hero.drive.stop(true);
-        main.hero.drive.checkMove();
+        hero.drive.stop(true);
+        hero.drive.checkMove();
     }
 
     public void disconnectChangeHangarAndReload(Integer hangar) {
