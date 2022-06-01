@@ -83,7 +83,7 @@ public class AutoChangeMap implements Task, Configurable<AutoChangeMap.ChangeMap
         if (firstTick || (waitingTimeNextMap != 0 && waitingTimeNextMap <= System.currentTimeMillis()) ||
                 (mapMaxDeaths > 0 && repair.getDeathAmount() >= mapMaxDeaths) ||
                 (waitingTimeNextMap == 0 && mapMaxDeaths == 0)) {
-            if (hero.getTarget() == null || hero.getLocalTarget().getHealth().hpPercent() > 90) {
+            if (hero.getLocalTarget() == null || hero.getLocalTarget().getHealth().hpPercent() > 90) {
                 firstTick = false;
                 goNextMap();
             }

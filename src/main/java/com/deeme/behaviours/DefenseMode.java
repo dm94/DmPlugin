@@ -81,8 +81,9 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
     @Override
     public void onTickBehavior() {
         if (shipAttacker != null) {
-            isUnderAttack();
-            if (shipAttacker.getTarget() == null) return;
+            if (!isUnderAttack() && shipAttacker.getTarget() == null) {
+                return;
+            }
             setConfigToUse();
 
             shipAttacker.doKillTargetTick();

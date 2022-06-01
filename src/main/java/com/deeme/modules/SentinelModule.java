@@ -145,7 +145,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                     } else {
                         shipAttacker.vsMove();
                     }
-                } else {
+                } else if (sentinel.isValid()) {
                     currentStatus = State.FOLLOWING_MASTER;
                     setMode(configRoam.getValue());
                     if (heroapi.distanceTo(sentinel.getLocationInfo().getCurrent()) > sConfig.rangeToLider) {
@@ -160,6 +160,8 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                     if (sConfig.autoCloak.autoCloakShip && !heroapi.isInvisible() && lastTimeAttack < (System.currentTimeMillis() + (sConfig.autoCloak.secondsOfWaiting * 1000))) {
                         shipAttacker.useSelectableReadyWhenReady(Cpu.CL04K);
                     }
+                } else {
+                    sentinel = null;
                 }
             } else {
                 groupLeaderID = 0;
@@ -191,6 +193,10 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
     private boolean isAttacking() {
         Entity target = sentinel.isAttacking() || sentinel.getTarget() != null ? sentinel.getTarget() : null;
         Entity targetEnemy = null;
+
+        if (target != null && !target.isValid()) {
+            target = null;
+        }
 
         if (target == null) {
             target = main.mapManager.entities.ships.stream()
@@ -228,7 +234,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         if (main.mapManager.entities.ships == null) { return false; } 
 
         sentinel = main.mapManager.entities.ships.stream()
-                .filter(ship ->  (ship.getId() != heroapi.getId() && (
+                .filter(ship ->  ship.isValid() && (ship.getId() != heroapi.getId() && (
                     ship.getId() == masterID ||
                     (sConfig.MASTER_ID != 0 && ship.getId() == sConfig.MASTER_ID) || 
                     sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(ship.getId())) ||
