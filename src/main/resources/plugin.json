@@ -1,7 +1,7 @@
 {
   "name": "DmPlugin",
   "author": "Dm94Dani",
-  "version": "1.5.6 alpha 17",
+  "version": "1.5.6 alpha 22",
   "minVersion": "1.13.17 beta 103",
   "supportedVersion": "1.13.17 beta 105",
   "features": [
@@ -18,6 +18,6 @@
     "com.deeme.behaviours.PVPLog"
   ],
   "donation": "https://www.paypal.me/dm94dani/5",
-  "download": "https://github.com/darkbot-reloaded/DmPlugin/releases/download/v1.5.6.17/DmPlugin.jar",
+  "download": "https://github.com/darkbot-reloaded/DmPlugin/releases/download/v1.5.6.22/DmPlugin.jar",
   "update": "https://raw.githubusercontent.com/darkbot-reloaded/DmPlugin/master/src/main/resources/plugin.json"
 }

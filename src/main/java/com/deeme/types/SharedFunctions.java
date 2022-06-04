@@ -1,34 +1,42 @@
 package com.deeme.types;
 
 import com.github.manolo8.darkbot.Main;
-import com.github.manolo8.darkbot.core.entities.Ship;
-import com.github.manolo8.darkbot.core.manager.HeroManager;
 
+import eu.darkbot.api.game.entities.Npc;
+import eu.darkbot.api.game.entities.Ship;
+import eu.darkbot.api.managers.EntitiesAPI;
+import eu.darkbot.api.managers.HeroAPI;
+
+import java.util.Collection;
 import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class SharedFunctions {
 
-    public static Ship getAttacker(Ship assaulted, Main main, HeroManager hero, Ship target) {
-        if (target != null && !target.removed &&
-                target.playerInfo.isEnemy()) {
-            return target;
-        }
-
-        List<Ship> ships = main.mapManager.entities.ships.stream()
-                .filter(s -> s.playerInfo.isEnemy())
-                .filter(s -> s.isAttacking(assaulted))
-                .filter(s -> !isPet(s.playerInfo.username))
-                .sorted(Comparator.comparingDouble(s -> s.locationInfo.distance(hero)))
-                .collect(Collectors.toList());
-
-        if (ships.isEmpty()) return null;
-
-        return ships.get(0);
+    public static Ship getAttacker(Ship assaulted, Main main) {
+        HeroAPI hero = main.pluginAPI.getAPI(HeroAPI.class);
+        EntitiesAPI entities = main.pluginAPI.getAPI(EntitiesAPI.class);
+        return getAttacker(assaulted, entities.getShips(), hero);
     }
 
-    private static boolean isPet(String name) {
+    public static Ship getAttacker(Ship assaulted, Collection<? extends Ship> allShips, HeroAPI hero) {
+        if (allShips == null || allShips.size() <= 0) {
+            return null;
+        }
+
+        return allShips.stream()
+                .filter(s -> (s instanceof Npc || s.getEntityInfo().isEnemy()))
+                .filter(s -> !isPet(s.getEntityInfo().getUsername()))
+                .filter(s -> s.isAttacking(assaulted))
+                .sorted(Comparator.comparingDouble(s -> s.getLocationInfo().distanceTo(hero)))
+                .findFirst().orElse(null);
+    }
+
+    public static boolean hasAttacker(Ship assaulted, Main main) {
+        Ship ship = getAttacker(assaulted, main);
+        return ship != null;
+    }
+
+    public static boolean isPet(String name) {
         return name.matches(".*?(\\s)(\\[(\\d+)\\])");
     }
 

@@ -7,17 +7,9 @@ import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-import javax.swing.RowSorter;
-import javax.swing.SortOrder;
-
 import com.deeme.types.VerifierChecker;
+import com.deeme.types.config.ChangeMapConfig;
 import com.deeme.types.config.MapData;
-import com.github.manolo8.darkbot.config.types.Editor;
-import com.github.manolo8.darkbot.config.types.Option;
-import com.github.manolo8.darkbot.core.utils.Lazy;
-import com.github.manolo8.darkbot.gui.tree.OptionEditor;
-import com.github.manolo8.darkbot.gui.tree.components.InfoTable;
-import com.github.manolo8.darkbot.gui.utils.GenericTableModel;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -34,7 +26,7 @@ import eu.darkbot.api.managers.StarSystemAPI.MapNotFoundException;
 import eu.darkbot.api.utils.Inject;
 
 @Feature(name = "AutoChangeMap", description = "Automatically changes map every x amount of time or deaths")
-public class AutoChangeMap implements Task, Configurable<AutoChangeMap.ChangeMapConfig> {
+public class AutoChangeMap implements Task, Configurable<ChangeMapConfig> {
     protected final PluginAPI api;
     protected final StatsAPI stats;
     protected final HeroAPI hero;
@@ -58,10 +50,12 @@ public class AutoChangeMap implements Task, Configurable<AutoChangeMap.ChangeMap
     }
 
     @Inject
-    public AutoChangeMap(PluginAPI api, HeroAPI hero, StatsAPI stats, RepairAPI repair, StarSystemAPI star, AuthAPI auth) {
-        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) throw new SecurityException();
+    public AutoChangeMap(PluginAPI api, HeroAPI hero, StatsAPI stats, RepairAPI repair, StarSystemAPI star,
+            AuthAPI auth) {
+        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
+            throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
-        
+
         this.api = api;
         this.hero = hero;
         this.stats = stats;
@@ -78,23 +72,25 @@ public class AutoChangeMap implements Task, Configurable<AutoChangeMap.ChangeMap
 
     @Override
     public void onTickTask() {
-        if (hero.getMap().isGG()) return;
+        if (hero.getMap().isGG())
+            return;
 
-        if (firstTick || (waitingTimeNextMap != 0 && waitingTimeNextMap <= System.currentTimeMillis()) ||
-                (mapMaxDeaths > 0 && repair.getDeathAmount() >= mapMaxDeaths) ||
-                (waitingTimeNextMap == 0 && mapMaxDeaths == 0)) {
-            if (hero.getTarget() == null || hero.getLocalTarget().getHealth().hpPercent() > 90) {
-                firstTick = false;
-                goNextMap();
-            }
+        if ((firstTick || (waitingTimeNextMap != 0 && waitingTimeNextMap <= System.currentTimeMillis()) ||
+                (mapMaxDeaths > 0 && repair.getDeathAmount() >= mapMaxDeaths)
+                || (waitingTimeNextMap == 0 && mapMaxDeaths == 0)) &&
+                (hero.getLocalTarget() == null || hero.getLocalTarget().getHealth().hpPercent() > 90)) {
+            firstTick = false;
+            goNextMap();
         }
-        
+
     }
 
     private void setup() {
-        if (star == null || changeMapConfig == null) return;
+        if (star == null || changeMapConfig == null)
+            return;
 
-        List<String> accessibleMaps = star.getMaps().stream().filter(m -> !m.isGG()).map(m -> m.getName()).collect(Collectors.toList());
+        List<String> accessibleMaps = star.getMaps().stream().filter(m -> !m.isGG()).map(m -> m.getName())
+                .collect(Collectors.toList());
 
         for (String map : accessibleMaps) {
             MapData info = this.changeMapConfig.Maps_Changes.get(map);
@@ -113,7 +109,8 @@ public class AutoChangeMap implements Task, Configurable<AutoChangeMap.ChangeMap
         int map;
 
         for (Map.Entry<String, MapData> oneMap : changeMapConfig.Maps_Changes.entrySet()) {
-            if ((oneMap.getValue().time > 0 || oneMap.getValue().deaths > 0) && !oneMap.getKey().equals(hero.getMap().getName())) {
+            if ((oneMap.getValue().time > 0 || oneMap.getValue().deaths > 0)
+                    && !oneMap.getKey().equals(hero.getMap().getName())) {
                 avaibleMaps.put(oneMap.getKey(), oneMap.getValue());
             }
         }
@@ -144,21 +141,6 @@ public class AutoChangeMap implements Task, Configurable<AutoChangeMap.ChangeMap
                 return;
             }
             i++;
-        }
-    }
-
-    public static class ChangeMapConfig {
-        @Option()
-        @Editor(value = JMapChangeTable.class, shared = true)
-        public Map<String, MapData> Maps_Changes = new HashMap<>();
-        public transient Lazy<String> ADDED_MAPS = new Lazy<>();
-    }
-
-    public static class JMapChangeTable extends InfoTable<GenericTableModel, MapData> implements OptionEditor {
-
-        public JMapChangeTable(ChangeMapConfig changeMapConfig) {
-            super(MapData.class, changeMapConfig.Maps_Changes, changeMapConfig.ADDED_MAPS, MapData::new);
-            getRowSorter().setSortKeys(Arrays.asList(new RowSorter.SortKey(1, SortOrder.DESCENDING),new RowSorter.SortKey(2, SortOrder.DESCENDING)));
         }
     }
 }

@@ -8,6 +8,7 @@ import com.deeme.types.gui.ShipSupplier;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.backpage.HangarManager;
 import com.github.manolo8.darkbot.config.types.Editor;
+import com.github.manolo8.darkbot.config.types.Num;
 import com.github.manolo8.darkbot.config.types.Option;
 import com.github.manolo8.darkbot.config.types.Options;
 
@@ -58,6 +59,9 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
     private int cargos = 0;
     private boolean firstTick = true;
 
+    private long aditionalWaitingTime = 0;
+    private State lastStatus;
+
     private enum State {
         WAIT ("Waiting"),
         HANGAR_AND_MAP_BASE ("Selling palladium"),
@@ -68,7 +72,6 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
         SWITCHING_PALA_HANGAR("Switching to the palladium hangar"),
         DISCONNECTING("Disconnecting"),
         RELOAD_GAME("Reloading the game"),
-        NO_ACCEPT("You haven't opened the link"),
         LOADING_HANGARS("Waiting - Loading hangars"),
         SEARCHING_PORTALS("Looking for a portal to change hangar"),
         DEFENSE_MODE("DEFENSE MODE"),
@@ -102,6 +105,7 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
         this.hangarManager = main.backpage.hangarManager;
         this.hangarChanger = new HangarChanger(main, SELL_MAP, ACTIVE_MAP);
         currentStatus = State.WAIT;
+        lastStatus = State.WAIT;
     }
 
     @Override
@@ -119,6 +123,14 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
         if (main.repairManager.isDead()) {
             main.guiManager.tryRevive();
         }
+        if (lastStatus != currentStatus) {
+            lastStatus = currentStatus;
+            aditionalWaitingTime = System.currentTimeMillis() + (configPa.aditionalWaitingTime * 1000);
+        }
+        if (aditionalWaitingTime > System.currentTimeMillis()) {
+            return;
+        }
+
         tryUpdateHangarList();
 
         if (configPa.collectHangar == null || configPa.sellHangar == null) {
@@ -167,7 +179,12 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
                     hangarChanger.disconnect(true);
                     hangarChanger.disconectTime = System.currentTimeMillis();
                 }
-            } 
+            } else if (currentStatus != State.LOADING_HANGARS) {
+                currentStatus = State.LOADING_HANGARS;
+                hangarChanger.updateHangarActive();
+                hangarChanger.reloadAfterDisconnect(true);
+                return;
+            }
             if (!hangarChanger.isDisconnect() && currentStatus != State.DISCONNECTING && (hero.map == SELL_MAP || hero.map == ACTIVE_MAP)) {
                 currentStatus = State.WAIT;
                 this.firstTick = true;
@@ -199,6 +216,9 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
         @Options(ShipSupplier.class)
         public Integer sellHangar = -1;
 
+        @Option(value = "Additional time between action changes", description = "In seconds, ideal to avoid some errors")
+        @Num(min = 0, max = 300, step = 1)
+        public int aditionalWaitingTime = 5;
     }
 
     @Override
@@ -213,6 +233,13 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
 
     @Override
     public void tick() {
+        if (lastStatus != currentStatus) {
+            lastStatus = currentStatus;
+            aditionalWaitingTime = System.currentTimeMillis() + (configPa.aditionalWaitingTime * 1000);
+        }
+        if (aditionalWaitingTime > System.currentTimeMillis()) {
+            return;
+        }
         tryUpdateHangarList();
 
         if (State.RELOAD_GAME == currentStatus) {
@@ -273,7 +300,7 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
 
     private boolean canBeDisconnected() {
         if (configPa.goPortalChange) return super.canRefresh();
-        return !hero.isAttacking() && SharedFunctions.getAttacker(hero, main, hero, null) == null;
+        return !hero.isAttacking() && !SharedFunctions.hasAttacker(hero, main);
     }
 
     private void sell() {

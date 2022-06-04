@@ -1,30 +1,35 @@
 package com.deeme.modules;
 
-import com.deeme.types.DefenseLaserSupplier;
 import com.deeme.types.ShipAttacker;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.config.PVPConfig;
-import com.github.manolo8.darkbot.Main;
-import com.github.manolo8.darkbot.core.entities.Ship;
-import com.github.manolo8.darkbot.core.itf.Module;
-import com.github.manolo8.darkbot.core.itf.Configurable;
-import com.github.manolo8.darkbot.core.manager.HeroManager;
-import com.github.manolo8.darkbot.extensions.features.Feature;
-import com.github.manolo8.darkbot.modules.utils.SafetyFinder;
 
+import eu.darkbot.api.PluginAPI;
+import eu.darkbot.api.config.ConfigSetting;
+import eu.darkbot.api.config.types.ShipMode;
+import eu.darkbot.api.extensions.Configurable;
+import eu.darkbot.api.extensions.Module;
+import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.game.entities.Ship;
 import eu.darkbot.api.game.items.SelectableItem.Special;
-import eu.darkbot.api.managers.HeroItemsAPI;
+import eu.darkbot.api.managers.AuthAPI;
+import eu.darkbot.api.managers.ConfigAPI;
+import eu.darkbot.api.managers.HeroAPI;
+import eu.darkbot.api.utils.Inject;
 import eu.darkbot.shared.modules.CollectorModule;
+import eu.darkbot.shared.utils.SafetyFinder;
 
 import java.util.Arrays;
 @Feature(name = "PVP Module", description = "It is limited so as not to spoil the game")
 public class PVPModule implements Module, Configurable<PVPConfig> {
     private PVPConfig pvpConfig;
-    private Main main;
-    private HeroItemsAPI items;
     public Ship target;
-    protected HeroManager hero;
     private ShipAttacker shipAttacker;
+
+    protected final PluginAPI api;
+    protected final HeroAPI heroapi;
+    protected final ConfigSetting<ShipMode> configOffensive;
+    protected final ConfigSetting<ShipMode> configRun;
 
     private boolean attackConfigLost = false;
     protected boolean firstAttack;
@@ -39,26 +44,35 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     private double lastDistanceTarget = 1000;
     protected CollectorModule collectorModule;
 
-    @Override
-    public void install(Main main) {
-        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) return;
-        VerifierChecker.checkAuthenticity();
-        this.main = main;
-        this.hero = main.hero;
-        this.safety = new SafetyFinder(main);
-        this.collectorModule = new CollectorModule(main.pluginAPI);
-        this.items = main.pluginAPI.getAPI(HeroItemsAPI.class);
+    public PVPModule(PluginAPI api) {
+        this(api, api.requireAPI(HeroAPI.class),
+                api.requireAPI(AuthAPI.class),
+                api.requireAPI(ConfigAPI.class),
+                api.requireInstance(SafetyFinder.class));
+    }
+
+    @Inject
+    public PVPModule(PluginAPI api, HeroAPI hero, AuthAPI auth, ConfigAPI configApi, SafetyFinder safety) {
+        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) throw new SecurityException();
+        VerifierChecker.checkAuthenticity(auth);
+
+        this.api = api;
+        this.heroapi = hero;
+        this.safety = safety;
+        this.configOffensive = configApi.requireConfig("general.offensive");
+        this.configRun = configApi.requireConfig("general.run");
+        this.collectorModule = new CollectorModule(api);
         setup();
     }
 
     @Override
-    public String status() {
+    public String getStatus() {
         return safety.state() != SafetyFinder.Escaping.NONE ? safety.status() : target != null ? "Attacking an enemy" : collectorModule.getStatus() ;
     }
-
+    
     @Override
-    public void setConfig(PVPConfig pvpConfig) {
-        this.pvpConfig = pvpConfig;
+    public void setConfig(ConfigSetting<PVPConfig> arg0) {
+        this.pvpConfig = arg0.getValue();
         setup();
     }
 
@@ -71,13 +85,13 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     }
 
     private void setup() {
-        if (main == null || pvpConfig == null) return;
+        if (api == null || pvpConfig == null) return;
 
-        this.shipAttacker = new ShipAttacker(main,  new DefenseLaserSupplier(main, items, main.config.LOOT.SAB, main.config.LOOT.RSB.ENABLED));
+        this.shipAttacker = new ShipAttacker(api, pvpConfig.SAB, pvpConfig.useRSB);
     }
 
     @Override
-    public void tick() {
+    public void onTickModule() {
         if (!pvpConfig.move || safety.tick()) {
             getTarget();
             if (target == null || !target.isValid()) {
@@ -86,7 +100,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
                 shipAttacker.resetDefenseData();
                 if (pvpConfig.move) {
                     if (pvpConfig.changeConfig) {
-                        main.hero.roamMode();
+                        heroapi.setRoamMode();
                     }
                     collectorModule.onTickModule();
                 }
@@ -98,16 +112,13 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
                 setConfigToUse();
             }
 
-            if (!main.mapManager.isTarget(target)) {
-                shipAttacker.lockAndSetTarget();
-                return;
-            }
+            shipAttacker.doKillTargetTick();
 
             if (pvpConfig.useBestRocket) {
                 shipAttacker.changeRocket();
             }
 
-            if (hero.getLocationInfo().distance(target) < 575) {
+            if (heroapi.getLocationInfo().distanceTo(target) < 575) {
                 shipAttacker.useKeyWithConditions(pvpConfig.ability, null);
             }
 
@@ -116,7 +127,8 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
             shipAttacker.useKeyWithConditions(pvpConfig.PEM, Special.EMP_01);
             shipAttacker.useKeyWithConditions(pvpConfig.otherKey, null);
 
-            shipAttacker.doKillTargetTick();
+            shipAttacker.tryAttackOrFix();
+
             if (pvpConfig.move) {
                 shipAttacker.vsMove();
             }
@@ -124,7 +136,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     }
 
     private boolean getTarget() {
-        if (target != null) return true;
+        if (target != null && target.isValid()) return true;
 
         target = shipAttacker.getEnemy(pvpConfig.rangeForEnemies);
 
@@ -132,19 +144,19 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     }
 
     private void setConfigToUse() {
-        if (attackConfigLost || hero.getHealth().shieldPercent() < 0.1 && hero.getHealth().hpPercent() < 0.3) {
+        if (attackConfigLost || heroapi.getHealth().shieldPercent() < 0.1 && heroapi.getHealth().hpPercent() < 0.3) {
             attackConfigLost = true;
-            shipAttacker.setMode(main.config.GENERAL.RUN, pvpConfig.useBestFormation);
+            shipAttacker.setMode(configRun.getValue(), pvpConfig.useBestFormation);
         } else if (pvpConfig.useRunConfig && target != null) {
-            double distance = hero.locationInfo.distance(target);
-            if (distance > 400 && distance > lastDistanceTarget && target.getSpeed() > hero.getSpeed()) {
-                shipAttacker.setMode(main.config.GENERAL.RUN, pvpConfig.useBestFormation);
+            double distance = heroapi.getLocationInfo().distanceTo(target);
+            if (distance > 400 && distance > lastDistanceTarget && target.getSpeed() > heroapi.getSpeed()) {
+                shipAttacker.setMode(configRun.getValue(), pvpConfig.useBestFormation);
                 lastDistanceTarget = distance;
             } else {
-                shipAttacker.setMode(main.config.GENERAL.OFFENSIVE, pvpConfig.useBestFormation);
+                shipAttacker.setMode(configOffensive.getValue(), pvpConfig.useBestFormation);
             }
         } else {
-            shipAttacker.setMode(main.config.GENERAL.OFFENSIVE, pvpConfig.useBestFormation);
+            shipAttacker.setMode(configOffensive.getValue(), pvpConfig.useBestFormation);
         }
     }
 }

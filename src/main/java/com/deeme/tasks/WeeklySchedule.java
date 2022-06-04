@@ -4,11 +4,9 @@ import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.HangarChanger;
 import com.deeme.types.config.Hour;
 import com.deeme.types.config.Profile;
-import com.deeme.types.gui.JDayChangeTable;
+import com.deeme.types.config.WeeklyConfig;
 import com.deeme.types.gui.ShipSupplier;
 import com.github.manolo8.darkbot.Main;
-import com.github.manolo8.darkbot.config.types.Editor;
-import com.github.manolo8.darkbot.config.types.Option;
 import com.github.manolo8.darkbot.core.itf.Configurable;
 import com.github.manolo8.darkbot.core.itf.InstructionProvider;
 import com.github.manolo8.darkbot.core.itf.Task;
@@ -19,15 +17,13 @@ import com.github.manolo8.darkbot.utils.AuthAPI;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 @Feature(name = "WeeklySchedule", description = "Use different module, map for a weekly schedule")
-public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyConfig>, InstructionProvider {
+public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, InstructionProvider {
 
     private WeeklyConfig weeklyConfig;
     private Main main;
-    private long lastCheck = 0;
+    private long nextCheck = 0;
     private HangarChanger hangarChanger;
     private boolean changingHangar = false;
     private boolean stopBot = false;
@@ -37,7 +33,8 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
     @Override
     public String instructions() {
         return "You have 4 different profiles, the module will automatically change its configuration according to the timetable you have set. \n" +
-                "Remember that you have to configure it in every config you are going to use.";
+                "Remember that you have to configure it in every config you are going to use. \n" + 
+                "The hangars to be used have to be in favourites";
     }
 
     @Override
@@ -53,7 +50,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
         this.main = m;
         this.hangarChanger = new HangarChanger(main);
         this.lostConnection = main.guiManager.lostConnection;
-        this.lastCheck = 0;
+        this.nextCheck = 0;
         setup();
     }
     @Override
@@ -63,7 +60,9 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
 
     @Override
     public void tick() {
-        if (weeklyConfig.updateHangarList) {
+        if (!weeklyConfig.activate) { return; }
+
+        if (weeklyConfig.updateHangarList && main.backpage.isInstanceValid()) {
             try {
                 main.backpage.hangarManager.updateHangarList();
                 if (ShipSupplier.updateOwnedShips(main.backpage.hangarManager.getHangarList().getData().getRet().getShipInfos()))
@@ -110,7 +109,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
     }
 
     private void updateProfileToUse() {
-        if (lastCheck < System.currentTimeMillis() - 300000) {
+        if (nextCheck < System.currentTimeMillis()) {
             LocalDateTime da = LocalDateTime.now();
             int currentHour = da.getHour();
             Hour hour = this.weeklyConfig.Hours_Changes.get(String.format("%02d", currentHour));
@@ -151,7 +150,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
                 }
 
                 setProfile();
-                lastCheck = System.currentTimeMillis();
+                nextCheck = System.currentTimeMillis() + 300000;
             }
         }
     }
@@ -181,30 +180,5 @@ public class WeeklySchedule implements Task, Configurable<WeeklySchedule.WeeklyC
 
         weeklyConfig.updateHangarList = true;
         updateProfileToUse();
-    }
-
-    public static class WeeklyConfig {
-
-        @Option()
-        @Editor(value = JDayChangeTable.class, shared = true)
-        public Map<String, Hour> Hours_Changes = new HashMap<>();
-
-        @Option(value = "Update HangarList", description = "Mark it to update the hangar list")
-        public boolean updateHangarList = true;
-
-        @Option(value = "Change hangar", description = "It'll change to the hangar you've put in each profile.")
-        public boolean changeHangar = false;
-
-        @Option(value = "Profile 1", description = "To use this profile P1 in the schedule")
-        public Profile profile1 = new Profile();
-
-        @Option(value = "Profile 2", description = "To use this profile P2 in the schedule")
-        public Profile profile2 = new Profile();
-
-        @Option(value = "Profile 3", description = "To use this profile P3 in the schedule")
-        public Profile profile3 = new Profile();
-
-        @Option(value = "Profile 4", description = "To use this profile P4 in the schedule")
-        public Profile profile4 = new Profile();
     }
 }

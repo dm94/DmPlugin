@@ -1,5 +1,6 @@
 package com.deeme.types.config;
 
+import com.github.manolo8.darkbot.config.Config;
 import com.github.manolo8.darkbot.config.types.Num;
 import com.github.manolo8.darkbot.config.types.Option;
 
@@ -23,6 +24,12 @@ public class PVPConfig {
     @Option(value = "Maximum range for enemies", description = "Enemies above this range will not be attacked")
     @Num(min = 0, max = 600, step = 50)
     public int rangeForEnemies = 100;
+
+    @Option(value = "RSB-75", description = "Use RSB-75")
+    public boolean useRSB = false;
+
+    public @Option(key = "config.loot.sab") Config.Loot.Sab SAB = new Config.Loot.Sab();
+
 
     public @Option(value = "Ability", description = "Ability Conditions")
     ExtraKeyConditions ability = new ExtraKeyConditions();
