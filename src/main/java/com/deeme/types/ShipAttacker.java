@@ -11,6 +11,7 @@ import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.config.types.PercentRange;
 import eu.darkbot.api.config.types.ShipMode;
 import eu.darkbot.api.config.types.ShipMode.ShipModeImpl;
+import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.entities.Ship;
 import eu.darkbot.api.game.enums.EntityEffect;
 import eu.darkbot.api.game.group.GroupMember;
@@ -19,7 +20,6 @@ import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.game.items.SelectableItem.Formation;
 import eu.darkbot.api.game.items.SelectableItem.Laser;
 import eu.darkbot.api.game.other.Location;
-import eu.darkbot.api.game.other.Lockable;
 import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.GroupAPI;
@@ -91,6 +91,10 @@ public class ShipAttacker {
         this.defense = defense;
     }
 
+    public String getStatus() {
+        return getTarget() != null ? "Killing " + getTarget().getEntityInfo().getUsername() : "Idle";
+    }
+
     public Ship getTarget() {
         return target;
     }
@@ -110,14 +114,14 @@ public class ShipAttacker {
         }
     }
 
-    public void setTarget(Lockable target) {
-        if (target != null && !(target instanceof Ship))
-            throw new IllegalArgumentException("Only Ship attacking is supported by this implementation");
-        this.target = (Ship) target;
+    public void setTarget(Ship target) {
+        this.target = target;
     }
 
     public void doKillTargetTick() {
-        if (target == null) return;
+        if (target == null) {
+            return;
+        }
         if (!heroapi.isAttacking(target) || !heroapi.isAiming(target)) {
             lockAndSetTarget();
             return;
@@ -127,7 +131,9 @@ public class ShipAttacker {
     }
 
     public void tryAttackOrFix() {
-        if (System.currentTimeMillis() < laserTime) return;
+        if (System.currentTimeMillis() < laserTime) {
+            return;
+        }
 
         if (!firstAttack) {
             firstAttack = true;
@@ -136,7 +142,8 @@ public class ShipAttacker {
             sendAttack(250, 5000, true);
         } else if (!heroapi.isAttacking(target) || !heroapi.isAiming(target)) {
             sendAttack(1500, 5000, false);
-        } else if (target.getHealth().hpDecreasedIn(1500) || target.hasEffect(EntityEffect.NPC_ISH) || target.hasEffect(EntityEffect.ISH)
+        } else if (target.getHealth().hpDecreasedIn(1500) || target.hasEffect(EntityEffect.NPC_ISH)
+                || target.hasEffect(EntityEffect.ISH)
                 || heroapi.getLocationInfo().distanceTo(target) > 700) {
             isAttacking = Math.max(isAttacking, System.currentTimeMillis() + 2000);
         } else if (System.currentTimeMillis() > isAttacking) {
@@ -168,7 +175,9 @@ public class ShipAttacker {
 
         if (laser != null) {
             Character key = items.getKeyBind(laser);
-            if (key != null) return key;
+            if (key != null) {
+                return key;
+            }
         }
 
         if (defense != null) {
@@ -186,29 +195,34 @@ public class ShipAttacker {
     }
 
     public void changeRocket() {
-        if (System.currentTimeMillis() < rocketTime) return;
+        if (System.currentTimeMillis() < rocketTime) {
+            return;
+        }
         SelectableItem rocket = getBestRocket();
 
-        if (rocket != null && !heroapi.getRocket().getId().equals(rocket.getId()) && useSelectableReadyWhenReady(rocket)) {
+        if (rocket != null && !heroapi.getRocket().getId().equals(rocket.getId())
+                && useSelectableReadyWhenReady(rocket)) {
             rocketTime = System.currentTimeMillis() + 2000;
         }
     }
 
     public void vsMove() {
-        double distance = heroapi.getLocationInfo().distanceTo(target);
-        Location targetLoc = target.getLocationInfo().destinationInTime(400);
+        if (target != null) {
+            double distance = heroapi.getLocationInfo().distanceTo(target);
+            Location targetLoc = target.getLocationInfo().destinationInTime(400);
 
-        if (distance > 400) {
-            if (movement.canMove(target.getLocationInfo().getCurrent())) {
-                movement.moveTo(target);
-                if (target.getSpeed() > heroapi.getSpeed()) {
-                    heroapi.setRunMode();
+            if (distance > 600) {
+                if (movement.canMove(target.getLocationInfo().getCurrent())) {
+                    movement.moveTo(target);
+                    if (target.getSpeed() > heroapi.getSpeed()) {
+                        heroapi.setRunMode();
+                    }
+                } else {
+                    resetDefenseData();
                 }
             } else {
-                resetDefenseData();
+                movement.moveTo(Location.of(targetLoc, rnd.nextInt(360), distance));
             }
-        } else {
-            movement.moveTo(Location.of(targetLoc, rnd.nextInt(360), distance));
         }
     }
 
@@ -218,18 +232,22 @@ public class ShipAttacker {
                 selectableItem = items.getItem(extra.Key);
             }
 
-            if (heroapi.getHealth().hpPercent() < extra.HEALTH_RANGE.max && heroapi.getHealth().hpPercent() > extra.HEALTH_RANGE.min
-                && target.getHealth().hpPercent() < extra.HEALTH_ENEMY_RANGE.max && target.getHealth().hpPercent() > extra.HEALTH_ENEMY_RANGE.min 
-                && (extra.CONDITION == null || extra.CONDITION.get(api).toBoolean())) {
-                        return useSelectableReadyWhenReady(selectableItem);
+            if (heroapi.getHealth().hpPercent() < extra.HEALTH_RANGE.max
+                    && heroapi.getHealth().hpPercent() > extra.HEALTH_RANGE.min
+                    && target.getHealth().hpPercent() < extra.HEALTH_ENEMY_RANGE.max
+                    && target.getHealth().hpPercent() > extra.HEALTH_ENEMY_RANGE.min
+                    && (extra.CONDITION == null || extra.CONDITION.get(api).toBoolean())) {
+                return useSelectableReadyWhenReady(selectableItem);
             }
         }
         return false;
     }
 
     public boolean useSelectableReadyWhenReady(SelectableItem selectableItem) {
-        if (System.currentTimeMillis() - clickDelay < 1000) return false;
-        if (selectableItem == null)  return false; 
+        if (System.currentTimeMillis() - clickDelay < 1000)
+            return false;
+        if (selectableItem == null)
+            return false;
 
         boolean isReady = items.getItem(selectableItem, ItemFlag.USABLE, ItemFlag.READY).isPresent();
 
@@ -251,7 +269,7 @@ public class ShipAttacker {
         }
         return false;
     }
- 
+
     public void goToMemberAttacked() {
         GroupMember member = getMemberGroupAttacked();
         if (member != null) {
@@ -281,14 +299,7 @@ public class ShipAttacker {
     public void setMode(ShipMode config, boolean useBestFormation) {
         if (useBestFormation) {
             Formation formation = (Formation) getBestFormation();
-            if (formation != null && !heroapi.isInFormation(formation)) {
-                if (items.getItem(formation, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
-                    ShipModeImpl mode = new ShipModeImpl(config.getConfiguration(), formation);
-                    heroapi.setMode(mode);
-                } else {
-                    heroapi.setMode(config);
-                }
-            }
+            setMode(config, formation);
         } else {
             heroapi.setMode(config);
         }
@@ -302,12 +313,17 @@ public class ShipAttacker {
             } else {
                 heroapi.setMode(config);
             }
+        } else {
+            heroapi.setMode(config);
         }
     }
 
     public Ship getEnemy(int maxDistance) {
         return allShips.stream()
-        .filter(s -> (s.getEntityInfo().isEnemy() && !SharedFunctions.isPet(s.getEntityInfo().getUsername()) && s.getLocationInfo().distanceTo(heroapi) <= maxDistance)).sorted(Comparator.comparingDouble(s -> s.getLocationInfo().distanceTo(heroapi))).findAny().orElse(null);
+                .filter(s -> (s.getEntityInfo().isEnemy() && !SharedFunctions.isPet(s.getEntityInfo().getUsername())
+                        && !(s instanceof Npc) && s.getLocationInfo().distanceTo(heroapi) <= maxDistance))
+                .sorted(Comparator.comparingDouble(s -> s.getLocationInfo().distanceTo(heroapi))).findAny()
+                .orElse(null);
     }
 
     public void resetDefenseData() {

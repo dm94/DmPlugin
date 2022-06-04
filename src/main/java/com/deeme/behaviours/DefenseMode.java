@@ -14,6 +14,7 @@ import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.entities.Npc;
+import eu.darkbot.api.game.entities.Player;
 import eu.darkbot.api.game.entities.Ship;
 import eu.darkbot.api.game.items.SelectableItem.Special;
 import eu.darkbot.api.game.other.EntityInfo.Diplomacy;
@@ -35,7 +36,7 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
     protected final HeroAPI heroapi;
     protected final MovementAPI movement;
     protected final SafetyFinder safetyFinder;
-    protected final Collection<? extends Ship> allShips;
+    protected final Collection<? extends Player> players;
     protected final ConfigSetting<ShipMode> configOffensive;
     protected final ConfigSetting<PercentRange> repairHpRange;
     private ShipAttacker shipAttacker;
@@ -52,15 +53,17 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
     }
 
     @Inject
-    public DefenseMode(PluginAPI api, HeroAPI hero, MovementAPI movement, AuthAPI auth, ConfigAPI configApi, EntitiesAPI entities, SafetyFinder safety) {
-        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) throw new SecurityException();
+    public DefenseMode(PluginAPI api, HeroAPI hero, MovementAPI movement, AuthAPI auth, ConfigAPI configApi,
+            EntitiesAPI entities, SafetyFinder safety) {
+        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
+            throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
         this.api = api;
         this.heroapi = hero;
         this.movement = movement;
         this.safetyFinder = safety;
-        this.allShips = entities.getShips();
+        this.players = entities.getPlayers();
         this.configOffensive = configApi.requireConfig("general.offensive");
         this.repairHpRange = configApi.requireConfig("general.safety.repair_hp_range");
         setup();
@@ -73,7 +76,8 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
     }
 
     private void setup() {
-        if (api == null || defenseConfig == null) return;
+        if (api == null || defenseConfig == null)
+            return;
 
         this.shipAttacker = new ShipAttacker(api, defenseConfig);
     }
@@ -103,37 +107,45 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
 
             shipAttacker.tryAttackOrFix();
 
-            if (defenseConfig.movementMode == 1) {
-                shipAttacker.vsMove();
-            } else if (defenseConfig.movementMode == 2) {
-                safetyFinder.tick();
-            } else if (defenseConfig.movementMode == 3) {
-                if (!movement.isMoving() || movement.isOutOfMap()) movement.moveRandom();
-            } else if (defenseConfig.movementMode == 4) {
-                if (heroapi.getHealth().hpPercent() <= repairHpRange.getValue().getMin()){
-                    safetyFinder.tick();
-                } else {
+            switch (defenseConfig.movementMode) {
+                case 1:
                     shipAttacker.vsMove();
-                }
+                    break;
+                case 2:
+                    safetyFinder.tick();
+                    break;
+                case 3:
+                    if (!movement.isMoving() || movement.isOutOfMap()) {
+                        movement.moveRandom();
+                    }
+                    break;
+                case 4:
+                    if (heroapi.getHealth().hpPercent() <= repairHpRange.getValue().getMin()) {
+                        safetyFinder.tick();
+                    } else {
+                        shipAttacker.vsMove();
+                    }
+                    break;
             }
         }
     }
 
     private boolean isUnderAttack() {
         if (shipAttacker.getTarget() != null && !shipAttacker.getTarget().isValid() &&
-            shipAttacker.getTarget().getEntityInfo().isEnemy()) {
+                shipAttacker.getTarget().getEntityInfo().isEnemy()) {
             return true;
         }
 
-        Ship tempShip = SharedFunctions.getAttacker(heroapi, allShips, heroapi);
-        if (tempShip != null && !(tempShip instanceof Npc)) {
+        Ship tempShip = SharedFunctions.getAttacker(heroapi, players, heroapi);
+        if (tempShip != null) {
             shipAttacker.setTarget(tempShip);
             return true;
         }
 
         if (shipAttacker.getTarget() == null) {
-            List<Ship> ships = allShips.stream()
-                    .filter(s -> (defenseConfig.helpAllies && s.getEntityInfo().getClanDiplomacy() == Diplomacy.ALLIED) ||
+            List<Ship> ships = players.stream()
+                    .filter(s -> (defenseConfig.helpAllies && s.getEntityInfo().getClanDiplomacy() == Diplomacy.ALLIED)
+                            ||
                             (defenseConfig.helpEveryone && !s.getEntityInfo().isEnemy())
                             || (defenseConfig.helpGroup && shipAttacker.inGroupAttacked(s.getId())))
                     .collect(Collectors.toList());
@@ -148,7 +160,7 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
                         }
                     }
 
-                    tempShip = SharedFunctions.getAttacker(ship, allShips, heroapi);
+                    tempShip = SharedFunctions.getAttacker(ship, players, heroapi);
                     if (tempShip != null) {
                         shipAttacker.setTarget(tempShip);
                         return true;
@@ -169,7 +181,8 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
 
     private void setConfigToUse() {
         if (defenseConfig.useSecondConfig &&
-            heroapi.getHealth().shieldPercent() < 0.1 && defenseConfig.healthToChange <= heroapi.getHealth().shieldPercent()){
+                heroapi.getHealth().shieldPercent() < 0.1
+                && defenseConfig.healthToChange <= heroapi.getHealth().shieldPercent()) {
             attackConfigLost = true;
         }
 

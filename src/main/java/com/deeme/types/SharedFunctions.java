@@ -2,6 +2,7 @@ package com.deeme.types;
 
 import com.github.manolo8.darkbot.Main;
 
+import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.entities.Ship;
 import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.HeroAPI;
@@ -21,11 +22,11 @@ public class SharedFunctions {
         if (allShips == null || allShips.size() <= 0) {
             return null;
         }
-        
+
         return allShips.stream()
-                .filter(s -> s.getEntityInfo().isEnemy())
-                .filter(s -> s.isAttacking(assaulted))
+                .filter(s -> (s instanceof Npc || s.getEntityInfo().isEnemy()))
                 .filter(s -> !isPet(s.getEntityInfo().getUsername()))
+                .filter(s -> s.isAttacking(assaulted))
                 .sorted(Comparator.comparingDouble(s -> s.getLocationInfo().distanceTo(hero)))
                 .findFirst().orElse(null);
     }
