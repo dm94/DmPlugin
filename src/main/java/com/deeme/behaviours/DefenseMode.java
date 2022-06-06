@@ -38,6 +38,7 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
     protected final SafetyFinder safetyFinder;
     protected final Collection<? extends Player> players;
     protected final ConfigSetting<ShipMode> configOffensive;
+    protected final ConfigSetting<ShipMode> configRun;
     protected final ConfigSetting<PercentRange> repairHpRange;
     private ShipAttacker shipAttacker;
     private Defense defenseConfig;
@@ -65,6 +66,7 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
         this.safetyFinder = safety;
         this.players = entities.getPlayers();
         this.configOffensive = configApi.requireConfig("general.offensive");
+        this.configRun = configApi.requireConfig("general.run");
         this.repairHpRange = configApi.requireConfig("general.safety.repair_hp_range");
         setup();
     }
@@ -84,10 +86,7 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
 
     @Override
     public void onTickBehavior() {
-        if (shipAttacker != null) {
-            if (!isUnderAttack() && shipAttacker.getTarget() == null) {
-                return;
-            }
+        if (shipAttacker != null && isUnderAttack()) {
             setConfigToUse();
 
             shipAttacker.doKillTargetTick();
@@ -131,65 +130,80 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
     }
 
     private boolean isUnderAttack() {
-        if (shipAttacker.getTarget() != null && !shipAttacker.getTarget().isValid() &&
-                shipAttacker.getTarget().getEntityInfo().isEnemy()) {
+        if (shipAttacker.getTarget() != null) {
+            if (shipAttacker.getTarget().isValid() && shipAttacker.getTarget().getEntityInfo().isEnemy()) {
+                return true;
+            } else {
+                shipAttacker.setTarget(null);
+                return false;
+            }
+        }
+
+        Entity target = SharedFunctions.getAttacker(heroapi, players, heroapi);
+        if (target != null) {
+            shipAttacker.setTarget((Ship) target);
             return true;
         }
 
-        Ship tempShip = SharedFunctions.getAttacker(heroapi, players, heroapi);
-        if (tempShip != null) {
-            shipAttacker.setTarget(tempShip);
-            return true;
-        }
+        List<Player> ships = players.stream()
+                .filter(s -> (defenseConfig.helpAllies && s.getEntityInfo().getClanDiplomacy() == Diplomacy.ALLIED)
+                        ||
+                        (defenseConfig.helpEveryone && !s.getEntityInfo().isEnemy())
+                        || (defenseConfig.helpGroup && shipAttacker.inGroupAttacked(s.getId())))
+                .collect(Collectors.toList());
 
-        if (shipAttacker.getTarget() == null) {
-            List<Ship> ships = players.stream()
-                    .filter(s -> (defenseConfig.helpAllies && s.getEntityInfo().getClanDiplomacy() == Diplomacy.ALLIED)
-                            ||
-                            (defenseConfig.helpEveryone && !s.getEntityInfo().isEnemy())
-                            || (defenseConfig.helpGroup && shipAttacker.inGroupAttacked(s.getId())))
-                    .collect(Collectors.toList());
-
-            if (!ships.isEmpty()) {
-                for (Ship ship : ships) {
-                    if (defenseConfig.helpAttack && ship.isAttacking() && ship.getTarget() != null) {
-                        Entity tar = ship.getTarget();
-                        if (tar != null && !(tar instanceof Npc)) {
-                            shipAttacker.setTarget((Ship) tar);
-                            return true;
-                        }
-                    }
-
-                    tempShip = SharedFunctions.getAttacker(ship, players, heroapi);
-                    if (tempShip != null) {
-                        shipAttacker.setTarget(tempShip);
+        if (!ships.isEmpty()) {
+            for (Player ship : ships) {
+                if (defenseConfig.helpAttack && ship.isAttacking() && ship.getTarget() != null) {
+                    Entity tar = ship.getTarget();
+                    if (!(tar instanceof Npc)) {
+                        shipAttacker.setTarget((Ship) tar);
                         return true;
                     }
+                }
+
+                target = SharedFunctions.getAttacker(ship, players, heroapi);
+                if (target != null) {
+                    shipAttacker.setTarget((Ship) target);
+                    return true;
                 }
             }
         }
 
-        if (shipAttacker.getTarget() == null) {
-            if (defenseConfig.goToGroup) {
-                shipAttacker.goToMemberAttacked();
-            }
-            shipAttacker.resetDefenseData();
+        if (defenseConfig.goToGroup) {
+            shipAttacker.goToMemberAttacked();
         }
+        shipAttacker.resetDefenseData();
 
         return shipAttacker.getTarget() != null;
     }
 
     private void setConfigToUse() {
-        if (defenseConfig.useSecondConfig &&
-                heroapi.getHealth().shieldPercent() < 0.1
-                && defenseConfig.healthToChange <= heroapi.getHealth().shieldPercent()) {
+        if (defenseConfig.useSecondConfig && heroapi.getHealth().hpPercent() <= defenseConfig.healthToChange
+                && heroapi.getHealth().shieldPercent() <= 0.1) {
             attackConfigLost = true;
         }
 
         if (attackConfigLost && defenseConfig.useSecondConfig) {
-            shipAttacker.setMode(defenseConfig.secondConfig, false);
+            shipAttacker.setMode(defenseConfig.secondConfig);
         } else {
-            shipAttacker.setMode(configOffensive.getValue());
+            switch (defenseConfig.movementMode) {
+                case 1:
+                case 3:
+                    shipAttacker.setMode(configOffensive.getValue(), defenseConfig.useBestFormation);
+                    break;
+                case 0:
+                case 2:
+                    shipAttacker.setMode(configRun.getValue(), defenseConfig.useBestFormation);
+                    break;
+                case 4:
+                    if (heroapi.getHealth().hpPercent() <= repairHpRange.getValue().getMin()) {
+                        shipAttacker.setMode(configRun.getValue(), defenseConfig.useBestFormation);
+                    } else {
+                        shipAttacker.setMode(configOffensive.getValue(), defenseConfig.useBestFormation);
+                    }
+                    break;
+            }
         }
     }
 }
