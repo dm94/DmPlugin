@@ -2,7 +2,6 @@ package com.deeme.types;
 
 import com.deeme.types.config.Defense;
 import com.deeme.types.config.ExtraKeyConditions;
-
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.Config.Loot.Sab;
 
@@ -96,7 +95,11 @@ public class ShipAttacker {
     }
 
     public Ship getTarget() {
-        return target;
+        if (target != null && target.isValid()) {
+            return target;
+        } else {
+            return null;
+        }
     }
 
     public void lockAndSetTarget() {

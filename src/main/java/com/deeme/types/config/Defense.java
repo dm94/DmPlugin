@@ -46,32 +46,26 @@ public class Defense {
     @Option(value = "RSB-75", description = "Use RSB-75")
     public boolean useRSB = false;
 
-    public @Option(key = "config.loot.sab") Config.Loot.Sab SAB = new Config.Loot.Sab();
-
-    public @Option(value = "Ability", description = "Ability Conditions")
-    ExtraKeyConditions ability = new ExtraKeyConditions();
-
-    public @Option(value = "ISH-01", description = "ISH-01 Conditions")
-    ExtraKeyConditions ISH = new ExtraKeyConditions();
-
-    public @Option(value = "SMB-01", description = "SMB-01 Conditions")
-    ExtraKeyConditions SMB = new ExtraKeyConditions();
-
-    public @Option(value = "PEM-01", description = "PEM-01 Conditions")
-    ExtraKeyConditions PEM = new ExtraKeyConditions();
-
-    public @Option(value = "Other Key", description = "Other Key Conditions")
-    ExtraKeyConditions otherKey = new ExtraKeyConditions();
-
-    @Option(value = "Use second config", description = "Use the second config, if there is no shield and you cannot use sab")
+    @Option(value = "Use second config", description = "Use the second config")
     public boolean useSecondConfig = true;
 
-    @Option(value = "Min health to change", description ="If health comes down from")
+    @Option(value = "Min health to change", description = "If health comes down from")
     @Editor(JPercentField.class)
     public double healthToChange = 0.2;
 
-    @Option(value = "Second config", description = "Used when attack config is exhausted")
+    @Option(value = "Second config", description = "Used when attack config has no shield")
     @Editor(JShipConfigField.class)
     public Config.ShipConfig secondConfig = new Config.ShipConfig();
 
+    public @Option(key = "config.loot.sab") Config.Loot.Sab SAB = new Config.Loot.Sab();
+
+    public @Option(value = "Ability", description = "Ability Conditions") ExtraKeyConditions ability = new ExtraKeyConditions();
+
+    public @Option(value = "ISH-01", description = "ISH-01 Conditions") ExtraKeyConditions ISH = new ExtraKeyConditions();
+
+    public @Option(value = "SMB-01", description = "SMB-01 Conditions") ExtraKeyConditions SMB = new ExtraKeyConditions();
+
+    public @Option(value = "PEM-01", description = "PEM-01 Conditions") ExtraKeyConditions PEM = new ExtraKeyConditions();
+
+    public @Option(value = "Other Key", description = "Other Key Conditions") ExtraKeyConditions otherKey = new ExtraKeyConditions();
 }
