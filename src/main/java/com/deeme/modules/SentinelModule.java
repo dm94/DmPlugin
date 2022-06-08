@@ -6,15 +6,15 @@ import com.deeme.types.VerifierChecker;
 import com.deeme.types.config.SentinelConfig;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.Config;
-import com.github.manolo8.darkbot.core.itf.Configurable;
-import com.github.manolo8.darkbot.core.itf.InstructionProvider;
-import com.github.manolo8.darkbot.core.itf.Module;
-import com.github.manolo8.darkbot.extensions.features.Feature;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.config.types.NpcFlag;
 import eu.darkbot.api.config.types.ShipMode;
+import eu.darkbot.api.extensions.Configurable;
+import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.extensions.Module;
+import eu.darkbot.api.extensions.InstructionProvider;
 import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.entities.Player;
@@ -28,6 +28,7 @@ import eu.darkbot.api.game.other.Location;
 import eu.darkbot.api.game.other.Lockable;
 import eu.darkbot.api.game.other.Movable;
 import eu.darkbot.api.managers.AttackAPI;
+import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
@@ -36,6 +37,7 @@ import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.MovementAPI;
 import eu.darkbot.api.managers.PetAPI;
 import eu.darkbot.api.managers.StarSystemAPI;
+import eu.darkbot.api.utils.Inject;
 import eu.darkbot.shared.modules.CollectorModule;
 import eu.darkbot.shared.modules.MapModule;
 import eu.darkbot.shared.utils.SafetyFinder;
@@ -99,14 +101,24 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
     }
 
     @Override
-    public void install(Main main) {
+    public void setConfig(ConfigSetting<SentinelConfig> arg0) {
+        this.sConfig = arg0.getValue();
+    }
+
+    public SentinelModule(Main main, PluginAPI api) {
+        this(main, api, api.requireAPI(AuthAPI.class), api.requireInstance(SafetyFinder.class));
+    }
+
+    @Inject
+    public SentinelModule(Main main, PluginAPI api, AuthAPI auth, SafetyFinder safety) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
-            return;
-        VerifierChecker.checkAuthenticity();
+            throw new SecurityException();
+        VerifierChecker.checkAuthenticity(auth);
+
         this.main = main;
         this.currentStatus = State.INIT;
 
-        this.api = main.pluginAPI.getAPI(PluginAPI.class);
+        this.api = api;
         this.bot = api.getAPI(BotAPI.class);
         this.heroapi = api.getAPI(HeroAPI.class);
         this.movement = api.getAPI(MovementAPI.class);
@@ -114,7 +126,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         this.starSystem = api.getAPI(StarSystemAPI.class);
         this.pet = api.getAPI(PetAPI.class);
         this.group = api.getAPI(GroupAPI.class);
-        this.safety = api.requireInstance(SafetyFinder.class);
+        this.safety = safety;
 
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
         this.portals = entities.getPortals();
@@ -146,15 +158,10 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
     }
 
     @Override
-    public String status() {
+    public String getStatus() {
         return safety.state() != SafetyFinder.Escaping.NONE ? safety.status()
                 : currentStatus.message + " | " + (isNpc ? "NPC" : "Other") + " | " + attacker.getStatus()
                         + " | " + shipAttacker.getStatus();
-    }
-
-    @Override
-    public void setConfig(SentinelConfig sentinelConfig) {
-        this.sConfig = sentinelConfig;
     }
 
     @Override
@@ -166,7 +173,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
     }
 
     @Override
-    public void tick() {
+    public void onTickModule() {
         if ((sConfig.ignoreSecurity || safety.tick()) && (!sConfig.collectorActive || collectorModule.canRefresh())) {
             pet.setEnabled(true);
             if (shipAround()) {
