@@ -11,6 +11,7 @@ import eu.darkbot.api.config.types.PercentRange;
 import eu.darkbot.api.config.types.ShipMode;
 import eu.darkbot.api.config.types.ShipMode.ShipModeImpl;
 import eu.darkbot.api.game.entities.Npc;
+import eu.darkbot.api.game.entities.Player;
 import eu.darkbot.api.game.entities.Ship;
 import eu.darkbot.api.game.enums.EntityEffect;
 import eu.darkbot.api.game.group.GroupMember;
@@ -42,7 +43,7 @@ public class ShipAttacker {
     protected final GroupAPI group;
     protected final ConfigSetting<PercentRange> repairHpRange;
     protected final ConfigSetting<Character> ammoKey;
-    protected final Collection<? extends Ship> allShips;
+    protected final Collection<? extends Player> allShips;
     private DefenseLaserSupplier laserSupplier;
     private FormationSupplier formationSupplier;
     private RocketSupplier rocketSupplier;
@@ -73,7 +74,7 @@ public class ShipAttacker {
         this.configAPI = api.getAPI(ConfigAPI.class);
         this.group = api.getAPI(GroupAPI.class);
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
-        this.allShips = entities.getShips();
+        this.allShips = entities.getPlayers();
         this.rnd = new Random();
         this.items = api.getAPI(HeroItemsAPI.class);
         this.laserSupplier = new DefenseLaserSupplier(api, heroapi, items, sab, rsbEnabled);
@@ -125,7 +126,7 @@ public class ShipAttacker {
         if (target == null) {
             return;
         }
-        if (!heroapi.isAttacking(target) || !heroapi.isAiming(target)) {
+        if (heroapi.getLocalTarget() != target) {
             lockAndSetTarget();
             return;
         }
@@ -141,7 +142,7 @@ public class ShipAttacker {
         if (!firstAttack) {
             firstAttack = true;
             sendAttack(1500, 5000, true);
-        } else if (!Objects.equals(lastShot, getAttackKey())) {
+        } else if (lastShot != getAttackKey()) {
             sendAttack(250, 5000, true);
         } else if (!heroapi.isAttacking(target) || !heroapi.isAiming(target)) {
             sendAttack(1500, 5000, false);
@@ -160,8 +161,8 @@ public class ShipAttacker {
         if (normal) {
             lastShot = getAttackKey();
             API.keyboardClick(lastShot);
-        } else if (!heroapi.triggerLaserAttack()) {
-            target.trySelect(true);
+        } else {
+            heroapi.triggerLaserAttack();
         }
     }
 
