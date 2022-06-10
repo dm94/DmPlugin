@@ -10,16 +10,26 @@ import eu.darkbot.api.config.types.ShipMode;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Module;
 import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.game.entities.Player;
+import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.entities.Ship;
 import eu.darkbot.api.game.items.SelectableItem.Special;
+import eu.darkbot.api.game.other.GameMap;
 import eu.darkbot.api.managers.AuthAPI;
+import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.ConfigAPI;
+import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.HeroAPI;
+import eu.darkbot.api.managers.MovementAPI;
+import eu.darkbot.api.managers.StarSystemAPI;
 import eu.darkbot.api.utils.Inject;
 import eu.darkbot.shared.modules.CollectorModule;
+import eu.darkbot.shared.modules.MapModule;
 import eu.darkbot.shared.utils.SafetyFinder;
 
 import java.util.Arrays;
+import java.util.Collection;
+
 @Feature(name = "PVP Module", description = "It is limited so as not to spoil the game")
 public class PVPModule implements Module, Configurable<PVPConfig> {
     private PVPConfig pvpConfig;
@@ -28,6 +38,13 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
 
     protected final PluginAPI api;
     protected final HeroAPI heroapi;
+    protected final MovementAPI movement;
+    protected final StarSystemAPI starSystem;
+    protected final BotAPI bot;
+
+    protected Collection<? extends Portal> portals;
+
+    protected final ConfigSetting<Integer> workingMap;
     protected final ConfigSetting<ShipMode> configOffensive;
     protected final ConfigSetting<ShipMode> configRun;
 
@@ -48,28 +65,41 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         this(api, api.requireAPI(HeroAPI.class),
                 api.requireAPI(AuthAPI.class),
                 api.requireAPI(ConfigAPI.class),
+                api.requireAPI(MovementAPI.class),
                 api.requireInstance(SafetyFinder.class));
     }
 
     @Inject
-    public PVPModule(PluginAPI api, HeroAPI hero, AuthAPI auth, ConfigAPI configApi, SafetyFinder safety) {
-        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) throw new SecurityException();
+    public PVPModule(PluginAPI api, HeroAPI hero, AuthAPI auth, ConfigAPI configApi, MovementAPI movement,
+            SafetyFinder safety) {
+        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
+            throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
         this.api = api;
         this.heroapi = hero;
         this.safety = safety;
+        this.movement = movement;
+        this.starSystem = api.getAPI(StarSystemAPI.class);
+        this.bot = api.getAPI(BotAPI.class);
+        this.workingMap = configApi.requireConfig("general.working_map");
         this.configOffensive = configApi.requireConfig("general.offensive");
         this.configRun = configApi.requireConfig("general.run");
+
+        EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
+        this.portals = entities.getPortals();
+
         this.collectorModule = new CollectorModule(api);
+
         setup();
     }
 
     @Override
     public String getStatus() {
-        return safety.state() != SafetyFinder.Escaping.NONE ? safety.status() : target != null ? "Attacking an enemy" : collectorModule.getStatus() ;
+        return safety.state() != SafetyFinder.Escaping.NONE ? safety.status()
+                : target != null ? shipAttacker.getStatus() : collectorModule.getStatus();
     }
-    
+
     @Override
     public void setConfig(ConfigSetting<PVPConfig> arg0) {
         this.pvpConfig = arg0.getValue();
@@ -85,7 +115,8 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     }
 
     private void setup() {
-        if (api == null || pvpConfig == null) return;
+        if (api == null || pvpConfig == null)
+            return;
 
         this.shipAttacker = new ShipAttacker(api, pvpConfig.SAB, pvpConfig.useRSB);
     }
@@ -93,8 +124,34 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     @Override
     public void onTickModule() {
         if (!pvpConfig.move || safety.tick()) {
-            getTarget();
-            if (target == null || !target.isValid()) {
+            if (getTarget()) {
+                shipAttacker.setTarget(target);
+
+                if (pvpConfig.changeConfig) {
+                    setConfigToUse();
+                }
+
+                shipAttacker.doKillTargetTick();
+
+                if (pvpConfig.useBestRocket) {
+                    shipAttacker.changeRocket();
+                }
+
+                if (heroapi.getLocationInfo().distanceTo(target) < 575) {
+                    shipAttacker.useKeyWithConditions(pvpConfig.ability, null);
+                }
+
+                shipAttacker.useKeyWithConditions(pvpConfig.ISH, Special.ISH_01);
+                shipAttacker.useKeyWithConditions(pvpConfig.SMB, Special.SMB_01);
+                shipAttacker.useKeyWithConditions(pvpConfig.PEM, Special.EMP_01);
+                shipAttacker.useKeyWithConditions(pvpConfig.otherKey, null);
+
+                shipAttacker.tryAttackOrFix();
+
+                if (pvpConfig.move) {
+                    shipAttacker.vsMove();
+                }
+            } else {
                 attackConfigLost = false;
                 target = null;
                 shipAttacker.resetDefenseData();
@@ -102,41 +159,27 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
                     if (pvpConfig.changeConfig) {
                         heroapi.setRoamMode();
                     }
-                    collectorModule.onTickModule();
+                    if (pvpConfig.collectorActive) {
+                        collectorModule.onTickModule();
+                    } else {
+                        GameMap map = starSystem.getOrCreateMapById(workingMap.getValue());
+                        if (!portals.isEmpty() && map != starSystem.getCurrentMap()) {
+                            this.bot.setModule(api.requireInstance(MapModule.class)).setTarget(map);
+                        } else {
+                            if (!movement.isMoving() || movement.isOutOfMap()) {
+                                movement.moveRandom();
+                            }
+                        }
+                    }
                 }
-                return;
-            }
-            shipAttacker.setTarget(target);
-
-            if (pvpConfig.changeConfig) {
-                setConfigToUse();
-            }
-
-            shipAttacker.doKillTargetTick();
-
-            if (pvpConfig.useBestRocket) {
-                shipAttacker.changeRocket();
-            }
-
-            if (heroapi.getLocationInfo().distanceTo(target) < 575) {
-                shipAttacker.useKeyWithConditions(pvpConfig.ability, null);
-            }
-
-            shipAttacker.useKeyWithConditions(pvpConfig.ISH, Special.ISH_01);
-            shipAttacker.useKeyWithConditions(pvpConfig.SMB, Special.SMB_01);
-            shipAttacker.useKeyWithConditions(pvpConfig.PEM, Special.EMP_01);
-            shipAttacker.useKeyWithConditions(pvpConfig.otherKey, null);
-
-            shipAttacker.tryAttackOrFix();
-
-            if (pvpConfig.move) {
-                shipAttacker.vsMove();
             }
         }
     }
 
     private boolean getTarget() {
-        if (target != null && target.isValid()) return true;
+        if (target != null && target.isValid()) {
+            return true;
+        }
 
         target = shipAttacker.getEnemy(pvpConfig.rangeForEnemies);
 
