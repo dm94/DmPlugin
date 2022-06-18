@@ -10,7 +10,6 @@ import eu.darkbot.api.config.types.ShipMode;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Module;
 import eu.darkbot.api.extensions.Feature;
-import eu.darkbot.api.game.entities.Player;
 import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.entities.Ship;
 import eu.darkbot.api.game.items.SelectableItem.Special;
