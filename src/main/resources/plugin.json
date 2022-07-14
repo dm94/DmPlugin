@@ -1,13 +1,14 @@
 {
   "name": "DmPlugin",
   "author": "Dm94Dani",
-  "version": "1.5.6 alpha 26",
-  "minVersion": "1.13.17 beta 103",
-  "supportedVersion": "1.13.17 beta 106",
+  "version": "1.5.6",
+  "minVersion": "1.13.17 beta 108",
+  "supportedVersion": "1.13.17 beta 108",
   "features": [
     "com.deeme.modules.PaladiumModule",
     "com.deeme.modules.SentinelModule",
     "com.deeme.modules.PVPModule",
+    "com.deeme.modules.AstralGate",
     "com.deeme.tasks.Discord",
     "com.deeme.tasks.Ifttt",
     "com.deeme.tasks.Skylab",
@@ -20,6 +21,6 @@
     "com.deeme.behaviours.StopButton"
   ],
   "donation": "https://www.paypal.me/dm94dani/5",
-  "download": "https://github.com/darkbot-reloaded/DmPlugin/releases/download/v1.5.6.26/DmPlugin.jar",
+  "download": "https://github.com/darkbot-reloaded/DmPlugin/releases/download/v1.5.6/DmPlugin.jar",
   "update": "https://raw.githubusercontent.com/darkbot-reloaded/DmPlugin/master/src/main/resources/plugin.json"
 }
