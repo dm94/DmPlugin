@@ -1,5 +1,6 @@
 package com.deeme.modules;
 
+import com.deeme.types.AmmoSupplier;
 import com.deeme.types.RocketSupplier;
 import com.deeme.types.VerifierChecker;
 
@@ -15,7 +16,6 @@ import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.enums.EntityEffect;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
-import eu.darkbot.api.game.other.Gui;
 import eu.darkbot.api.game.other.Locatable;
 import eu.darkbot.api.game.other.Location;
 import eu.darkbot.api.game.other.Lockable;
@@ -57,14 +57,14 @@ public class AstralGate implements Module, InstructionProvider {
     protected long maximumWaitingTime = 0;
     protected long lastTimeAttack = 0;
     protected long rocketTime;
+    protected long laserTime;
     protected long clickDelay;
 
     protected boolean repairShield = false;
     protected boolean waitingSign = false;
 
     private RocketSupplier rocketSupplier;
-
-    public Gui astralGui;
+    private AmmoSupplier ammoSupplier;
 
     public AstralGate(PluginAPI api) {
         this(api, api.requireAPI(AuthAPI.class),
@@ -84,6 +84,7 @@ public class AstralGate implements Module, InstructionProvider {
         this.attacker = api.getAPI(AttackAPI.class);
         this.pet = api.getAPI(PetAPI.class);
         this.starSystem = api.getAPI(StarSystemAPI.class);
+        this.items = api.getAPI(HeroItemsAPI.class);
 
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
         this.portals = entities.getPortals();
@@ -91,19 +92,18 @@ public class AstralGate implements Module, InstructionProvider {
 
         ConfigAPI configApi = api.getAPI(ConfigAPI.class);
 
-        this.items = api.getAPI(HeroItemsAPI.class);
-
         this.maxCircleIterations = configApi.requireConfig("loot.max_circle_iterations");
         this.runConfigInCircle = configApi.requireConfig("loot.run_config_in_circle");
 
         ConfigSetting<PercentRange> repairHpRange = configApi.requireConfig("general.safety.repair_hp_range");
 
         this.rocketSupplier = new RocketSupplier(heroapi, items, repairHpRange.getValue().getMin());
+        this.ammoSupplier = new AmmoSupplier(items);
     }
 
     @Override
     public boolean canRefresh() {
-        return waitingSign;
+        return waitingSign && npcs.size() < 1;
     }
 
     @Override
@@ -115,7 +115,8 @@ public class AstralGate implements Module, InstructionProvider {
     public String instructions() {
         return "You need to manually enter the gate and select the ship. \n" +
                 "Place the quick bar with everything you want to be used. \n" +
-                "The bot will wait until you choose an item and portal.";
+                "The bot will wait until you choose an item and portal. He does not jump through the gates. \n" +
+                "Add the 'Ignore Boxes' tag to the NPC to make the bot choose the best ammo automatically.";
     }
 
     @Override
@@ -128,7 +129,11 @@ public class AstralGate implements Module, InstructionProvider {
                 waitingSign = false;
                 attacker.tryLockAndAttack();
                 npcMove();
-                changeRocket();
+                boolean bestAmmo = attacker.hasExtraFlag(NpcFlag.IGNORE_BOXES);
+                if (bestAmmo) {
+                    changeRocket();
+                    changeLaser();
+                }
             } else {
                 if (npcs.size() < 1) {
                     waitingSign = true;
@@ -201,7 +206,7 @@ public class AstralGate implements Module, InstructionProvider {
 
     protected double getRadius(Lockable target) {
         if (repairShield) {
-            return 900;
+            return 1200;
         }
         if (!(target instanceof Npc)) {
             return 570;
@@ -291,6 +296,19 @@ public class AstralGate implements Module, InstructionProvider {
                 && useSelectableReadyWhenReady(rocket)) {
             rocketTime = System.currentTimeMillis() + 2000;
         }
+    }
+
+    public void changeLaser() {
+        if (System.currentTimeMillis() < laserTime) {
+            return;
+        }
+        SelectableItem laser = ammoSupplier.get();
+
+        if (laser != null && heroapi.getLaser() != null && !heroapi.getLaser().getId().equals(laser.getId())
+                && useSelectableReadyWhenReady(laser)) {
+            laserTime = System.currentTimeMillis() + 2000;
+        }
+
     }
 
     private SelectableItem getBestRocket() {
