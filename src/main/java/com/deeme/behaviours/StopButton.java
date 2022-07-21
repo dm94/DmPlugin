@@ -18,13 +18,11 @@ import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.GameScreenAPI;
 import eu.darkbot.api.utils.Inject;
-import eu.darkbot.shared.utils.SafetyFinder;
 
 @Feature(name = "StopButton", description = "Add a button to stop the bot completely")
 public class StopButton implements Behavior, ExtraMenuProvider {
 
     protected final PluginAPI api;
-    protected final SafetyFinder safetyFinder;
     protected final BotAPI bot;
 
     private final Gui lostConnectionGUI;
@@ -33,19 +31,17 @@ public class StopButton implements Behavior, ExtraMenuProvider {
 
     public StopButton(PluginAPI api) {
         this(api, api.requireAPI(AuthAPI.class),
-                api.requireAPI(BotAPI.class),
-                api.requireInstance(SafetyFinder.class));
+                api.requireAPI(BotAPI.class));
     }
 
     @Inject
-    public StopButton(PluginAPI api, AuthAPI auth, BotAPI bot, SafetyFinder safety) {
+    public StopButton(PluginAPI api, AuthAPI auth, BotAPI bot) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
         this.api = api;
         this.bot = bot;
-        this.safetyFinder = safety;
 
         GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
         lostConnectionGUI = gameScreenAPI.getGui("lost_connection");
@@ -53,7 +49,7 @@ public class StopButton implements Behavior, ExtraMenuProvider {
 
     @Override
     public void onTickBehavior() {
-        if (stopBot && safetyFinder.tick()) {
+        if (stopBot && bot.getModule().canRefresh()) {
             if (!isDisconnect() && !(bot.getModule() instanceof DisconnectModule)) {
                 bot.setModule(new DisconnectModule(null, "Stop Button"));
             }

@@ -28,7 +28,7 @@ public class PVPConfig {
     @Num(min = 0, max = 600, step = 50)
     public int rangeForEnemies = 100;
 
-    @Option(value = "RSB-75", description = "Use RSB-75")
+    @Option(value = "RCB-140 | RSB-75", description = "Use RCB-140 | RSB-75")
     public boolean useRSB = false;
 
     public @Option(key = "config.loot.sab") Config.Loot.Sab SAB = new Config.Loot.Sab();
