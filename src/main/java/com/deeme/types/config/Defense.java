@@ -43,7 +43,7 @@ public class Defense {
     @Option("Ammo")
     public Character ammoKey;
 
-    @Option(value = "RSB-75", description = "Use RSB-75")
+    @Option(value = "RCB-140 | RSB-75", description = "Use RCB-140 | RSB-75")
     public boolean useRSB = false;
 
     @Option(value = "Use second config", description = "Use the second config")

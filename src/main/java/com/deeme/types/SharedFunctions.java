@@ -2,13 +2,17 @@ package com.deeme.types;
 
 import com.github.manolo8.darkbot.Main;
 
+import eu.darkbot.api.config.ConfigSetting;
+import eu.darkbot.api.config.types.NpcInfo;
 import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.entities.Ship;
+import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.HeroAPI;
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Map;
 
 public class SharedFunctions {
 
@@ -38,6 +42,19 @@ public class SharedFunctions {
 
     public static boolean isPet(String name) {
         return name.matches(".*?(\\s)(\\[(\\d+)\\])");
+    }
+
+    public static boolean isNpc(ConfigAPI config, String name) {
+        ConfigSetting<Map<String, NpcInfo>> configSetting = config.requireConfig("loot.npc_infos");
+        if (configSetting.getValue() != null) {
+            Map<String, NpcInfo> NPC_INFOS = configSetting.getValue();
+            NpcInfo info = NPC_INFOS.get(name);
+            if (info != null) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 }

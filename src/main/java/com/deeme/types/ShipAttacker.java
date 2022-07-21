@@ -29,7 +29,6 @@ import eu.darkbot.api.managers.MovementAPI;
 
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Objects;
 import java.util.Random;
 
 import static com.github.manolo8.darkbot.Main.API;
@@ -284,8 +283,12 @@ public class ShipAttacker {
     private GroupMember getMemberGroupAttacked() {
         if (group.hasGroup()) {
             for (GroupMember member : group.getMembers()) {
-                if (member.getMapId() == heroapi.getMap().getId() && member.isAttacked()) {
+                if (member.getMapId() == heroapi.getMap().getId() && member.isAttacked()
+                        && member.getTargetInfo() != null
+                        && member.getTargetInfo().getShipType() != 0 && !member.getTargetInfo().getUsername().isEmpty()
+                        && !SharedFunctions.isNpc(configAPI, member.getTargetInfo().getUsername())) {
                     return member;
+
                 }
             }
         }

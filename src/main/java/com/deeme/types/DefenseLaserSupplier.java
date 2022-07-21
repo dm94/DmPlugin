@@ -2,8 +2,6 @@ package com.deeme.types;
 
 import com.github.manolo8.darkbot.config.Config.Loot.Sab;
 
-import org.jetbrains.annotations.NotNull;
-
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.extensions.selectors.LaserSelector;
 import eu.darkbot.api.extensions.selectors.PrioritizedSupplier;
@@ -17,7 +15,7 @@ public class DefenseLaserSupplier implements LaserSelector, PrioritizedSupplier<
     protected final HeroAPI heroapi;
     private final HeroItemsAPI items;
     private long lastRsbUse = 0;
-    private boolean useRsb, useSab, rsbActive;
+    private boolean useRsb, useRcb, useSab, rsbActive;
 
     private Sab sab;
 
@@ -30,36 +28,50 @@ public class DefenseLaserSupplier implements LaserSelector, PrioritizedSupplier<
     }
 
     public Laser get() {
-        return useRsb ? Laser.RSB_75
-        : useSab ? Laser.SAB_50
-        : Laser.UCB_100;
+        return useRcb ? Laser.RCB_140
+                : useRsb ? Laser.RSB_75
+                        : useSab ? Laser.SAB_50
+                                : Laser.UCB_100;
     }
 
     private boolean shouldSab() {
         return sab.ENABLED && heroapi.getHealth().shieldPercent() <= sab.PERCENT
-        && heroapi.getLocalTarget().getHealth().getShield() > sab.NPC_AMOUNT
-        && (sab.CONDITION == null || sab.CONDITION.get(api).toBoolean());
+                && heroapi.getLocalTarget().getHealth().getShield() > sab.NPC_AMOUNT
+                && (sab.CONDITION == null || sab.CONDITION.get(api).toBoolean());
     }
 
     private boolean shouldRsb() {
         if (rsbActive) {
             boolean isReady = items.getItem(Laser.RSB_75, ItemFlag.USABLE, ItemFlag.READY).isPresent();
 
-            if (isReady && lastRsbUse < System.currentTimeMillis() - 1000) lastRsbUse = System.currentTimeMillis();
+            if (isReady && lastRsbUse < System.currentTimeMillis() - 1000)
+                lastRsbUse = System.currentTimeMillis();
             return isReady && lastRsbUse > System.currentTimeMillis() - 500;
         }
         return false;
     }
-    
+
+    private boolean shouldRcb() {
+        if (rsbActive) {
+            boolean isReady = items.getItem(Laser.RCB_140, ItemFlag.USABLE, ItemFlag.READY).isPresent();
+
+            if (isReady && lastRsbUse < System.currentTimeMillis() - 1000)
+                lastRsbUse = System.currentTimeMillis();
+            return isReady && lastRsbUse > System.currentTimeMillis() - 500;
+        }
+        return false;
+    }
+
     @Override
     public Priority getPriority() {
+        useRcb = shouldRcb();
         useRsb = shouldRsb();
         useSab = shouldSab();
         return useRsb ? Priority.MODERATE : useSab ? Priority.LOW : Priority.LOWEST;
     }
 
     @Override
-    public @NotNull PrioritizedSupplier<Laser> getLaserSupplier() {
+    public PrioritizedSupplier<Laser> getLaserSupplier() {
         return this;
     }
 }
