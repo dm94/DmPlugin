@@ -13,7 +13,6 @@ import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.GameScreenAPI;
 import eu.darkbot.api.managers.StatsAPI;
-import eu.darkbot.api.managers.WindowAPI;
 
 import java.util.Arrays;
 
@@ -25,7 +24,6 @@ public class Others implements Behaviour, Configurable<Others.LCConfig> {
     private long nextRefresh = 0;
     protected PluginAPI api;
     protected GameScreenAPI gameScreen;
-    protected WindowAPI window;
     protected StatsAPI stats;
     protected BotAPI bot;
 
@@ -44,7 +42,6 @@ public class Others implements Behaviour, Configurable<Others.LCConfig> {
 
         this.api = main.pluginAPI.getAPI(PluginAPI.class);
         this.gameScreen = api.getAPI(GameScreenAPI.class);
-        this.window = api.getAPI(WindowAPI.class);
         this.stats = api.getAPI(StatsAPI.class);
         this.bot = api.getAPI(BotAPI.class);
     }
@@ -57,11 +54,14 @@ public class Others implements Behaviour, Configurable<Others.LCConfig> {
         if (lcConfig.reloadIfCrash && stats.getPing() > 10000 && inPortal()) {
             if (nextRefresh <= System.currentTimeMillis()) {
                 nextRefresh = System.currentTimeMillis() + 120000;
-                window.handleRefresh();
+                Main.API.handleRefresh();
             }
         }
         if (lcConfig.maxMemory > 0 && gameScreen.getMemory() > lcConfig.maxMemory && bot.getModule().canRefresh()) {
-            window.handleRefresh();
+            if (nextRefresh <= System.currentTimeMillis()) {
+                nextRefresh = System.currentTimeMillis() + 120000;
+                Main.API.handleRefresh();
+            }
         }
     }
 
