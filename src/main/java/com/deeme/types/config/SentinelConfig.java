@@ -6,12 +6,12 @@ import com.github.manolo8.darkbot.config.types.Option;
 import com.github.manolo8.darkbot.config.types.Tag;
 import com.github.manolo8.darkbot.config.types.TagDefault;
 
-public class SentinelConfig  {
+public class SentinelConfig {
     @Option(value = "Sentinel ID", description = "Main priority. Can be empty, will use tag or group leader")
     @Num(max = 2000000000, step = 1)
     public int MASTER_ID = 0;
 
-    @Option (value = "Sentinel Tag", description = "Medium priority. He'll follow every ship with that tag")
+    @Option(value = "Sentinel Tag", description = "Medium priority. He'll follow every ship with that tag")
     @Tag(TagDefault.ALL)
     public PlayerTag SENTINEL_TAG = null;
 
@@ -34,9 +34,10 @@ public class SentinelConfig  {
     @Option(value = "Auto choose the best formation", description = "It only works if you have disabled the copy master formation option.")
     public boolean useBestFormation = true;
 
-    public @Option(value = "Auto Attack", description = "Will attack even when the master is not attacking")
-    AutoAttack autoAttack = new AutoAttack();
+    @Option(value = "Auto use the best ability", description = "Beta - Can use almost all abilities")
+    public boolean useAbility = false;
 
-    public @Option(value = "Auto Cloak", description = "It will automatically camouflage")
-    AutoCloak autoCloak = new AutoCloak();
+    public @Option(value = "Auto Attack", description = "Will attack even when the master is not attacking") AutoAttack autoAttack = new AutoAttack();
+
+    public @Option(value = "Auto Cloak", description = "It will automatically camouflage") AutoCloak autoCloak = new AutoCloak();
 }

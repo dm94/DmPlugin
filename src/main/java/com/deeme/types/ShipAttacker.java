@@ -46,6 +46,7 @@ public class ShipAttacker {
     private DefenseLaserSupplier laserSupplier;
     private FormationSupplier formationSupplier;
     private RocketSupplier rocketSupplier;
+    private AbilitySupplier abilitySupplier;
 
     public Ship target;
 
@@ -83,6 +84,7 @@ public class ShipAttacker {
         this.ammoKey = configAPI.requireConfig("loot.ammo_key");
 
         this.rocketSupplier = new RocketSupplier(heroapi, items, repairHpRange.getValue().getMin());
+        this.abilitySupplier = new AbilitySupplier(api);
     }
 
     public ShipAttacker(PluginAPI api, Defense defense) {
@@ -206,6 +208,18 @@ public class ShipAttacker {
         if (rocket != null && !heroapi.getRocket().getId().equals(rocket.getId())
                 && useSelectableReadyWhenReady(rocket)) {
             rocketTime = System.currentTimeMillis() + 2000;
+        }
+    }
+
+    public void useHability() {
+        if (System.currentTimeMillis() - clickDelay < 1000) {
+            return;
+        }
+        SelectableItem ability = abilitySupplier.get();
+
+        if (ability != null
+                && useSelectableReadyWhenReady(ability)) {
+            clickDelay = System.currentTimeMillis();
         }
     }
 

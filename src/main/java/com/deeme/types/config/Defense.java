@@ -40,6 +40,9 @@ public class Defense {
     @Option(value = "Auto choose the best formation", description = "Automatically switches formations")
     public boolean useBestFormation = false;
 
+    @Option(value = "Auto use the best ability", description = "Beta - Can use almost all abilities")
+    public boolean useAbility = false;
+
     @Option("Ammo")
     public Character ammoKey;
 

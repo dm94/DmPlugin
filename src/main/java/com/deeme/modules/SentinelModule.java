@@ -186,6 +186,9 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                     } else {
                         shipAttacker.vsMove();
                     }
+                    if (sConfig.useAbility) {
+                        shipAttacker.useHability();
+                    }
                 } else if (sentinel.isValid()) {
                     currentStatus = State.FOLLOWING_MASTER;
                     setMode(configRoam.getValue());
