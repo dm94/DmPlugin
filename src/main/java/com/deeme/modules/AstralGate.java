@@ -3,6 +3,7 @@ package com.deeme.modules;
 import com.deeme.types.AmmoSupplier;
 import com.deeme.types.RocketSupplier;
 import com.deeme.types.VerifierChecker;
+import com.deeme.types.backpage.Utils;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -37,7 +38,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 
-@Feature(name = "Astral Gate", description = "For the event")
+@Feature(name = "Astral Gate", description = "For the astral gate and another GGs")
 public class AstralGate implements Module, InstructionProvider {
     protected final PluginAPI api;
     protected final HeroAPI heroapi;
@@ -66,16 +67,21 @@ public class AstralGate implements Module, InstructionProvider {
     private RocketSupplier rocketSupplier;
     private AmmoSupplier ammoSupplier;
 
-    public AstralGate(PluginAPI api) {
+    public AstralGate(PluginAPI api) throws UnsupportedOperationException, Exception {
         this(api, api.requireAPI(AuthAPI.class),
                 api.requireInstance(SafetyFinder.class));
     }
 
     @Inject
-    public AstralGate(PluginAPI api, AuthAPI auth, SafetyFinder safety) {
+    public AstralGate(PluginAPI api, AuthAPI auth, SafetyFinder safety) throws Exception {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
+
+        if (!Utils.discordCheck(auth.getAuthId())) {
+            Utils.showDiscordDialog();
+            throw new Exception("To use this option you need to be on my discord");
+        }
 
         this.api = api;
         this.bot = api.getAPI(BotAPI.class);

@@ -2,6 +2,7 @@ package com.deeme.modules;
 
 import com.deeme.types.ShipAttacker;
 import com.deeme.types.VerifierChecker;
+import com.deeme.types.backpage.Utils;
 import com.deeme.types.config.PVPConfig;
 
 import eu.darkbot.api.PluginAPI;
@@ -60,7 +61,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     private double lastDistanceTarget = 1000;
     protected CollectorModule collectorModule;
 
-    public PVPModule(PluginAPI api) {
+    public PVPModule(PluginAPI api) throws UnsupportedOperationException, Exception {
         this(api, api.requireAPI(HeroAPI.class),
                 api.requireAPI(AuthAPI.class),
                 api.requireAPI(ConfigAPI.class),
@@ -70,10 +71,15 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
 
     @Inject
     public PVPModule(PluginAPI api, HeroAPI hero, AuthAPI auth, ConfigAPI configApi, MovementAPI movement,
-            SafetyFinder safety) {
+            SafetyFinder safety) throws Exception {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
+
+        if (!Utils.discordCheck(auth.getAuthId())) {
+            Utils.showDiscordDialog();
+            throw new Exception("To use this option you need to be on my discord");
+        }
 
         this.api = api;
         this.heroapi = hero;

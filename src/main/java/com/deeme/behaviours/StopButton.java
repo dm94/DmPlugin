@@ -28,6 +28,7 @@ public class StopButton implements Behavior, ExtraMenuProvider {
     private final Gui lostConnectionGUI;
 
     public boolean stopBot = false;
+    public boolean closeBot = false;
 
     public StopButton(PluginAPI api) {
         this(api, api.requireAPI(AuthAPI.class),
@@ -54,7 +55,17 @@ public class StopButton implements Behavior, ExtraMenuProvider {
                 bot.setModule(new DisconnectModule(null, "Stop Button"));
             }
         }
+        if (closeBot && isDisconnect()) {
+            System.exit(0);
+        }
 
+    }
+
+    @Override
+    public void onStoppedBehavior() {
+        if (closeBot && isDisconnect()) {
+            System.exit(0);
+        }
     }
 
     @Override
@@ -63,6 +74,9 @@ public class StopButton implements Behavior, ExtraMenuProvider {
                 createSeparator("DmPlugin"),
                 create("Stop Bot", e -> {
                     stopBot = true;
+                }), create("Stop Bot + Close", e -> {
+                    stopBot = true;
+                    closeBot = true;
                 }));
     }
 
