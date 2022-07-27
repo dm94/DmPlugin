@@ -14,10 +14,10 @@ public class ExtraKeyConditions {
     @Option("Key")
     public Character Key;
 
-    @Option(value = "Health", description ="If health between")
+    @Option(value = "Health", description = "If health between")
     public PercentRange HEALTH_RANGE = new PercentRange(0.5, 0.95);
 
-    @Option(value = "Enemy Health", description ="If the enemy's health is between")
+    @Option(value = "Enemy Health", description = "If the enemy's health is between")
     public PercentRange HEALTH_ENEMY_RANGE = new PercentRange(0.2, 0.4);
 
     @Option("Condition")

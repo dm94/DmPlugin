@@ -99,6 +99,10 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
                 shipAttacker.changeRocket();
             }
 
+            if (defenseConfig.useAbility) {
+                shipAttacker.useHability();
+            }
+
             shipAttacker.useKeyWithConditions(defenseConfig.ISH, Special.ISH_01);
             shipAttacker.useKeyWithConditions(defenseConfig.SMB, Special.SMB_01);
             shipAttacker.useKeyWithConditions(defenseConfig.PEM, Special.EMP_01);

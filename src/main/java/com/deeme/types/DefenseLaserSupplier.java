@@ -42,7 +42,7 @@ public class DefenseLaserSupplier implements LaserSelector, PrioritizedSupplier<
 
     private boolean shouldRsb() {
         if (rsbActive) {
-            boolean isReady = items.getItem(Laser.RSB_75, ItemFlag.USABLE, ItemFlag.READY).isPresent();
+            boolean isReady = items.getItem(Laser.RSB_75, ItemFlag.USABLE, ItemFlag.READY).get().getQuantity() > 100;
 
             if (isReady && lastRsbUse < System.currentTimeMillis() - 1000)
                 lastRsbUse = System.currentTimeMillis();
@@ -53,7 +53,7 @@ public class DefenseLaserSupplier implements LaserSelector, PrioritizedSupplier<
 
     private boolean shouldRcb() {
         if (rsbActive) {
-            boolean isReady = items.getItem(Laser.RCB_140, ItemFlag.USABLE, ItemFlag.READY).isPresent();
+            boolean isReady = items.getItem(Laser.RCB_140, ItemFlag.USABLE, ItemFlag.READY).get().getQuantity() > 100;
 
             if (isReady && lastRsbUse < System.currentTimeMillis() - 1000)
                 lastRsbUse = System.currentTimeMillis();
