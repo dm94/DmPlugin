@@ -1,53 +1,50 @@
 package com.deeme.behaviours;
 
-import com.deeme.types.VerifierChecker;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.types.Num;
 import com.github.manolo8.darkbot.config.types.Option;
 import com.github.manolo8.darkbot.core.entities.Portal;
-import com.github.manolo8.darkbot.core.itf.Behaviour;
-import com.github.manolo8.darkbot.core.itf.Configurable;
-import com.github.manolo8.darkbot.extensions.features.Feature;
 
 import eu.darkbot.api.PluginAPI;
+import eu.darkbot.api.config.ConfigSetting;
+import eu.darkbot.api.extensions.Behavior;
+import eu.darkbot.api.extensions.Configurable;
+import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.managers.BotAPI;
-import eu.darkbot.api.managers.GameScreenAPI;
 import eu.darkbot.api.managers.StatsAPI;
-
-import java.util.Arrays;
+import eu.darkbot.api.utils.Inject;
 
 @Feature(name = "Others", description = "Many options")
-public class Others implements Behaviour, Configurable<Others.LCConfig> {
+public class Others implements Behavior, Configurable<Others.LCConfig> {
 
     private LCConfig lcConfig;
-    private Main main;
+    private final Main main;
     private long nextRefresh = 0;
-    protected PluginAPI api;
-    protected GameScreenAPI gameScreen;
-    protected StatsAPI stats;
-    protected BotAPI bot;
+    protected final PluginAPI api;
+    protected final StatsAPI stats;
+    protected final BotAPI bot;
 
-    @Override
-    public void setConfig(Others.LCConfig conf) {
-        this.lcConfig = conf;
+    public Others(Main main, PluginAPI api) throws UnsupportedOperationException, Exception {
+        this(main, api,
+                api.requireAPI(BotAPI.class),
+                api.requireAPI(StatsAPI.class));
     }
 
-    @Override
-    public void install(Main main) {
-        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
-            return;
-        VerifierChecker.checkAuthenticity();
-
+    @Inject
+    public Others(Main main, PluginAPI api, BotAPI bot, StatsAPI stats) throws Exception {
         this.main = main;
-
-        this.api = main.pluginAPI.getAPI(PluginAPI.class);
-        this.gameScreen = api.getAPI(GameScreenAPI.class);
-        this.stats = api.getAPI(StatsAPI.class);
-        this.bot = api.getAPI(BotAPI.class);
+        this.api = api;
+        this.bot = bot;
+        this.stats = stats;
     }
 
     @Override
-    public void tick() {
+    public void setConfig(ConfigSetting<LCConfig> arg0) {
+        this.lcConfig = arg0.getValue();
+    }
+
+    @Override
+    public void onTickBehavior() {
         if (lcConfig.maxDeathsKO > 0 && main.backpage.sidStatus().contains("KO")) {
             main.config.GENERAL.SAFETY.MAX_DEATHS = lcConfig.maxDeathsKO;
         }
@@ -57,7 +54,8 @@ public class Others implements Behaviour, Configurable<Others.LCConfig> {
                 Main.API.handleRefresh();
             }
         }
-        if (lcConfig.maxMemory > 0 && gameScreen.getMemory() > lcConfig.maxMemory && bot.getModule().canRefresh()) {
+
+        if (lcConfig.maxMemory > 0 && Main.API.getMemoryUsage() >= lcConfig.maxMemory && bot.getModule().canRefresh()) {
             if (nextRefresh <= System.currentTimeMillis()) {
                 nextRefresh = System.currentTimeMillis() + 120000;
                 Main.API.handleRefresh();
