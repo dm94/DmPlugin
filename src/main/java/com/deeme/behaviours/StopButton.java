@@ -6,6 +6,7 @@ import java.util.Collection;
 import javax.swing.JComponent;
 
 import com.deeme.types.VerifierChecker;
+import com.deeme.types.backpage.Utils;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.core.itf.ExtraMenuProvider;
 import com.github.manolo8.darkbot.modules.DisconnectModule;
@@ -40,6 +41,8 @@ public class StopButton implements Behavior, ExtraMenuProvider {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
+
+        Utils.showDonateDialog();
 
         this.api = api;
         this.bot = bot;

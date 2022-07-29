@@ -1,5 +1,6 @@
 package com.deeme.behaviours;
 
+import com.deeme.types.backpage.Utils;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.types.Num;
 import com.github.manolo8.darkbot.config.types.Option;
@@ -32,6 +33,7 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
 
     @Inject
     public Others(Main main, PluginAPI api, BotAPI bot, StatsAPI stats) throws Exception {
+        Utils.showDonateDialog();
         this.main = main;
         this.api = api;
         this.bot = bot;

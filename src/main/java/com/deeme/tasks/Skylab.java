@@ -1,6 +1,7 @@
 package com.deeme.tasks;
 
 import com.deeme.types.VerifierChecker;
+import com.deeme.types.backpage.Utils;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.backpage.BackpageManager;
 import com.github.manolo8.darkbot.config.types.Num;
@@ -16,7 +17,7 @@ import java.io.InputStreamReader;
 import java.util.Arrays;
 
 @Feature(name = "Skylab", description = "Control the skylab")
-public class Skylab implements Task,Configurable<Skylab.SkylabConfig> {
+public class Skylab implements Task, Configurable<Skylab.SkylabConfig> {
     private long deliveryTime = 0;
     private Main main;
     private BackpageManager backpageManager;
@@ -26,8 +27,12 @@ public class Skylab implements Task,Configurable<Skylab.SkylabConfig> {
 
     @Override
     public void install(Main main) {
-        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) return;
+        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
+            return;
         VerifierChecker.checkAuthenticity();
+
+        Utils.showDonateDialog();
+
         this.main = main;
         this.backpageManager = main.backpage;
     }
@@ -41,7 +46,6 @@ public class Skylab implements Task,Configurable<Skylab.SkylabConfig> {
             e.printStackTrace();
         }
     }
-
 
     @Override
     public void setConfig(SkylabConfig skylabConfig) {
@@ -92,11 +96,14 @@ public class Skylab implements Task,Configurable<Skylab.SkylabConfig> {
         if (seprom == 0 && promerium == 0) {
             return 1;
         }
-        if (cargo > 50 && (this.deliveryTime <= System.currentTimeMillis() || this.config.forceCheck) && (this.nextCheck <= System.currentTimeMillis() || !this.waitingTransport)) {
+        if (cargo > 50 && (this.deliveryTime <= System.currentTimeMillis() || this.config.forceCheck)
+                && (this.nextCheck <= System.currentTimeMillis() || !this.waitingTransport)) {
             try {
                 this.nextCheck = System.currentTimeMillis() + 600000L;
                 if (this.waitingTransport) {
-                    this.waitingTransport = this.backpageManager.getConnection("indexInternal.es?action=internalSkylab", Method.GET).consumeInputStream(this::checkTransport);
+                    this.waitingTransport = this.backpageManager
+                            .getConnection("indexInternal.es?action=internalSkylab", Method.GET)
+                            .consumeInputStream(this::checkTransport);
                     if (this.waitingTransport) {
                         System.out.println("SKYLAB SENDER: Waiting Transport");
                         return 1;
@@ -108,7 +115,8 @@ public class Skylab implements Task,Configurable<Skylab.SkylabConfig> {
 
                 if (token.isEmpty()) {
                     System.out.println("SKYLAB SENDER: No reload Token");
-                    this.deliveryTime = System.currentTimeMillis() + 60000L; // wait 1 minute to check for reload token again
+                    this.deliveryTime = System.currentTimeMillis() + 60000L; // wait 1 minute to check for reload token
+                                                                             // again
                 } else {
                     backpageManager.getConnection("indexInternal.es", Method.POST)
                             .setRawParam("reloadToken", token)

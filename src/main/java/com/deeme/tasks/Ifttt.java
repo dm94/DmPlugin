@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Feature(name = "Ifttt", description = "Used to send statistics to ifttt")
-  public class Ifttt implements Task,Configurable<Ifttt.IftttConfig>, InstructionProvider {
+public class Ifttt implements Task, Configurable<Ifttt.IftttConfig>, InstructionProvider {
 
     private IftttConfig iftttConfig;
     private Main main;
@@ -30,16 +30,20 @@ import java.util.List;
 
     @Override
     public void install(Main main) {
-        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) return;
+        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
+            return;
         VerifierChecker.checkAuthenticity();
+
+        Utils.showDonateDialog();
+
         this.main = main;
         this.statsManager = main.statsManager;
     }
 
     @Override
     public void tick() {
-        if (this.nextSend <= System.currentTimeMillis()){
-            nextSend = (60000*iftttConfig.intervalMessage) + System.currentTimeMillis();
+        if (this.nextSend <= System.currentTimeMillis()) {
+            nextSend = (60000 * iftttConfig.intervalMessage) + System.currentTimeMillis();
             sendTrigger();
         }
     }
@@ -51,7 +55,7 @@ import java.util.List;
     @Override
     public String instructions() {
         return "With this task you can connect the bot with any application thanks to IFTTT \n" +
-        "You have to create an account at IFTTT and fill in the data";
+                "You have to create an account at IFTTT and fill in the data";
     }
 
     @Override
@@ -96,15 +100,17 @@ import java.util.List;
     }
 
     private void sendTrigger() {
-        if (iftttConfig.iftttTriggerName == null || iftttConfig.iftttTriggerName.isEmpty() || iftttConfig.iftttApiKey == null || iftttConfig.iftttApiKey.isEmpty()) {
+        if (iftttConfig.iftttTriggerName == null || iftttConfig.iftttTriggerName.isEmpty()
+                || iftttConfig.iftttApiKey == null || iftttConfig.iftttApiKey.isEmpty()) {
             return;
         }
 
-        String message = "{\"value1\":\""+getSelectValue(iftttConfig.value1)+"\"," +
-                "\"value2\":\""+getSelectValue(iftttConfig.value2)+"\"," +
-                "\"value3\":\""+getSelectValue(iftttConfig.value3)+"\"}";
+        String message = "{\"value1\":\"" + getSelectValue(iftttConfig.value1) + "\"," +
+                "\"value2\":\"" + getSelectValue(iftttConfig.value2) + "\"," +
+                "\"value3\":\"" + getSelectValue(iftttConfig.value3) + "\"}";
 
-        Utils.sendMessage(message,"https://maker.ifttt.com/trigger/"+iftttConfig.iftttTriggerName+"/with/key/"+iftttConfig.iftttApiKey);
+        Utils.sendMessage(message, "https://maker.ifttt.com/trigger/" + iftttConfig.iftttTriggerName + "/with/key/"
+                + iftttConfig.iftttApiKey);
     }
 
     private String getSelectValue(String type) {
@@ -126,7 +132,8 @@ import java.util.List;
                 return main.backpage.sidStatus();
             case "sidLink":
                 String sid = main.statsManager.sid, instance = main.statsManager.instance;
-                if (sid == null || sid.isEmpty() || instance == null || instance.isEmpty()) return "No link";
+                if (sid == null || sid.isEmpty() || instance == null || instance.isEmpty())
+                    return "No link";
                 return instance + "?dosid=" + sid;
             case "map":
                 return main.hero.getMap().getName();
@@ -152,7 +159,6 @@ import java.util.List;
 
         return "";
     }
-
 
     public static class ValueTypes extends OptionList<String> {
         private final List<String> VALUES_TYPES = Arrays.asList(

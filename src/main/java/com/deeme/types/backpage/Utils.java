@@ -131,4 +131,25 @@ public class Utils {
                         JOptionPane.DEFAULT_OPTION, null, new Object[] { discordBtn, closeBtn }));
     }
 
+    public static void showDonateDialog() {
+        Preferences prefs = Preferences.userNodeForPackage(Utils.class);
+
+        if (prefs.getLong("donateDialog", 0) <= System.currentTimeMillis()) {
+            JButton donateBtn = new JButton("Donate");
+            JButton closeBtn = new JButton("Close");
+            donateBtn.addActionListener(e -> {
+                SystemUtils.openUrl(
+                        "https://www.paypal.com/donate/?business=JR2XWPSKLWN76&amount=5&no_recurring=0&currency_code=EUR");
+                SwingUtilities.getWindowAncestor(donateBtn).setVisible(false);
+            });
+            closeBtn.addActionListener(e -> {
+                SwingUtilities.getWindowAncestor(closeBtn).setVisible(false);
+            });
+
+            Popups.showMessageSync("DmPlugin donate",
+                    new JOptionPane("You can help improve the plugin by donating", JOptionPane.INFORMATION_MESSAGE,
+                            JOptionPane.DEFAULT_OPTION, null, new Object[] { donateBtn, closeBtn }));
+        }
+        prefs.putLong("donateDialog", System.currentTimeMillis() + 1296000000);
+    }
 }

@@ -3,6 +3,7 @@ package com.deeme.modules;
 import com.deeme.types.SharedFunctions;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.HangarChanger;
+import com.deeme.types.backpage.Utils;
 import com.deeme.types.config.PalladiumConfig;
 import com.deeme.types.gui.ShipSupplier;
 
@@ -95,6 +96,7 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
             return;
         VerifierChecker.checkAuthenticity();
         super.install(main);
+        Utils.showDonateDialog();
         this.main = main;
         this.hangarChanger = new HangarChanger(main, SELL_MAP, ACTIVE_MAP);
         this.oreTradeOld = main.guiManager.oreTrade;
