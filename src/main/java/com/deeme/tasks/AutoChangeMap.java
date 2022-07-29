@@ -8,6 +8,7 @@ import java.util.Random;
 import java.util.stream.Collectors;
 
 import com.deeme.types.VerifierChecker;
+import com.deeme.types.backpage.Utils;
 import com.deeme.types.config.ChangeMapConfig;
 import com.deeme.types.config.MapData;
 
@@ -55,6 +56,8 @@ public class AutoChangeMap implements Task, Configurable<ChangeMapConfig> {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
+
+        Utils.showDonateDialog();
 
         this.api = api;
         this.hero = hero;

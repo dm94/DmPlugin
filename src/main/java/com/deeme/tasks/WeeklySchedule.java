@@ -2,6 +2,7 @@ package com.deeme.tasks;
 
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.HangarChanger;
+import com.deeme.types.backpage.Utils;
 import com.deeme.types.config.Hour;
 import com.deeme.types.config.Profile;
 import com.deeme.types.config.WeeklyConfig;
@@ -32,8 +33,9 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
 
     @Override
     public String instructions() {
-        return "You have 4 different profiles, the module will automatically change its configuration according to the timetable you have set. \n" +
-                "Remember that you have to configure it in every config you are going to use. \n" + 
+        return "You have 4 different profiles, the module will automatically change its configuration according to the timetable you have set. \n"
+                +
+                "Remember that you have to configure it in every config you are going to use. \n" +
                 "The hangars to be used have to be in favourites";
     }
 
@@ -45,35 +47,46 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
 
     @Override
     public void install(Main m) {
-        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) return;
+        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
+            return;
         VerifierChecker.checkAuthenticity();
+
+        Utils.showDonateDialog();
+
         this.main = m;
         this.hangarChanger = new HangarChanger(main);
         this.lostConnection = main.guiManager.lostConnection;
         this.nextCheck = 0;
         setup();
     }
+
     @Override
     public void tickStopped() {
-        if (stopBot) tick();
+        if (stopBot)
+            tick();
     }
 
     @Override
     public void tick() {
-        if (!weeklyConfig.activate) { return; }
+        if (!weeklyConfig.activate) {
+            return;
+        }
 
         if (weeklyConfig.updateHangarList && main.backpage.isInstanceValid()) {
             try {
                 main.backpage.hangarManager.updateHangarList();
-                if (ShipSupplier.updateOwnedShips(main.backpage.hangarManager.getHangarList().getData().getRet().getShipInfos()))
+                if (ShipSupplier.updateOwnedShips(
+                        main.backpage.hangarManager.getHangarList().getData().getRet().getShipInfos()))
                     weeklyConfig.updateHangarList = false;
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        if (main.hero.map.gg) return;
+        if (main.hero.map.gg)
+            return;
 
-        if (weeklyConfig.changeHangar && profileToUse != null && profileToUse.hangarId != null && !main.config.GENERAL.CURRENT_MODULE.contains("Palladium Hangar")) {
+        if (weeklyConfig.changeHangar && profileToUse != null && profileToUse.hangarId != null
+                && !main.config.GENERAL.CURRENT_MODULE.contains("Palladium Hangar")) {
             if (hangarChanger.activeHangar != null) {
                 if (!profileToUse.hangarId.equals(hangarChanger.activeHangar)) {
                     if (hangarChanger.isDisconnect()) {
@@ -126,7 +139,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
                     profile = hour.thu;
                 } else if (currentDay == DayOfWeek.FRIDAY) {
                     profile = hour.fri;
-                } else if (currentDay== DayOfWeek.SATURDAY) {
+                } else if (currentDay == DayOfWeek.SATURDAY) {
                     profile = hour.sat;
                 } else if (currentDay == DayOfWeek.SUNDAY) {
                     profile = hour.sun;
@@ -162,12 +175,14 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
     }
 
     private void setup() {
-        if (main == null || weeklyConfig == null) return;
+        if (main == null || weeklyConfig == null)
+            return;
 
         AuthAPI auth = VerifierChecker.getAuthApi();
-        if (!auth.isAuthenticated()) auth.setupAuth();
+        if (!auth.isAuthenticated())
+            auth.setupAuth();
 
-        for (int i=0;i<24;i++){
+        for (int i = 0; i < 24; i++) {
             String oneHour = String.format("%02d", i);
             Hour hour = this.weeklyConfig.Hours_Changes.get(oneHour);
             if (hour == null) {

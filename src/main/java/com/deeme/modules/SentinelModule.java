@@ -3,6 +3,7 @@ package com.deeme.modules;
 import com.deeme.types.SharedFunctions;
 import com.deeme.types.ShipAttacker;
 import com.deeme.types.VerifierChecker;
+import com.deeme.types.backpage.Utils;
 import com.deeme.types.config.SentinelConfig;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.Config;
@@ -114,6 +115,8 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
+
+        Utils.showDonateDialog();
 
         this.main = main;
         this.currentStatus = State.INIT;

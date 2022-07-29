@@ -3,6 +3,7 @@ package com.deeme.behaviours;
 import com.deeme.types.SharedFunctions;
 import com.deeme.types.ShipAttacker;
 import com.deeme.types.VerifierChecker;
+import com.deeme.types.backpage.Utils;
 import com.deeme.types.config.Defense;
 
 import eu.darkbot.api.PluginAPI;
@@ -59,6 +60,8 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
+
+        Utils.showDonateDialog();
 
         this.api = api;
         this.heroapi = hero;

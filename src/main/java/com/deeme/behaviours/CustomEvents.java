@@ -3,6 +3,7 @@ package com.deeme.behaviours;
 import java.util.Arrays;
 
 import com.deeme.types.VerifierChecker;
+import com.deeme.types.backpage.Utils;
 import com.deeme.types.config.CustomEventsConfig;
 import com.deeme.types.config.ExtraKeyConditionsWithoutHealth;
 import com.github.manolo8.darkbot.config.Config;
@@ -41,6 +42,8 @@ public class CustomEvents implements Behavior, Configurable<CustomEventsConfig> 
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
+
+        Utils.showDonateDialog();
 
         this.api = api;
         this.rsbEnabled = configApi.requireConfig("loot.rsb.enabled");
