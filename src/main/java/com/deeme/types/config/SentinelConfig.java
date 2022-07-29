@@ -37,6 +37,9 @@ public class SentinelConfig {
     @Option(value = "Auto use the best ability", description = "Beta - Can use almost all abilities")
     public boolean useAbility = false;
 
+    @Option(value = "Move to the location the master is going to", description = "It will go to the master's destination and not to where the master is.")
+    public boolean goToMasterDestination = false;
+
     public @Option(value = "Auto Attack", description = "Will attack even when the master is not attacking") AutoAttack autoAttack = new AutoAttack();
 
     public @Option(value = "Auto Cloak", description = "It will automatically camouflage") AutoCloak autoCloak = new AutoCloak();
