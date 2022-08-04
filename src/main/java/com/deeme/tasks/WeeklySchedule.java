@@ -82,8 +82,9 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
                 e.printStackTrace();
             }
         }
-        if (main.hero.map.gg)
+        if (main.hero.map.gg) {
             return;
+        }
 
         if (weeklyConfig.changeHangar && profileToUse != null && profileToUse.hangarId != null
                 && !main.config.GENERAL.CURRENT_MODULE.contains("Palladium Hangar")) {

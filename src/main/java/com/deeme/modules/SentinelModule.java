@@ -319,7 +319,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                 .filter(ship -> (ship.getId() == masterID ||
                         (sConfig.MASTER_ID != 0 && ship.getId() == sConfig.MASTER_ID) ||
                         sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(ship.getId())) ||
-                        (groupLeaderID != 0 && ship.getId() == groupLeaderID)))
+                        (sConfig.followGroupLeader && groupLeaderID != 0 && ship.getId() == groupLeaderID)))
                 .findAny().orElse(null);
 
         return sentinel != null;
