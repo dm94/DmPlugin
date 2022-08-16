@@ -14,7 +14,6 @@ public class DefenseLaserSupplier implements LaserSelector, PrioritizedSupplier<
     protected final PluginAPI api;
     protected final HeroAPI heroapi;
     private final HeroItemsAPI items;
-    private long lastRsbUse = 0;
     private boolean useRsb, useRcb, useSab, rsbActive;
 
     private Sab sab;
@@ -42,22 +41,16 @@ public class DefenseLaserSupplier implements LaserSelector, PrioritizedSupplier<
 
     private boolean shouldRsb() {
         if (rsbActive) {
-            boolean isReady = items.getItem(Laser.RSB_75, ItemFlag.USABLE, ItemFlag.READY).get().getQuantity() > 100;
-
-            if (isReady && lastRsbUse < System.currentTimeMillis() - 1000)
-                lastRsbUse = System.currentTimeMillis();
-            return isReady && lastRsbUse > System.currentTimeMillis() - 500;
+            return items.getItem(Laser.RSB_75, ItemFlag.USABLE, ItemFlag.READY)
+                    .isPresent();
         }
         return false;
     }
 
     private boolean shouldRcb() {
         if (rsbActive) {
-            boolean isReady = items.getItem(Laser.RCB_140, ItemFlag.USABLE, ItemFlag.READY).get().getQuantity() > 100;
-
-            if (isReady && lastRsbUse < System.currentTimeMillis() - 1000)
-                lastRsbUse = System.currentTimeMillis();
-            return isReady && lastRsbUse > System.currentTimeMillis() - 500;
+            return items.getItem(Laser.RCB_140, ItemFlag.USABLE, ItemFlag.READY)
+                    .isPresent();
         }
         return false;
     }
@@ -67,7 +60,7 @@ public class DefenseLaserSupplier implements LaserSelector, PrioritizedSupplier<
         useRcb = shouldRcb();
         useRsb = shouldRsb();
         useSab = shouldSab();
-        return useRsb ? Priority.MODERATE : useSab ? Priority.LOW : Priority.LOWEST;
+        return useRcb ? Priority.HIGH : useRsb ? Priority.MODERATE : useSab ? Priority.LOW : Priority.LOWEST;
     }
 
     @Override

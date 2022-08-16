@@ -1,5 +1,6 @@
 package com.deeme.modules;
 
+import com.deeme.types.SharedFunctions;
 import com.deeme.types.ShipAttacker;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
@@ -11,6 +12,8 @@ import eu.darkbot.api.config.types.ShipMode;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Module;
 import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.game.entities.Entity;
+import eu.darkbot.api.game.entities.Player;
 import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.entities.Ship;
 import eu.darkbot.api.game.items.SelectableItem.Special;
@@ -42,7 +45,8 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     protected final StarSystemAPI starSystem;
     protected final BotAPI bot;
 
-    protected Collection<? extends Portal> portals;
+    protected final Collection<? extends Portal> portals;
+    protected final Collection<? extends Player> players;
 
     protected final ConfigSetting<Integer> workingMap;
     protected final ConfigSetting<ShipMode> configOffensive;
@@ -93,6 +97,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
 
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
         this.portals = entities.getPortals();
+        this.players = entities.getPlayers();
 
         this.collectorModule = new CollectorModule(api);
 
@@ -186,7 +191,8 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     }
 
     private boolean getTarget() {
-        if (target != null && target.isValid()) {
+        if ((target != null && target.isValid() && target.getLocationInfo().distanceTo(heroapi) < 2000)
+                || isUnderAttack()) {
             return true;
         }
 
@@ -210,5 +216,18 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         } else {
             shipAttacker.setMode(configOffensive.getValue(), pvpConfig.useBestFormation);
         }
+    }
+
+    private boolean isUnderAttack() {
+        Entity targetAttacker = SharedFunctions.getAttacker(heroapi, players, heroapi);
+        if (targetAttacker != null) {
+            shipAttacker.setTarget((Ship) targetAttacker);
+            return true;
+        }
+        shipAttacker.resetDefenseData();
+        attackConfigLost = false;
+        target = null;
+
+        return false;
     }
 }
