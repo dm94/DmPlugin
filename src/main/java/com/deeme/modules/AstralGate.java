@@ -70,20 +70,20 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     private AmmoSupplier ammoSupplier;
     private AstralConfig astralConfig;
 
-    public AstralGate(PluginAPI api) throws UnsupportedOperationException, Exception {
+    public AstralGate(PluginAPI api) {
         this(api, api.requireAPI(AuthAPI.class),
                 api.requireInstance(SafetyFinder.class));
     }
 
     @Inject
-    public AstralGate(PluginAPI api, AuthAPI auth, SafetyFinder safety) throws Exception {
+    public AstralGate(PluginAPI api, AuthAPI auth, SafetyFinder safety) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
         if (!Utils.discordCheck(auth.getAuthId())) {
             Utils.showDiscordDialog();
-            throw new Exception("To use this option you need to be on my discord");
+            throw new UnsupportedOperationException("To use this option you need to be on my discord");
         }
 
         this.api = api;
