@@ -43,13 +43,13 @@ public class PVPLog implements Behavior {
 
     private Gson gson;
 
-    //Global Data
+    // Global Data
     private int mapID = 0;
     private long initialTime = 0;
     private boolean win = false;
     private int deaths = 0;
 
-    //Our Data
+    // Our Data
     private String shipId = "";
     private int maxHp = 0;
     private int initialHP = 0;
@@ -63,7 +63,7 @@ public class PVPLog implements Behavior {
     private int initialSpeed = 0;
     private boolean hasPet = false;
 
-    //Enemy Data
+    // Enemy Data
     private String enemyName = "";
     private int enemyMaxHp = 0;
     private int enemyInitialHP = 0;
@@ -71,7 +71,7 @@ public class PVPLog implements Behavior {
     private int enemyInitialShield = 0;
     private int enemyInitialHull = 0;
 
-    //Batle Data
+    // Batle Data
     private boolean battleStart = false;
     ArrayList<Object> battleData = new ArrayList<Object>();
 
@@ -88,9 +88,10 @@ public class PVPLog implements Behavior {
 
     @Inject
     public PVPLog(PluginAPI api, HeroAPI hero, StatsAPI stats, RepairAPI repair, AuthAPI auth, HeroItemsAPI items) {
-        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) throw new SecurityException();
+        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
+            throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
-        
+
         this.api = api;
         this.hero = hero;
         this.stats = stats;
@@ -109,11 +110,16 @@ public class PVPLog implements Behavior {
 
     @Override
     public void onTickBehavior() {
+        if (hero.getMap() != null && hero.getMap().isGG()) {
+            return;
+        }
         try {
             if (stats.getPing() > 1 && hero.getMap() != null) {
                 mapID = hero.getMap().getId();
 
-                if (hero.isAttacking() && hero.getLocalTarget() != null && hero.getLocalTarget().getEntityInfo().isEnemy() && !hero.getLocalTarget().getEntityInfo().getUsername().contains("Saturn")) {
+                if (hero.isAttacking() && hero.getLocalTarget() != null
+                        && hero.getLocalTarget().getEntityInfo().isEnemy()
+                        && !hero.getLocalTarget().getEntityInfo().getUsername().contains("Saturn")) {
                     battleStart = true;
                     if (!enemyName.equals(hero.getLocalTarget().getEntityInfo().getUsername())) {
                         setInitialEnemyData();
@@ -128,7 +134,7 @@ public class PVPLog implements Behavior {
             } else {
                 resetData();
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -142,7 +148,7 @@ public class PVPLog implements Behavior {
             initialShield = hero.getHealth().getShield();
             initialHull = hero.getHealth().getHull();
             initialLaser = hero.getLaser() != null ? hero.getLaser().getId() : "";
-            initialRocket =  hero.getRocket() != null ? hero.getRocket().getId() : "";
+            initialRocket = hero.getRocket() != null ? hero.getRocket().getId() : "";
             initialConfig = hero.getConfiguration() != null ? hero.getConfiguration().ordinal() : 0;
             initialFormation = hero.getFormation() != null ? hero.getFormation().getId() : "";
             initialSpeed = hero.getSpeed();
@@ -153,7 +159,10 @@ public class PVPLog implements Behavior {
     private void setInitialEnemyData() {
         target = hero.getLocalTarget();
         if (target != null && target.getHealth() != null) {
-            enemyName = hero.getLocalTarget() != null && hero.getLocalTarget().getEntityInfo() != null && hero.getLocalTarget().getEntityInfo().getUsername() != null ? hero.getLocalTarget().getEntityInfo().getUsername() : "";
+            enemyName = hero.getLocalTarget() != null && hero.getLocalTarget().getEntityInfo() != null
+                    && hero.getLocalTarget().getEntityInfo().getUsername() != null
+                            ? hero.getLocalTarget().getEntityInfo().getUsername()
+                            : "";
             enemyMaxHp = target.getHealth().getMaxHp();
             enemyInitialHP = target.getHealth().getHp();
             enemyMaxShield = target.getHealth().getMaxShield();
@@ -169,7 +178,7 @@ public class PVPLog implements Behavior {
         ourData.put("hull", hero.getHealth().getHull());
         ourData.put("laser", hero.getLaser() != null ? hero.getLaser().getId() : "");
         ourData.put("rocket", hero.getRocket() != null ? hero.getRocket().getId() : "");
-        ourData.put("config",hero.getConfiguration() != null ? hero.getConfiguration().ordinal() : 0);
+        ourData.put("config", hero.getConfiguration() != null ? hero.getConfiguration().ordinal() : 0);
         ourData.put("formation", hero.getFormation() != null ? hero.getFormation().getId() : "");
         ourData.put("speed", hero.getSpeed());
         ourData.put("pet", hero.hasPet());
@@ -183,7 +192,7 @@ public class PVPLog implements Behavior {
         enemyData.put("hull", target.getHealth().getHull());
         enemyData.put("effects", target.getEffects().toString());
 
-        if (!lastOurData.equals(ourData) && !lastEnemyData.equals(enemyData)){
+        if (!lastOurData.equals(ourData) && !lastEnemyData.equals(enemyData)) {
             Map<String, Object> globalDetails = new HashMap<>();
             globalDetails.put("time", System.currentTimeMillis());
             globalDetails.put("ourData", ourData);
@@ -198,13 +207,14 @@ public class PVPLog implements Behavior {
     private Map getOurSpecialItems() {
         Map<String, Object> ourItems = new HashMap<>();
 
-        List<Item> usableItems = items.getItems(ItemCategory.SPECIAL_ITEMS).stream().filter(Item::isUsable).collect(Collectors.toList());
+        List<Item> usableItems = items.getItems(ItemCategory.SPECIAL_ITEMS).stream().filter(Item::isUsable)
+                .collect(Collectors.toList());
         for (Item item : usableItems) {
             try {
                 if (item.lastUseTime() != 0) {
                     ourItems.put(item.getId(), item.getItemTimer());
                 }
-            } catch (Exception e){
+            } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
         }
@@ -260,11 +270,11 @@ public class PVPLog implements Behavior {
             globalDetails.put("battleWon", win);
             globalDetails.put("battleData", battleData);
 
-            File f = new File("battlelog", initialTime+".json");
+            File f = new File("battlelog", initialTime + ".json");
             Writer writer = new FileWriter(f);
             gson.toJson(globalDetails, writer);
             writer.close();
-        } catch(IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 

@@ -31,21 +31,21 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
 
     public int lastNPCID = 0;
 
-    public ProfileChanger(Main main, PluginAPI api) throws UnsupportedOperationException, Exception {
+    public ProfileChanger(Main main, PluginAPI api) {
         this(main, api, api.requireAPI(AuthAPI.class),
                 api.requireAPI(BotAPI.class),
                 api.requireAPI(HeroAPI.class));
     }
 
     @Inject
-    public ProfileChanger(Main main, PluginAPI api, AuthAPI auth, BotAPI bot, HeroAPI hero) throws Exception {
+    public ProfileChanger(Main main, PluginAPI api, AuthAPI auth, BotAPI bot, HeroAPI hero) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
         if (!Utils.discordCheck(auth.getAuthId())) {
             Utils.showDiscordDialog();
-            throw new Exception("To use this option you need to be on my discord");
+            throw new UnsupportedOperationException("To use this option you need to be on my discord");
         }
 
         this.main = main;

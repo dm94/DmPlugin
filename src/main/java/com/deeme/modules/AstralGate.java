@@ -4,11 +4,13 @@ import com.deeme.types.AmmoSupplier;
 import com.deeme.types.RocketSupplier;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
+import com.deeme.types.config.AstralConfig;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.config.types.NpcFlag;
 import eu.darkbot.api.config.types.PercentRange;
+import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.extensions.Module;
 import eu.darkbot.api.extensions.InstructionProvider;
@@ -39,7 +41,7 @@ import java.util.Collection;
 import java.util.Comparator;
 
 @Feature(name = "Astral Gate", description = "For the astral gate and another GGs")
-public class AstralGate implements Module, InstructionProvider {
+public class AstralGate implements Module, InstructionProvider, Configurable<AstralConfig> {
     protected final PluginAPI api;
     protected final HeroAPI heroapi;
     protected final BotAPI bot;
@@ -66,21 +68,22 @@ public class AstralGate implements Module, InstructionProvider {
 
     private RocketSupplier rocketSupplier;
     private AmmoSupplier ammoSupplier;
+    private AstralConfig astralConfig;
 
-    public AstralGate(PluginAPI api) throws UnsupportedOperationException, Exception {
+    public AstralGate(PluginAPI api) {
         this(api, api.requireAPI(AuthAPI.class),
                 api.requireInstance(SafetyFinder.class));
     }
 
     @Inject
-    public AstralGate(PluginAPI api, AuthAPI auth, SafetyFinder safety) throws Exception {
+    public AstralGate(PluginAPI api, AuthAPI auth, SafetyFinder safety) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
         if (!Utils.discordCheck(auth.getAuthId())) {
             Utils.showDiscordDialog();
-            throw new Exception("To use this option you need to be on my discord");
+            throw new UnsupportedOperationException("To use this option you need to be on my discord");
         }
 
         this.api = api;
@@ -105,6 +108,11 @@ public class AstralGate implements Module, InstructionProvider {
 
         this.rocketSupplier = new RocketSupplier(heroapi, items, repairHpRange.getValue().getMin());
         this.ammoSupplier = new AmmoSupplier(items);
+    }
+
+    @Override
+    public void setConfig(ConfigSetting<AstralConfig> arg0) {
+        this.astralConfig = arg0.getValue();
     }
 
     @Override
@@ -135,10 +143,12 @@ public class AstralGate implements Module, InstructionProvider {
                 waitingSign = false;
                 attacker.tryLockAndAttack();
                 npcMove();
-                boolean bestAmmo = attacker.hasExtraFlag(NpcFlag.IGNORE_BOXES);
-                if (bestAmmo) {
-                    changeRocket();
-                    changeLaser();
+                if (astralConfig.useBestAmmo || astralConfig.useBestAmmoAlways) {
+                    boolean bestAmmo = attacker.hasExtraFlag(NpcFlag.IGNORE_BOXES);
+                    if (astralConfig.useBestAmmoAlways || bestAmmo) {
+                        changeRocket();
+                        changeLaser();
+                    }
                 }
             } else {
                 if (npcs.size() < 1) {
@@ -212,7 +222,7 @@ public class AstralGate implements Module, InstructionProvider {
 
     protected double getRadius(Lockable target) {
         if (repairShield) {
-            return 1200;
+            return 1500;
         }
         if (!(target instanceof Npc)) {
             return 570;
@@ -237,11 +247,7 @@ public class AstralGate implements Module, InstructionProvider {
         boolean noCircle = attacker.hasExtraFlag(NpcFlag.NO_CIRCLE);
 
         if (radius < 560) {
-            radius = 580;
-        }
-
-        if (radius > 750) {
-            noCircle = false;
+            radius = this.astralConfig.radioMin;
         }
 
         double angleDiff;

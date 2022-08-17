@@ -89,6 +89,9 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
 
     @Override
     public void onTickBehavior() {
+        if (heroapi.getMap() != null && heroapi.getMap().isGG()) {
+            return;
+        }
         if (shipAttacker != null && isUnderAttack()) {
             setConfigToUse();
 

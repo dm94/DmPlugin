@@ -196,7 +196,11 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                     currentStatus = State.FOLLOWING_MASTER;
                     setMode(configRoam.getValue());
                     if (heroapi.distanceTo(sentinel.getLocationInfo().getCurrent()) > sConfig.rangeToLider) {
-                        movement.moveTo(sentinel.getLocationInfo().getCurrent());
+                        if (sConfig.goToMasterDestination && sentinel.getDestination().isPresent()) {
+                            movement.moveTo(sentinel.getDestination().get());
+                        } else {
+                            movement.moveTo(sentinel.getLocationInfo().getCurrent());
+                        }
                     } else if (sConfig.collectorActive) {
                         collectorModule.findBox();
                         if (collectorModule.currentBox != null && sentinel.getLocationInfo()
@@ -314,8 +318,10 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                 .filter(ship -> ship.isValid() && ship.getId() != heroapi.getId())
                 .filter(ship -> (ship.getId() == masterID ||
                         (sConfig.MASTER_ID != 0 && ship.getId() == sConfig.MASTER_ID) ||
-                        sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(ship.getId())) ||
-                        (groupLeaderID != 0 && ship.getId() == groupLeaderID)))
+                        (sConfig.SENTINEL_TAG != null
+                                && sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(ship.getId())))
+                        ||
+                        (sConfig.followGroupLeader && groupLeaderID != 0 && ship.getId() == groupLeaderID)))
                 .findAny().orElse(null);
 
         return sentinel != null;
