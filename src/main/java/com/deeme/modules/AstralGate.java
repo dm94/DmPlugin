@@ -19,6 +19,7 @@ import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.enums.EntityEffect;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
+import eu.darkbot.api.game.other.Gui;
 import eu.darkbot.api.game.other.Locatable;
 import eu.darkbot.api.game.other.Location;
 import eu.darkbot.api.game.other.Lockable;
@@ -28,6 +29,7 @@ import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
+import eu.darkbot.api.managers.GameScreenAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
 import eu.darkbot.api.managers.MovementAPI;
@@ -52,6 +54,9 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     protected final StarSystemAPI starSystem;
     protected ConfigSetting<Integer> maxCircleIterations;
     protected ConfigSetting<Boolean> runConfigInCircle;
+
+    private Gui astralGuiSelection;
+    private Gui astralGui;
 
     protected Collection<? extends Portal> portals;
     protected Collection<? extends Npc> npcs;
@@ -95,6 +100,10 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         this.starSystem = api.getAPI(StarSystemAPI.class);
         this.items = api.getAPI(HeroItemsAPI.class);
 
+        GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
+        this.astralGuiSelection = gameScreenAPI.getGui("rogue_lite_selection");
+        this.astralGui = gameScreenAPI.getGui("rogue_lite");
+
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
         this.portals = entities.getPortals();
         this.npcs = entities.getNpcs();
@@ -117,7 +126,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
     @Override
     public boolean canRefresh() {
-        return waitingSign && npcs.size() < 1;
+        return waitingSign && npcs.size() < 1 && !heroapi.getMap().isGG();
     }
 
     @Override
@@ -135,11 +144,18 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
     @Override
     public void onTickModule() {
-        if (heroapi.getMap().getId() == 466 || heroapi.getMap().isGG()) {
+        if (heroapi.getMap().getId() == 466 || heroapi.getMap().getId() == 467 || heroapi.getMap().getId() == 468
+                || heroapi.getMap().isGG()) {
             pet.setEnabled(false);
             repairShield = repairShield && heroapi.getHealth().shieldPercent() < 0.9
                     || heroapi.getHealth().shieldPercent() < 0.2;
             if (findTarget()) {
+                if (astralGuiSelection.isVisible()) {
+                    astralGuiSelection.setVisible(false);
+                }
+                if (astralGui.isVisible()) {
+                    astralGui.setVisible(false);
+                }
                 waitingSign = false;
                 attacker.tryLockAndAttack();
                 npcMove();
@@ -153,6 +169,9 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
             } else {
                 if (npcs.size() < 1) {
                     waitingSign = true;
+                    if (movement.isOutOfMap()) {
+                        movement.moveRandom();
+                    }
                 }
             }
         }

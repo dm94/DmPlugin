@@ -41,9 +41,9 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
 
     private HitacFollowerConfig followerConfig;
 
-    public boolean stopBot = false;
     private String lastHitacMap = "";
     private long nextCheck = 0;
+    private boolean mapHasHitac = false;
 
     public HitacFollower(PluginAPI api) {
         this(api, api.requireAPI(AuthAPI.class),
@@ -83,9 +83,16 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
     @Override
     public void onTickTask() {
         if (nextCheck <= System.currentTimeMillis()) {
-            nextCheck = System.currentTimeMillis() + 300000;
-            if (!lastHitacMap.isEmpty() && !hasHitac()) {
-                changeMap(lastHitacMap);
+            nextCheck = System.currentTimeMillis() + 60000;
+            if (hasHitac()) {
+                mapHasHitac = true;
+            } else {
+                if (mapHasHitac) {
+                    mapHasHitac = false;
+                    goToNextMap();
+                } else if (!lastHitacMap.isEmpty()) {
+                    changeMap(lastHitacMap);
+                }
             }
         }
     }
@@ -94,16 +101,52 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
     public void onLogMessage(GameLogAPI.LogMessageEvent message) {
         String msg = message.getMessage();
         if (!msg.isEmpty() && msg.contains("Hitac")) {
-            if (!followerConfig.goToPVP && msg.contains("PVP")) {
-                return;
-            }
-            Matcher matcher = pattern.matcher(msg);
-            if (matcher.find()) {
-                lastHitacMap = matcher.group(0);
-                if (!hasHitac()) {
-                    changeMap(matcher.group(0));
+            if ((followerConfig.goToPVP && msg.contains("PVP")) || !msg.contains("PVP")) {
+                Matcher matcher = pattern.matcher(msg);
+                if (matcher.find()) {
+                    lastHitacMap = matcher.group(0);
+                    if (!hasHitac()) {
+                        changeMap(matcher.group(0));
+                    }
                 }
             }
+        }
+    }
+
+    private void goToNextMap() {
+        String currentMap = hero.getMap().getName();
+        String nextMap = null;
+        switch (currentMap) {
+            case "1-3":
+                nextMap = "1-4";
+                break;
+            case "1-4":
+                nextMap = "3-4";
+                break;
+            case "3-4":
+                nextMap = "3-3";
+                break;
+            case "3-3":
+                nextMap = "2-4";
+                break;
+            case "2-4":
+                nextMap = "2-3";
+                break;
+            case "2-3":
+                nextMap = "1-3";
+                break;
+            case "4-1":
+                nextMap = "4-3";
+                break;
+            case "4-2":
+                nextMap = "4-1";
+                break;
+            case "4-3":
+                nextMap = "4-2";
+                break;
+        }
+        if (nextMap != null) {
+            changeMap(nextMap);
         }
     }
 
