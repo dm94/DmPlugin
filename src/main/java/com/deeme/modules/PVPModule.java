@@ -171,21 +171,25 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
                     if (pvpConfig.changeConfig) {
                         heroapi.setRoamMode();
                     }
-                    if (pvpConfig.collectorActive) {
-                        collectorModule.onTickModule();
-                    } else {
-                        GameMap map = starSystem.getOrCreateMapById(workingMap.getValue());
-                        if (!portals.isEmpty() && map != starSystem.getCurrentMap()) {
-                            this.bot.setModule(api.requireInstance(MapModule.class)).setTarget(map);
-                        } else {
-                            if (!movement.isMoving() || movement.isOutOfMap()) {
-                                movement.moveRandom();
-                            }
+                    if (checkMap()) {
+                        if (pvpConfig.collectorActive) {
+                            collectorModule.onTickModule();
+                        } else if (!movement.isMoving() || movement.isOutOfMap()) {
+                            movement.moveRandom();
                         }
                     }
                 }
             }
         }
+    }
+
+    private boolean checkMap() {
+        GameMap map = starSystem.getOrCreateMapById(workingMap.getValue());
+        if (!portals.isEmpty() && map != starSystem.getCurrentMap()) {
+            this.bot.setModule(api.requireInstance(MapModule.class)).setTarget(map);
+            return false;
+        }
+        return true;
     }
 
     private boolean getTarget() {
