@@ -101,7 +101,7 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
     public void onLogMessage(GameLogAPI.LogMessageEvent message) {
         String msg = message.getMessage();
         if (!msg.isEmpty() && msg.contains("Hitac")) {
-            if ((followerConfig.goToPVP && msg.contains("PVP")) || !msg.contains("PVP")) {
+            if ((followerConfig.goToPVP && msg.contains("PvP")) || !msg.contains("PvP")) {
                 Matcher matcher = pattern.matcher(msg);
                 if (matcher.find()) {
                     lastHitacMap = matcher.group(0);
