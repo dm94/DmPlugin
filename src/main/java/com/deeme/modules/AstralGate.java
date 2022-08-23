@@ -21,6 +21,7 @@ import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.enums.EntityEffect;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
+import eu.darkbot.api.game.other.GameMap;
 import eu.darkbot.api.game.other.Gui;
 import eu.darkbot.api.game.other.Locatable;
 import eu.darkbot.api.game.other.Location;
@@ -37,7 +38,9 @@ import eu.darkbot.api.managers.HeroItemsAPI;
 import eu.darkbot.api.managers.MovementAPI;
 import eu.darkbot.api.managers.PetAPI;
 import eu.darkbot.api.managers.StarSystemAPI;
+import eu.darkbot.api.managers.StarSystemAPI.MapNotFoundException;
 import eu.darkbot.api.utils.Inject;
+import eu.darkbot.shared.modules.MapModule;
 import eu.darkbot.shared.utils.SafetyFinder;
 
 import java.util.Arrays;
@@ -86,7 +89,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     private final Random rand = new Random();
     private int lastPortal = 0;
     private State currentStatus;
-    private int guiOffset = 0;
+    private int guiOffset = 100;
 
     private enum State {
         WAIT("Waiting"),
@@ -163,7 +166,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     @Override
     public String getStatus() {
         return "Astral | " + currentStatus.message + " | " + npcs.size() + " | "
-                + (astralShip != null ? astralShip.getStatus() + " | " : "") +
+                + (astralConfig.autoChoosePortal && astralShip != null ? astralShip.getStatus() + " | " : "") +
                 attacker.getStatus();
     }
 
@@ -205,7 +208,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                             movement.moveRandom();
                         }
 
-                        if (astralConfig.autoChoosePortal) {
+                        if (astralConfig.autoChoosePortal || astralConfig.autoChooseItem) {
                             autoChooseLogic();
                         } else {
                             this.currentStatus = State.WAITING_HUMAN;
@@ -217,6 +220,8 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                 this.astralShip = null;
                 this.bot.setRunning(false);
             }
+        } else {
+            goToAstral();
         }
     }
 
@@ -234,7 +239,9 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
             }
         } else {
             portals.stream().forEach(p -> System.out.println(p.getTypeId()));
-            jumpToTheBestPortal();
+            if (astralConfig.autoChoosePortal) {
+                jumpToTheBestPortal();
+            }
         }
     }
 
@@ -258,7 +265,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
     private void chooseItem() {
         if (astralGui.isVisible() && chooseClickDelay < System.currentTimeMillis()) {
-            chooseClickDelay = System.currentTimeMillis() + 60000;
+            chooseClickDelay = System.currentTimeMillis() + 30000;
             if (astralShip == null) {
                 astralShip = new AstralShip(heroapi.getShipType());
             }
@@ -272,6 +279,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                 astralShip.setModules(astralShip.getModules() + 1);
                 randomChoose();
             }
+            randomChoose();
             lastPortal = 0;
             astralGui.setVisible(false);
         }
@@ -279,10 +287,11 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
     private void randomChoose() {
         if (astralConfig.autoChooseItem) {
-            Integer xPoint = rand.nextInt((int) astralGui.getWidth()) + guiOffset + (int) astralGui.getX();
-            Integer yPoint = rand.nextInt((int) astralGui.getHeight()) + guiOffset + (int) astralGui.getY();
+            Integer xPoint = rand.nextInt((int) astralGui.getWidth() - guiOffset) + guiOffset + (int) astralGui.getX();
+            Integer yPoint = (int) ((astralGui.getHeight() / 2) + astralGui.getY());
 
             System.out.println("GUI || X: " + astralGui.getX() + " | Y: " + astralGui.getY());
+            System.out.println("GUI MAX || X: " + astralGui.getX2() + " | Y: " + astralGui.getY2());
             System.out.println("X: " + xPoint + " | Y: " + yPoint);
 
             astralGui.click(xPoint, yPoint);
@@ -494,5 +503,15 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         }
 
         return false;
+    }
+
+    private void goToAstral() {
+        try {
+            GameMap map = starSystem.getByName("GG Astral");
+            if (!portals.isEmpty() && map != starSystem.getCurrentMap()) {
+                this.bot.setModule(api.requireInstance(MapModule.class)).setTarget(map);
+            }
+        } catch (MapNotFoundException e) {
+        }
     }
 }

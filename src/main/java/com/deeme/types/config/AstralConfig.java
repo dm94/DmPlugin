@@ -6,7 +6,7 @@ import com.github.manolo8.darkbot.config.types.Option;
 @Option(value = "Astral config")
 public class AstralConfig {
     @Option(value = "Minimum radius for npcs")
-    @Num(min = 500, max = 2000, step = 100)
+    @Num(min = 500, max = 2000, step = 10)
     public int radioMin = 560;
 
     @Option(value = "Default Ammo")
