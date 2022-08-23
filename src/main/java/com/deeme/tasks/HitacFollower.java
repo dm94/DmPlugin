@@ -82,7 +82,7 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
 
     @Override
     public void onTickTask() {
-        if (nextCheck <= System.currentTimeMillis()) {
+        if (followerConfig.enable && nextCheck <= System.currentTimeMillis()) {
             nextCheck = System.currentTimeMillis() + 60000;
             if (hasHitac()) {
                 mapHasHitac = true;
@@ -99,14 +99,16 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
 
     @EventHandler
     public void onLogMessage(GameLogAPI.LogMessageEvent message) {
-        String msg = message.getMessage();
-        if (!msg.isEmpty() && msg.contains("Hitac")) {
-            if ((followerConfig.goToPVP && msg.contains("PvP")) || !msg.contains("PvP")) {
-                Matcher matcher = pattern.matcher(msg);
-                if (matcher.find()) {
-                    lastHitacMap = matcher.group(0);
-                    if (!hasHitac()) {
-                        changeMap(matcher.group(0));
+        if (followerConfig.enable) {
+            String msg = message.getMessage();
+            if (!msg.isEmpty() && msg.contains("Hitac")) {
+                if ((followerConfig.goToPVP && msg.contains("PvP")) || !msg.contains("PvP")) {
+                    Matcher matcher = pattern.matcher(msg);
+                    if (matcher.find()) {
+                        lastHitacMap = matcher.group(0);
+                        if (!hasHitac()) {
+                            changeMap(matcher.group(0));
+                        }
                     }
                 }
             }
