@@ -1,31 +1,29 @@
 package com.deeme.behaviours;
 
+import com.deeme.modules.DefenseModule;
 import com.deeme.types.SharedFunctions;
-import com.deeme.types.ShipAttacker;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 import com.deeme.types.config.Defense;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
-import eu.darkbot.api.config.types.PercentRange;
-import eu.darkbot.api.config.types.ShipMode;
 import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.entities.Player;
-import eu.darkbot.api.game.entities.Ship;
-import eu.darkbot.api.game.items.SelectableItem.Special;
+import eu.darkbot.api.game.group.GroupMember;
 import eu.darkbot.api.game.other.EntityInfo.Diplomacy;
 import eu.darkbot.api.managers.AuthAPI;
+import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
+import eu.darkbot.api.managers.GroupAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.MovementAPI;
 import eu.darkbot.api.utils.Inject;
-import eu.darkbot.shared.utils.SafetyFinder;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -36,27 +34,24 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
     protected final PluginAPI api;
     protected final HeroAPI heroapi;
     protected final MovementAPI movement;
-    protected final SafetyFinder safetyFinder;
+    protected final GroupAPI group;
+    protected final ConfigAPI configApi;
+    protected final BotAPI botApi;
     protected final Collection<? extends Player> players;
-    protected final ConfigSetting<ShipMode> configOffensive;
-    protected final ConfigSetting<ShipMode> configRun;
-    protected final ConfigSetting<PercentRange> repairHpRange;
-    private ShipAttacker shipAttacker;
     private Defense defenseConfig;
-    private boolean attackConfigLost = false;
+    private Entity target = null;
 
     public DefenseMode(PluginAPI api) {
         this(api, api.requireAPI(HeroAPI.class),
                 api.requireAPI(MovementAPI.class),
                 api.requireAPI(AuthAPI.class),
                 api.requireAPI(ConfigAPI.class),
-                api.requireAPI(EntitiesAPI.class),
-                api.requireInstance(SafetyFinder.class));
+                api.requireAPI(EntitiesAPI.class));
     }
 
     @Inject
     public DefenseMode(PluginAPI api, HeroAPI hero, MovementAPI movement, AuthAPI auth, ConfigAPI configApi,
-            EntitiesAPI entities, SafetyFinder safety) {
+            EntitiesAPI entities) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
@@ -66,25 +61,15 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
         this.api = api;
         this.heroapi = hero;
         this.movement = movement;
-        this.safetyFinder = safety;
+        this.configApi = configApi;
+        this.botApi = api.getAPI(BotAPI.class);
+        this.group = api.getAPI(GroupAPI.class);
         this.players = entities.getPlayers();
-        this.configOffensive = configApi.requireConfig("general.offensive");
-        this.configRun = configApi.requireConfig("general.run");
-        this.repairHpRange = configApi.requireConfig("general.safety.repair_hp_range");
-        setup();
     }
 
     @Override
     public void setConfig(ConfigSetting<Defense> arg0) {
         this.defenseConfig = arg0.getValue();
-        setup();
-    }
-
-    private void setup() {
-        if (api == null || defenseConfig == null)
-            return;
-
-        this.shipAttacker = new ShipAttacker(api, defenseConfig);
     }
 
     @Override
@@ -92,66 +77,30 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
         if (heroapi.getMap() != null && heroapi.getMap().isGG()) {
             return;
         }
-        if (shipAttacker != null && isUnderAttack()) {
-            setConfigToUse();
-
-            shipAttacker.doKillTargetTick();
-
-            if (heroapi.getLocationInfo().distanceTo(shipAttacker.getTarget()) < 575) {
-                shipAttacker.useKeyWithConditions(defenseConfig.ability, null);
-            }
-
-            if (defenseConfig.useBestRocket) {
-                shipAttacker.changeRocket();
-            }
-
-            if (defenseConfig.useAbility) {
-                shipAttacker.useHability();
-            }
-
-            shipAttacker.useKeyWithConditions(defenseConfig.ISH, Special.ISH_01);
-            shipAttacker.useKeyWithConditions(defenseConfig.SMB, Special.SMB_01);
-            shipAttacker.useKeyWithConditions(defenseConfig.PEM, Special.EMP_01);
-            shipAttacker.useKeyWithConditions(defenseConfig.otherKey, null);
-
-            shipAttacker.tryAttackOrFix();
-
-            switch (defenseConfig.movementMode) {
-                case 1:
-                    shipAttacker.vsMove();
-                    break;
-                case 2:
-                    safetyFinder.tick();
-                    break;
-                case 3:
-                    if (!movement.isMoving() || movement.isOutOfMap()) {
-                        movement.moveRandom();
-                    }
-                    break;
-                case 4:
-                    if (heroapi.getHealth().hpPercent() <= repairHpRange.getValue().getMin()) {
-                        safetyFinder.tick();
-                    } else {
-                        shipAttacker.vsMove();
-                    }
-                    break;
+        if (botApi.getModule().getClass() != DefenseModule.class) {
+            if (isUnderAttack()) {
+                botApi.setModule(new DefenseModule(api, defenseConfig, target));
             }
         }
     }
 
-    private boolean isUnderAttack() {
-        if (shipAttacker.getTarget() != null) {
-            if (shipAttacker.getTarget().isValid() && shipAttacker.getTarget().getEntityInfo().isEnemy()) {
-                return true;
-            } else {
-                shipAttacker.setTarget(null);
-                return false;
+    public boolean inGroupAttacked(int id) {
+        if (group.hasGroup()) {
+            for (GroupMember member : group.getMembers()) {
+                if (member.getId() == id && member.isAttacked()) {
+                    return true;
+                }
             }
         }
+        return false;
+    }
 
-        Entity target = SharedFunctions.getAttacker(heroapi, players, heroapi);
+    private boolean isUnderAttack() {
+        if (target != null && target.isValid()) {
+            return true;
+        }
+        target = SharedFunctions.getAttacker(heroapi, players, heroapi);
         if (target != null) {
-            shipAttacker.setTarget((Ship) target);
             return true;
         }
 
@@ -159,7 +108,7 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
                 .filter(s -> (defenseConfig.helpAllies && s.getEntityInfo().getClanDiplomacy() == Diplomacy.ALLIED)
                         ||
                         (defenseConfig.helpEveryone && !s.getEntityInfo().isEnemy())
-                        || (defenseConfig.helpGroup && shipAttacker.inGroupAttacked(s.getId())))
+                        || (defenseConfig.helpGroup && inGroupAttacked(s.getId())))
                 .collect(Collectors.toList());
 
         if (!ships.isEmpty()) {
@@ -167,53 +116,44 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
                 if (defenseConfig.helpAttack && ship.isAttacking() && ship.getTarget() != null) {
                     Entity tar = ship.getTarget();
                     if (!(tar instanceof Npc)) {
-                        shipAttacker.setTarget((Ship) tar);
+                        target = tar;
                         return true;
                     }
                 }
 
                 target = SharedFunctions.getAttacker(ship, players, heroapi);
                 if (target != null) {
-                    shipAttacker.setTarget((Ship) target);
                     return true;
                 }
             }
         }
 
         if (defenseConfig.goToGroup) {
-            shipAttacker.goToMemberAttacked();
+            goToMemberAttacked();
         }
-        shipAttacker.resetDefenseData();
 
-        return shipAttacker.getTarget() != null;
+        return target != null && target.isValid();
     }
 
-    private void setConfigToUse() {
-        if (defenseConfig.useSecondConfig && heroapi.getHealth().hpPercent() <= defenseConfig.healthToChange
-                && heroapi.getHealth().shieldPercent() <= 0.1) {
-            attackConfigLost = true;
+    public void goToMemberAttacked() {
+        GroupMember member = getMemberGroupAttacked();
+        if (member != null) {
+            movement.moveTo(member.getLocation());
         }
+    }
 
-        if (attackConfigLost && defenseConfig.useSecondConfig) {
-            shipAttacker.setMode(defenseConfig.secondConfig);
-        } else {
-            switch (defenseConfig.movementMode) {
-                case 1:
-                case 3:
-                    shipAttacker.setMode(configOffensive.getValue(), defenseConfig.useBestFormation);
-                    break;
-                case 0:
-                case 2:
-                    shipAttacker.setMode(configRun.getValue(), defenseConfig.useBestFormation);
-                    break;
-                case 4:
-                    if (heroapi.getHealth().hpPercent() <= repairHpRange.getValue().getMin()) {
-                        shipAttacker.setMode(configRun.getValue(), defenseConfig.useBestFormation);
-                    } else {
-                        shipAttacker.setMode(configOffensive.getValue(), defenseConfig.useBestFormation);
-                    }
-                    break;
+    private GroupMember getMemberGroupAttacked() {
+        if (group.hasGroup()) {
+            for (GroupMember member : group.getMembers()) {
+                if (member.getMapId() == heroapi.getMap().getId() && member.isAttacked()
+                        && member.getTargetInfo() != null
+                        && member.getTargetInfo().getShipType() != 0 && !member.getTargetInfo().getUsername().isEmpty()
+                        && !SharedFunctions.isNpc(configApi, member.getTargetInfo().getUsername())) {
+                    return member;
+
+                }
             }
         }
+        return null;
     }
 }

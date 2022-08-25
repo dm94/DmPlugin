@@ -9,6 +9,7 @@
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
+.vscode/
 
 # Package Files #
 *.jar
@@ -27,5 +28,4 @@ DmPlugin.iml
 dmplugin.properties
 dmplugin.xml
 module_dmplugin.xml
-
 target/

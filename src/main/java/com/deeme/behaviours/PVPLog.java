@@ -4,12 +4,14 @@ import com.deeme.types.VerifierChecker;
 import com.google.gson.Gson;
 
 import eu.darkbot.api.PluginAPI;
+import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.game.items.Item;
 import eu.darkbot.api.game.items.ItemCategory;
 import eu.darkbot.api.game.other.Lockable;
 import eu.darkbot.api.managers.AuthAPI;
+import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
 import eu.darkbot.api.managers.RepairAPI;
@@ -40,6 +42,7 @@ public class PVPLog implements Behavior {
     protected final HeroAPI hero;
     protected final RepairAPI repair;
     protected final HeroItemsAPI items;
+    protected final ConfigSetting<Boolean> showDev;
 
     private Gson gson;
 
@@ -99,6 +102,9 @@ public class PVPLog implements Behavior {
         this.items = items;
         this.gson = new Gson();
 
+        ConfigAPI configApi = api.getAPI(ConfigAPI.class);
+        this.showDev = configApi.requireConfig("bot_settings.other.dev_stuff");
+
         try {
             if (!Files.exists(BATTLELOG_FOLDER)) {
                 Files.createDirectory(BATTLELOG_FOLDER);
@@ -116,6 +122,10 @@ public class PVPLog implements Behavior {
         try {
             if (stats.getPing() > 1 && hero.getMap() != null) {
                 mapID = hero.getMap().getId();
+
+                if (showDev.getValue()) {
+                    showDebugInfo();
+                }
 
                 if (hero.isAttacking() && hero.getLocalTarget() != null
                         && hero.getLocalTarget().getEntityInfo().isEnemy()
@@ -136,6 +146,13 @@ public class PVPLog implements Behavior {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void showDebugInfo() {
+        System.out.println("Hero effects | " + hero.getEffects().toString());
+        if (hero.getLocalTarget() != null) {
+            System.out.println("Target effects | " + hero.getLocalTarget().getEffects().toString());
         }
     }
 
