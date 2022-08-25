@@ -83,7 +83,7 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
     @Override
     public void onTickTask() {
         if (followerConfig.enable && nextCheck <= System.currentTimeMillis()) {
-            nextCheck = System.currentTimeMillis() + 60000;
+            nextCheck = System.currentTimeMillis() + 20000;
             if (hasHitac()) {
                 mapHasHitac = true;
             } else {
@@ -92,6 +92,12 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
                     goToNextMap();
                 } else if (!lastHitacMap.isEmpty()) {
                     changeMap(lastHitacMap);
+                    if (hero.getMap().getName().equals(lastHitacMap)) {
+                        lastHitacMap = "";
+                    }
+                } else if (followerConfig.returnToWaitingMap) {
+                    api.requireAPI(ConfigAPI.class).requireConfig("general.working_map")
+                            .setValue(followerConfig.WAIT_MAP);
                 }
             }
         }

@@ -139,7 +139,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
                     setConfigToUse();
                 }
 
-                shipAttacker.doKillTargetTick();
+                shipAttacker.tryLockAndAttack();
 
                 if (pvpConfig.useBestRocket) {
                     shipAttacker.changeRocket();
