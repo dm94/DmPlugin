@@ -4,13 +4,9 @@ import com.github.manolo8.darkbot.config.Config;
 import com.github.manolo8.darkbot.config.types.Editor;
 import com.github.manolo8.darkbot.config.types.Option;
 import com.github.manolo8.darkbot.config.types.Options;
-import com.github.manolo8.darkbot.config.types.Tag;
-import com.github.manolo8.darkbot.config.types.TagDefault;
 import com.github.manolo8.darkbot.gui.tree.components.JListField;
 import com.github.manolo8.darkbot.gui.tree.components.JPercentField;
 import com.github.manolo8.darkbot.gui.tree.components.JShipConfigField;
-
-import eu.darkbot.api.config.types.PlayerTag;
 
 @Option("Defense")
 public class Defense {
@@ -23,10 +19,6 @@ public class Defense {
 
     @Option(value = "Help Group Members", description = "Help group members defend themselves")
     public boolean helpGroup = true;
-
-    @Option(value = "Tag for Help", description = "Help users with this tag")
-    @Tag(TagDefault.ALL)
-    public PlayerTag HelpTag = null;
 
     @Option(value = "Go to Group Members", description = "If any member is attacked on your map it goes to the member.")
     public boolean goToGroup = false;
