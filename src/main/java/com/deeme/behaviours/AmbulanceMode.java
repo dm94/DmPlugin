@@ -68,7 +68,7 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
     public void onTickBehavior() {
         if (config.enable && nextCheck <= System.currentTimeMillis()) {
             nextCheck = System.currentTimeMillis() + (config.timeToCheck * 1000);
-            int memberToHelp = getMemberHowNeedHelp();
+            int memberToHelp = getMemberLowLife();
             if (memberToHelp != 0) {
                 Ability ability = getAbility();
                 if (ability != null) {
@@ -78,16 +78,36 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
                         botApi.setModule(new AmbulanceModule(api, memberToHelp, ability));
                     }
                 }
+            } else if (config.repairShield) {
+                memberToHelp = getMemberLowShield();
+                if (memberToHelp != 0
+                        && items.getItem(Ability.AEGIS_SHIELD_REPAIR, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+                    Ability ability = Ability.AEGIS_SHIELD_REPAIR;
+                    if (botApi.getModule().getClass() != AmbulanceModule.class) {
+                        botApi.setModule(new AmbulanceModule(api, memberToHelp, ability));
+                    }
+                }
             }
         }
-
     }
 
-    private int getMemberHowNeedHelp() {
+    private int getMemberLowLife() {
         if (group.hasGroup()) {
             for (GroupMember member : group.getMembers()) {
                 if (member.isAttacked() && member.getMapId() == heroapi.getMap().getId()
                         && member.getMemberInfo().hpPercent() < config.healthToRepair) {
+                    return member.getId();
+                }
+            }
+        }
+        return 0;
+    }
+
+    private int getMemberLowShield() {
+        if (group.hasGroup()) {
+            for (GroupMember member : group.getMembers()) {
+                if (member.isAttacked() && member.getMapId() == heroapi.getMap().getId()
+                        && member.getMemberInfo().shieldPercent() < config.healthToRepair) {
                     return member.getId();
                 }
             }
@@ -102,11 +122,6 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
             }
             if (items.getItem(Ability.AEGIS_REPAIR_POD, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                 return Ability.AEGIS_REPAIR_POD;
-            }
-            if (config.repairShield) {
-                if (items.getItem(Ability.AEGIS_SHIELD_REPAIR, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
-                    return Ability.AEGIS_SHIELD_REPAIR;
-                }
             }
         } else if (config.shipType == 2) {
             if (items.getItem(Ability.SOLACE, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {

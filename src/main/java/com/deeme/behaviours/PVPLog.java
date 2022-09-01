@@ -74,6 +74,9 @@ public class PVPLog implements Behavior {
     private int enemyInitialShield = 0;
     private int enemyInitialHull = 0;
 
+    private String lastEffects = "";
+    private String lastEnemyEffects = "";
+
     // Batle Data
     private boolean battleStart = false;
     ArrayList<Object> battleData = new ArrayList<Object>();
@@ -149,10 +152,26 @@ public class PVPLog implements Behavior {
         }
     }
 
+    @Override
+    public void onStoppedBehavior() {
+        if (showDev.getValue()) {
+            showDebugInfo();
+        }
+    }
+
     private void showDebugInfo() {
-        System.out.println("Hero effects | " + hero.getEffects().toString());
+        String effectsNow = hero.getEffects().toString();
+        if (!lastEffects.equals(effectsNow)) {
+            lastEffects = effectsNow;
+            System.out.println("Hero effects | " + hero.getEffects().toString());
+        }
+
         if (hero.getLocalTarget() != null) {
-            System.out.println("Target effects | " + hero.getLocalTarget().getEffects().toString());
+            String effectsEnemyNow = hero.getLocalTarget().getEffects().toString();
+            if (!lastEnemyEffects.equals(effectsEnemyNow)) {
+                lastEnemyEffects = effectsEnemyNow;
+                System.out.println("Target effects | " + effectsEnemyNow);
+            }
         }
     }
 
