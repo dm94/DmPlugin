@@ -12,6 +12,9 @@ public class ExtraKeyConditionsWithoutHealth {
     @Option("Key")
     public Character Key;
 
+    @Option("Name (Optional)")
+    public String name = "";
+
     @Option("Condition")
     public Condition CONDITION;
 }

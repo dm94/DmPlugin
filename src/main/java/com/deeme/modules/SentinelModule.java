@@ -85,6 +85,8 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
     protected long lastTimeAttack = 0;
     protected int groupLeaderID = 0;
 
+    protected Location lastSentinelLocation = null;
+
     private enum State {
         INIT("Init"),
         WAIT("Waiting for group invitation"),
@@ -217,6 +219,18 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                 } else {
                     sentinel = null;
                 }
+            } else if (sConfig.followByPortals && lastSentinelLocation != null) {
+                Portal portal = getNearestPortal(lastSentinelLocation);
+                if (portal != null) {
+                    GameMap m = portal.getTargetMap().isPresent() ? portal.getTargetMap().get() : null;
+                    if (m != null) {
+                        this.bot.setModule(api.requireInstance(MapModule.class)).setTarget(m);
+                    } else {
+                        lastSentinelLocation = null;
+                    }
+                } else {
+                    lastSentinelLocation = null;
+                }
             } else {
                 groupLeaderID = 0;
                 if (group.hasGroup()) {
@@ -323,6 +337,10 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                         ||
                         (sConfig.followGroupLeader && groupLeaderID != 0 && ship.getId() == groupLeaderID)))
                 .findAny().orElse(null);
+
+        if (sentinel != null) {
+            lastSentinelLocation = sentinel.getLocationInfo().getCurrent();
+        }
 
         return sentinel != null;
     }
@@ -460,6 +478,13 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                 .filter(n -> attacker.getTarget() != n)
                 .mapToDouble(n -> Math.max(0, n.getInfo().getRadius() - n.distanceTo(loc)))
                 .sum();
+    }
+
+    protected Portal getNearestPortal(Location loc) {
+        if (loc == null) {
+            return null;
+        }
+        return portals.stream().filter(p -> p.distanceTo(loc) < 500).findFirst().orElse(null);
     }
 
     protected void setNPCConfig(Location direction) {

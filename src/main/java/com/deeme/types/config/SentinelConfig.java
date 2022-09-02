@@ -37,6 +37,9 @@ public class SentinelConfig {
     @Option(value = "Auto use the best ability", description = "Beta - Can use almost all abilities")
     public boolean useAbility = false;
 
+    @Option(value = "Jumping through portals (New logic)", description = "If the sentinel disappears near a portal, it will jump. It's faster than waiting for the group info")
+    public boolean followByPortals = false;
+
     @Option(value = "Move to the location the master is going to", description = "It will go to the master's destination and not to where the master is.")
     public boolean goToMasterDestination = false;
 

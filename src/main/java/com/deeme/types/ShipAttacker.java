@@ -234,10 +234,9 @@ public class ShipAttacker {
         if (target != null) {
             double distance = heroapi.getLocationInfo().distanceTo(target);
             Location targetLoc = target.getLocationInfo().destinationInTime(400);
-
             if (distance > 600) {
-                if (movement.canMove(target.getLocationInfo().getCurrent())) {
-                    movement.moveTo(target);
+                if (movement.canMove(targetLoc)) {
+                    movement.moveTo(targetLoc);
                     if (target.getSpeed() > heroapi.getSpeed()) {
                         heroapi.setRunMode();
                     }

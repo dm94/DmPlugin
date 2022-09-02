@@ -204,11 +204,14 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                 } else {
                     if (npcs.size() < 1) {
                         waitingSign = true;
-                        if (movement.isOutOfMap()) {
+                        if (!movement.isMoving() && !astralGui.isVisible()) {
                             movement.moveRandom();
                         }
 
                         if (astralConfig.autoChoosePortal || astralConfig.autoChooseItem) {
+                            if (!astralGui.isVisible()) {
+                                chooseClickDelay = System.currentTimeMillis() + 10000;
+                            }
                             autoChooseLogic();
                         } else {
                             this.currentStatus = State.WAITING_HUMAN;
@@ -238,7 +241,6 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                 }
             }
         } else {
-            portals.stream().forEach(p -> System.out.println(p.getTypeId()));
             if (astralConfig.autoChoosePortal) {
                 jumpToTheBestPortal();
             }
@@ -279,7 +281,6 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                 astralShip.setModules(astralShip.getModules() + 1);
                 randomChoose();
             }
-            randomChoose();
             lastPortal = 0;
             astralGui.setVisible(false);
         }
