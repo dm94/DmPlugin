@@ -135,7 +135,7 @@ public class AmbulanceModule extends TemporalModule {
     }
 
     private Player getPlayerIfIsClosed() {
-        return players.stream().filter(player -> player.getId() == idMember && heroapi.distanceTo(player) < 700)
+        return players.stream().filter(player -> player.getId() == idMember && heroapi.distanceTo(player) <= 1000)
                 .findFirst().orElse(null);
     }
 

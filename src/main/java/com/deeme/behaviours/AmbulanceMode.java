@@ -107,6 +107,7 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
         if (group.hasGroup()) {
             for (GroupMember member : group.getMembers()) {
                 if (member.isAttacked() && member.getMapId() == heroapi.getMap().getId()
+                        && member.getMemberInfo().getMaxShield() > 1000
                         && member.getMemberInfo().shieldPercent() < config.healthToRepair) {
                     return member.getId();
                 }
