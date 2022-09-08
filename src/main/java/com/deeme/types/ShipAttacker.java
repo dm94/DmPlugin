@@ -4,6 +4,7 @@ import com.deeme.types.config.Defense;
 import com.deeme.types.config.ExtraKeyConditions;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.Config.Loot.Sab;
+import com.github.manolo8.darkbot.core.api.DarkBoatAdapter;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -53,6 +54,7 @@ public class ShipAttacker {
     protected long laserTime;
     protected long fixTimes;
     protected long clickDelay;
+    protected long keyDelay;
     protected boolean sab;
     private Defense defense = null;
     private Random rnd;
@@ -104,18 +106,22 @@ public class ShipAttacker {
         }
     }
 
-    public void lockAndSetTarget() {
-        if (heroapi.getLocalTarget() == target && firstAttack) {
+    public void tryLockTarget() {
+        if (heroapi.getTarget() == target && firstAttack) {
             clickDelay = System.currentTimeMillis();
         }
 
         fixedTimes = 0;
         laserTime = 0;
         firstAttack = false;
-        if (heroapi.getLocationInfo().distanceTo(target) < 800 && System.currentTimeMillis() - clickDelay > 500) {
-            heroapi.setLocalTarget(target);
-            target.trySelect(false);
-            clickDelay = System.currentTimeMillis();
+        if (heroapi.getLocationInfo().distanceTo(target) < 800) {
+            if (System.currentTimeMillis() - clickDelay > 500) {
+                heroapi.setLocalTarget(target);
+                target.trySelect(false);
+                clickDelay = System.currentTimeMillis();
+            }
+        } else {
+            movement.moveTo(target);
         }
     }
 
@@ -123,16 +129,16 @@ public class ShipAttacker {
         this.target = target;
     }
 
-    public void doKillTargetTick() {
+    public void tryLockAndAttack() {
         if (target == null) {
             return;
         }
-        if (heroapi.getLocalTarget() != target) {
-            lockAndSetTarget();
+        if (heroapi.isAttacking(target)) {
+            tryAttackOrFix();
             return;
+        } else {
+            tryLockTarget();
         }
-
-        tryAttackOrFix();
     }
 
     public void tryAttackOrFix() {
@@ -160,10 +166,11 @@ public class ShipAttacker {
         laserTime = System.currentTimeMillis() + minWait;
         isAttacking = Math.max(isAttacking, laserTime + bugTime);
         if (normal) {
-            lastShot = getAttackKey();
-            API.keyboardClick(lastShot);
-        } else {
+            API.keyboardClick(lastShot = getAttackKey());
+        } else if (API instanceof DarkBoatAdapter) {
             heroapi.triggerLaserAttack();
+        } else {
+            target.trySelect(true);
         }
     }
 
@@ -171,12 +178,12 @@ public class ShipAttacker {
         return getAttackKey(ammoKey.getValue());
     }
 
-    private Laser getBestLaser() {
+    protected Laser getBestLaserAmmo() {
         return laserSupplier.get();
     }
 
     private Character getAttackKey(Character defaultAmmo) {
-        Laser laser = getBestLaser();
+        Laser laser = getBestLaserAmmo();
 
         if (laser != null) {
             Character key = items.getKeyBind(laser);
@@ -212,14 +219,14 @@ public class ShipAttacker {
     }
 
     public void useHability() {
-        if (System.currentTimeMillis() - clickDelay < 1000) {
+        if (System.currentTimeMillis() - keyDelay < 1000) {
             return;
         }
         SelectableItem ability = abilitySupplier.get();
 
         if (ability != null
                 && useSelectableReadyWhenReady(ability)) {
-            clickDelay = System.currentTimeMillis();
+            keyDelay = System.currentTimeMillis();
         }
     }
 
@@ -261,7 +268,7 @@ public class ShipAttacker {
     }
 
     public boolean useSelectableReadyWhenReady(SelectableItem selectableItem) {
-        if (System.currentTimeMillis() - clickDelay < 1000)
+        if (System.currentTimeMillis() - keyDelay < 1000)
             return false;
         if (selectableItem == null)
             return false;
@@ -269,7 +276,7 @@ public class ShipAttacker {
         boolean isReady = items.getItem(selectableItem, ItemFlag.USABLE, ItemFlag.READY).isPresent();
 
         if (isReady && items.useItem(selectableItem).isSuccessful()) {
-            clickDelay = System.currentTimeMillis();
+            keyDelay = System.currentTimeMillis();
             return true;
         }
 
@@ -350,5 +357,6 @@ public class ShipAttacker {
     public void resetDefenseData() {
         target = null;
         fixedTimes = 0;
+        firstAttack = true;
     }
 }

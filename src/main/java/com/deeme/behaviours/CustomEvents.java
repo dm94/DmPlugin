@@ -91,7 +91,8 @@ public class CustomEvents implements Behavior, Configurable<CustomEventsConfig> 
             return false;
         }
 
-        boolean isReady = items.getItem(selectableItem, ItemFlag.USABLE, ItemFlag.READY).isPresent();
+        boolean isReady = items.getItem(selectableItem, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE)
+                .isPresent();
 
         if (isReady && items.useItem(selectableItem).isSuccessful()) {
             clickDelay = System.currentTimeMillis();

@@ -52,6 +52,10 @@ public class AbilitySupplier implements PrioritizedSupplier<SelectableItem> {
             if (items.getItem(Ability.SOLACE, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                 return Ability.SOLACE;
             }
+            if (items.getItem(Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS, ItemFlag.USABLE, ItemFlag.READY)
+                    .isPresent()) {
+                return Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS;
+            }
         }
 
         if (focusShield && items.getItem(Ability.AEGIS_SHIELD_REPAIR, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {

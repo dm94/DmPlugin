@@ -281,7 +281,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                 isNpc = false;
                 shipAttacker.setTarget((Ship) target);
                 setMode(configOffensive.getValue());
-                shipAttacker.doKillTargetTick();
+                shipAttacker.tryLockAndAttack();
             }
         }
 
