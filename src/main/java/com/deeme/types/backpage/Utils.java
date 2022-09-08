@@ -44,7 +44,7 @@ public class Utils {
     }
 
     public static boolean checkDiscordApi(String id) {
-        String baseURL = "https://checkdiscord.herokuapp.com/users/";
+        String baseURL = "https://checkdiscord.stiletto.live/users/";
         String allData = "";
         try {
             HttpURLConnection conn = (HttpURLConnection) new URL(baseURL + id).openConnection();
@@ -93,7 +93,7 @@ public class Utils {
     }
 
     public static String parseDataToDiscordID(String data) {
-        if (data.contains("-")) {
+        if (data != null && data.contains("-")) {
             String[] strArray = data.split("-");
             if (strArray[1] != null) {
                 System.out.println(strArray[1]);
@@ -135,7 +135,7 @@ public class Utils {
         Preferences prefs = Preferences.userNodeForPackage(Utils.class);
 
         if (prefs.getLong("donateDialog", 0) <= System.currentTimeMillis()) {
-            prefs.putLong("donateDialog", System.currentTimeMillis() + 1296000000);
+            prefs.putLong("donateDialog", System.currentTimeMillis() + (90L * 24 * 60 * 60 * 1000));
             JButton donateBtn = new JButton("Donate");
             JButton closeBtn = new JButton("Close");
             donateBtn.addActionListener(e -> {
@@ -148,7 +148,9 @@ public class Utils {
             });
 
             Popups.showMessageSync("DmPlugin donate",
-                    new JOptionPane("You can help improve the plugin by donating", JOptionPane.INFORMATION_MESSAGE,
+                    new JOptionPane(
+                            "You can help improve the plugin by donating. \n You get nothing extra if you donate.",
+                            JOptionPane.INFORMATION_MESSAGE,
                             JOptionPane.DEFAULT_OPTION, null, new Object[] { donateBtn, closeBtn }));
         }
     }
