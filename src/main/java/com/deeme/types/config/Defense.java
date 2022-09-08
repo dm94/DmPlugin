@@ -32,7 +32,7 @@ public class Defense {
     @Option(value = "Movement Mode", description = "Choose how to move in defense mode")
     @Editor(JListField.class)
     @Options(MovementMode.class)
-    public int movementMode = 0;
+    public int newMovementMode = 0;
 
     @Option(value = "Auto choose the best rocket", description = "Automatically switches missiles")
     public boolean useBestRocket = false;
