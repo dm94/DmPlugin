@@ -3,7 +3,7 @@ package com.deeme.behaviours;
 
 import java.util.Arrays;
 
-import com.deeme.modules.AmbulanceModule;
+import com.deeme.modules.temporal.AmbulanceModule;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 import com.deeme.types.config.AmbulanceConfig;
@@ -81,7 +81,8 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
             } else if (config.repairShield) {
                 memberToHelp = getMemberLowShield();
                 if (memberToHelp != 0
-                        && items.getItem(Ability.AEGIS_SHIELD_REPAIR, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+                        && items.getItem(Ability.AEGIS_SHIELD_REPAIR, ItemFlag.USABLE, ItemFlag.READY,
+                                ItemFlag.AVAILABLE).isPresent()) {
                     Ability ability = Ability.AEGIS_SHIELD_REPAIR;
                     if (botApi.getModule().getClass() != AmbulanceModule.class) {
                         botApi.setModule(new AmbulanceModule(api, memberToHelp, ability));
@@ -95,6 +96,7 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
         if (group.hasGroup()) {
             for (GroupMember member : group.getMembers()) {
                 if (member.isAttacked() && member.getMapId() == heroapi.getMap().getId()
+                        && member.getMemberInfo().getHp() > 1
                         && member.getMemberInfo().hpPercent() < config.healthToRepair) {
                     return member.getId();
                 }
@@ -118,10 +120,12 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
 
     public Ability getAbility() {
         if (config.shipType == 0 || config.shipType == 1) {
-            if (items.getItem(Ability.AEGIS_HP_REPAIR, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+            if (items.getItem(Ability.AEGIS_HP_REPAIR, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE)
+                    .isPresent()) {
                 return Ability.AEGIS_HP_REPAIR;
             }
-            if (items.getItem(Ability.AEGIS_REPAIR_POD, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+            if (items.getItem(Ability.AEGIS_REPAIR_POD, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE)
+                    .isPresent()) {
                 return Ability.AEGIS_REPAIR_POD;
             }
         } else if (config.shipType == 2) {

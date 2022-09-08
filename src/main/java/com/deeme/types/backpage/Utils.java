@@ -93,7 +93,7 @@ public class Utils {
     }
 
     public static String parseDataToDiscordID(String data) {
-        if (data.contains("-")) {
+        if (data != null && data.contains("-")) {
             String[] strArray = data.split("-");
             if (strArray[1] != null) {
                 System.out.println(strArray[1]);

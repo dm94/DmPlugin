@@ -1,6 +1,6 @@
 package com.deeme.behaviours;
 
-import com.deeme.modules.DefenseModule;
+import com.deeme.modules.temporal.DefenseModule;
 import com.deeme.types.SharedFunctions;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;

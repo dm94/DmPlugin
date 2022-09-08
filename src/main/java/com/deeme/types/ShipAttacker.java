@@ -11,8 +11,8 @@ import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.config.types.PercentRange;
 import eu.darkbot.api.config.types.ShipMode;
 import eu.darkbot.api.config.types.ShipMode.ShipModeImpl;
-import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.entities.Player;
+import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.entities.Ship;
 import eu.darkbot.api.game.enums.EntityEffect;
 import eu.darkbot.api.game.group.GroupMember;
@@ -44,6 +44,7 @@ public class ShipAttacker {
     protected final ConfigSetting<PercentRange> repairHpRange;
     protected final ConfigSetting<Character> ammoKey;
     protected final Collection<? extends Player> allShips;
+    protected final Collection<? extends Portal> allPortals;
     private DefenseLaserSupplier laserSupplier;
     private FormationSupplier formationSupplier;
     private RocketSupplier rocketSupplier;
@@ -77,6 +78,7 @@ public class ShipAttacker {
         this.group = api.getAPI(GroupAPI.class);
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
         this.allShips = entities.getPlayers();
+        this.allPortals = entities.getPortals();
         this.rnd = new Random();
         this.items = api.getAPI(HeroItemsAPI.class);
         this.laserSupplier = new DefenseLaserSupplier(api, heroapi, items, sab, rsbEnabled);
@@ -346,11 +348,16 @@ public class ShipAttacker {
     }
 
     public Ship getEnemy(int maxDistance) {
-        return allShips.stream()
-                .filter(s -> (s.getEntityInfo().isEnemy() && !SharedFunctions.isPet(s.getEntityInfo().getUsername())
-                        && !(s instanceof Npc) && s.getLocationInfo().distanceTo(heroapi) <= maxDistance))
-                .sorted(Comparator.comparingDouble(s -> s.getLocationInfo().distanceTo(heroapi))).findAny()
-                .orElse(null);
+        if (heroapi.getMap().isPvp() || allPortals.stream().filter(p -> heroapi.distanceTo(p) < maxDistance).findFirst()
+                .orElse(null) == null) {
+            return allShips.stream()
+                    .filter(s -> (s.getEntityInfo().isEnemy()
+                            && s.getLocationInfo().distanceTo(heroapi) <= maxDistance)
+                            && !SharedFunctions.isPet(s.getEntityInfo().getUsername()))
+                    .sorted(Comparator.comparingDouble(s -> s.getLocationInfo().distanceTo(heroapi))).findAny()
+                    .orElse(null);
+        }
+        return null;
     }
 
     public void resetDefenseData() {

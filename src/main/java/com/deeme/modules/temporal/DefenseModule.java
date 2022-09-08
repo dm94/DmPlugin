@@ -1,4 +1,4 @@
-package com.deeme.modules;
+package com.deeme.modules.temporal;
 
 import java.util.Collection;
 import java.util.List;
@@ -80,8 +80,8 @@ public class DefenseModule extends TemporalModule {
 
     @Override
     public void onTickModule() {
-        if (isUnderAttack()) {
-            try {
+        try {
+            if (isUnderAttack()) {
                 setConfigToUse();
                 shipAttacker.tryLockAndAttack();
 
@@ -120,12 +120,12 @@ public class DefenseModule extends TemporalModule {
                         }
                         break;
                 }
-            } catch (Exception e) {
-                System.out.println(e);
-                e.printStackTrace();
+            } else {
+                target = null;
+                super.goBack();
             }
-        } else {
-            target = null;
+        } catch (Exception e) {
+            System.out.println(e);
             super.goBack();
         }
     }

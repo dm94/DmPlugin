@@ -1,4 +1,4 @@
-package com.deeme.modules;
+package com.deeme.modules.temporal;
 
 import java.util.Collection;
 
@@ -41,7 +41,8 @@ public class AmbulanceModule extends TemporalModule {
         TARGET_MEMBER("Targeting the group member"),
         TARGET_OLD_TARGET("Targeting the old target"),
         USING_ABILITY("Using the ship's ability"),
-        HELPING_MASTER("Helping the master");
+        HELPING_MASTER("Helping the master"),
+        SEARCHING_MEMBER("Searching for the member");
 
         private final String message;
 
@@ -85,51 +86,57 @@ public class AmbulanceModule extends TemporalModule {
 
     @Override
     public void onTickModule() {
-        if (idMember != 0 && abilityToUse != null) {
-            if (!abilityUsed) {
-                Player player = getPlayerIfIsClosed();
-                if (player != null) {
-                    if (abilityToUse == Ability.AEGIS_REPAIR_POD) {
-                        useAbilityReadyWhenReady();
-                    } else {
-                        if (heroapi.getTarget() != null && heroapi.getTarget().getId() != player.getId()) {
-                            oldTarget = heroapi.getLocalTarget();
-                        } else if (heroapi.getTarget() != null && heroapi.getTarget().getId() == player.getId()) {
+        try {
+            if (idMember != 0 && abilityToUse != null) {
+                if (!abilityUsed) {
+                    this.currentStatus = State.SEARCHING_MEMBER;
+                    Player player = getPlayerIfIsClosed();
+                    if (player != null && player.isValid()) {
+                        if (abilityToUse == Ability.AEGIS_REPAIR_POD) {
                             useAbilityReadyWhenReady();
                         } else {
-                            this.currentStatus = State.TARGET_MEMBER;
-                            if (heroapi.getLocationInfo().distanceTo(player) < 800) {
-                                if (System.currentTimeMillis() - clickDelay > 500) {
-                                    heroapi.setLocalTarget(player);
-                                    player.trySelect(false);
-                                    clickDelay = System.currentTimeMillis();
-                                }
+                            if (heroapi.getTarget() != null && heroapi.getTarget().getId() != player.getId()) {
+                                oldTarget = heroapi.getLocalTarget();
+                            } else if (heroapi.getTarget() != null && heroapi.getTarget().getId() == player.getId()) {
+                                useAbilityReadyWhenReady();
                             } else {
-                                movement.moveTo(player);
+                                this.currentStatus = State.TARGET_MEMBER;
+                                if (heroapi.getLocationInfo().distanceTo(player) < 800) {
+                                    if (System.currentTimeMillis() - clickDelay > 500) {
+                                        heroapi.setLocalTarget(player);
+                                        player.trySelect(false);
+                                        clickDelay = System.currentTimeMillis();
+                                    }
+                                } else {
+                                    movement.moveTo(player);
+                                }
                             }
                         }
+                    } else {
+                        goToMemberAttacked();
                     }
                 } else {
-                    goToMemberAttacked();
-                }
-            } else {
-                if (oldTarget != null && oldTarget.isValid() && heroapi.getTarget() != null
-                        && heroapi.getTarget() != oldTarget) {
-                    this.currentStatus = State.TARGET_OLD_TARGET;
-                    if (heroapi.getLocationInfo().distanceTo(oldTarget) < 800) {
-                        if (System.currentTimeMillis() - clickDelay > 500) {
-                            heroapi.setLocalTarget(oldTarget);
-                            oldTarget.trySelect(false);
-                            clickDelay = System.currentTimeMillis();
+                    if (oldTarget != null && oldTarget.isValid() && heroapi.getTarget() != null
+                            && heroapi.getTarget() != oldTarget) {
+                        this.currentStatus = State.TARGET_OLD_TARGET;
+                        if (heroapi.getLocationInfo().distanceTo(oldTarget) < 800) {
+                            if (System.currentTimeMillis() - clickDelay > 500) {
+                                heroapi.setLocalTarget(oldTarget);
+                                oldTarget.trySelect(false);
+                                clickDelay = System.currentTimeMillis();
+                            }
+                        } else {
+                            movement.moveTo(oldTarget);
                         }
                     } else {
-                        movement.moveTo(oldTarget);
+                        super.goBack();
                     }
-                } else {
-                    super.goBack();
                 }
+            } else {
+                super.goBack();
             }
-        } else {
+        } catch (Exception e) {
+            System.out.println(e);
             super.goBack();
         }
     }
@@ -151,16 +158,18 @@ public class AmbulanceModule extends TemporalModule {
 
     private void useAbilityReadyWhenReady() {
         this.currentStatus = State.USING_ABILITY;
-        if (System.currentTimeMillis() - keyDelay < 1000)
-            abilityUsed = false;
-        if (abilityToUse == null) {
+        if (abilityToUse == null || System.currentTimeMillis() - keyDelay < 500) {
             abilityUsed = false;
         }
 
         boolean isReady = items.getItem(abilityToUse, ItemFlag.USABLE, ItemFlag.READY).isPresent();
 
-        if (isReady && items.useItem(abilityToUse).isSuccessful()) {
-            keyDelay = System.currentTimeMillis();
+        if (isReady) {
+            if (items.useItem(abilityToUse).isSuccessful()) {
+                keyDelay = System.currentTimeMillis();
+                abilityUsed = true;
+            }
+        } else {
             abilityUsed = true;
         }
     }

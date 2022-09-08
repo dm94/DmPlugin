@@ -193,7 +193,8 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     }
 
     private boolean getTarget() {
-        if ((target != null && target.isValid() && target.getLocationInfo().distanceTo(heroapi) < 2000)
+        if ((target != null && target.isValid()
+                && target.getLocationInfo().distanceTo(heroapi) < pvpConfig.rangeForAttackedEnemy)
                 || isUnderAttack()) {
             return true;
         }
