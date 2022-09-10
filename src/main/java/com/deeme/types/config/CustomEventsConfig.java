@@ -8,9 +8,9 @@ public class CustomEventsConfig {
     public @Option("Event 3") ExtraKeyConditionsWithoutHealth otherKey3 = new ExtraKeyConditionsWithoutHealth();
     public @Option("Event 4") ExtraKeyConditionsWithoutHealth otherKey4 = new ExtraKeyConditionsWithoutHealth();
     public @Option("Event 5") ExtraKeyConditionsWithoutHealth otherKey5 = new ExtraKeyConditionsWithoutHealth();
-    public @Option("Event 6") ExtraKeyConditionsWithoutHealth otherKey6 = new ExtraKeyConditionsWithoutHealth();
-    public @Option("Event 7") ExtraKeyConditionsWithoutHealth otherKey7 = new ExtraKeyConditionsWithoutHealth();
-    public @Option("Event 8") ExtraKeyConditionsWithoutHealth otherKey8 = new ExtraKeyConditionsWithoutHealth();
-    public @Option("Event 9") ExtraKeyConditionsWithoutHealth otherKey9 = new ExtraKeyConditionsWithoutHealth();
-    public @Option("Event 10") ExtraKeyConditionsWithoutHealth otherKey10 = new ExtraKeyConditionsWithoutHealth();
+    public @Option("Event 6") ExtraKeyConditionsSelectable selectable1 = new ExtraKeyConditionsSelectable();
+    public @Option("Event 7") ExtraKeyConditionsSelectable selectable2 = new ExtraKeyConditionsSelectable();
+    public @Option("Event 8") ExtraKeyConditionsSelectable selectable3 = new ExtraKeyConditionsSelectable();
+    public @Option("Event 9") ExtraKeyConditionsSelectable selectable4 = new ExtraKeyConditionsSelectable();
+    public @Option("Event 10") ExtraKeyConditionsSelectable selectable5 = new ExtraKeyConditionsSelectable();
 }

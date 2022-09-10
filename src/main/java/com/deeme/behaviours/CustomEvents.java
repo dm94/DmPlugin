@@ -1,6 +1,8 @@
 package com.deeme.behaviours;
 
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
@@ -10,9 +12,11 @@ import com.github.manolo8.darkbot.config.Config;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
+import eu.darkbot.api.config.types.Condition;
 import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.game.items.ItemCategory;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.managers.AuthAPI;
@@ -58,25 +62,39 @@ public class CustomEvents implements Behavior, Configurable<CustomEventsConfig> 
 
     @Override
     public void onTickBehavior() {
-        useKeyWithConditions(config.otherKey, null);
-        useKeyWithConditions(config.otherKey2, null);
-        useKeyWithConditions(config.otherKey3, null);
-        useKeyWithConditions(config.otherKey4, null);
-        useKeyWithConditions(config.otherKey5, null);
-        useKeyWithConditions(config.otherKey6, null);
-        useKeyWithConditions(config.otherKey7, null);
-        useKeyWithConditions(config.otherKey8, null);
-        useKeyWithConditions(config.otherKey9, null);
-        useKeyWithConditions(config.otherKey10, null);
+        useKeyWithConditions(config.otherKey);
+        useKeyWithConditions(config.otherKey2);
+        useKeyWithConditions(config.otherKey3);
+        useKeyWithConditions(config.otherKey4);
+        useKeyWithConditions(config.otherKey5);
+        if (config.selectable1.enable) {
+            useKeyWithConditions(config.selectable1.CONDITION, getItemById(config.selectable1.item));
+        }
+        if (config.selectable2.enable) {
+            useKeyWithConditions(config.selectable2.CONDITION, getItemById(config.selectable2.item));
+        }
+        if (config.selectable3.enable) {
+            useKeyWithConditions(config.selectable3.CONDITION, getItemById(config.selectable3.item));
+        }
+        if (config.selectable4.enable) {
+            useKeyWithConditions(config.selectable4.CONDITION, getItemById(config.selectable4.item));
+        }
+        if (config.selectable5.enable) {
+            useKeyWithConditions(config.selectable5.CONDITION, getItemById(config.selectable5.item));
+        }
     }
 
-    public boolean useKeyWithConditions(ExtraKeyConditionsWithoutHealth extra, SelectableItem selectableItem) {
-        if (extra.enable) {
-            if (selectableItem == null && extra.Key != null) {
-                selectableItem = items.getItem(extra.Key);
-            }
+    public boolean useKeyWithConditions(Condition condition, SelectableItem selectableItem) {
+        if (selectableItem != null && condition != null && condition.get(api).toBoolean()) {
+            return useSelectableReadyWhenReady(selectableItem);
+        }
+        return false;
+    }
 
-            if (extra.CONDITION == null || extra.CONDITION.get(api).toBoolean()) {
+    public boolean useKeyWithConditions(ExtraKeyConditionsWithoutHealth extra) {
+        if (extra.enable) {
+            SelectableItem selectableItem = items.getItem(extra.Key);
+            if (selectableItem != null && extra.CONDITION != null && extra.CONDITION.get(api).toBoolean()) {
                 return useSelectableReadyWhenReady(selectableItem);
             }
         }
@@ -100,6 +118,22 @@ public class CustomEvents implements Behavior, Configurable<CustomEventsConfig> 
         }
 
         return false;
+    }
+
+    public SelectableItem getItemById(String id) {
+        Iterator<ItemCategory> it = SelectableItem.ALL_ITEMS.keySet().iterator();
+        while (it.hasNext()) {
+            ItemCategory key = it.next();
+            List<SelectableItem> selectableItemList = SelectableItem.ALL_ITEMS.get(key);
+            Iterator<SelectableItem> itItem = selectableItemList.iterator();
+            while (itItem.hasNext()) {
+                SelectableItem next = itItem.next();
+                if (next.getId().equals(id)) {
+                    return next;
+                }
+            }
+        }
+        return null;
     }
 
 }
