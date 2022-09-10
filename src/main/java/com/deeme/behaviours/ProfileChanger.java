@@ -62,7 +62,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     @Override
     public void onTickBehavior() {
         checkNPC();
-        if (config.condition == null || config.condition.get(api).toBoolean()) {
+        if (config.condition == null && config.condition.get(api).allows()) {
             if (!config.npcExtraCondition.active || (config.npcExtraCondition.active
                     && config.npcExtraCondition.npcCounter >= config.npcExtraCondition.npcsToKill)) {
                 config.npcExtraCondition.npcCounter = 0;

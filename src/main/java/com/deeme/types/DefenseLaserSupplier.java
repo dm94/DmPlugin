@@ -38,7 +38,7 @@ public class DefenseLaserSupplier implements LaserSelector, PrioritizedSupplier<
     private boolean shouldSab() {
         return this.sab.ENABLED && heroapi.getHealth().shieldPercent() <= sab.PERCENT
                 && heroapi.getLocalTarget().getHealth().getShield() > sab.NPC_AMOUNT
-                && (sab.CONDITION == null || sab.CONDITION.get(api).toBoolean());
+                && (sab.CONDITION == null || sab.CONDITION.get(api).allows());
     }
 
     private boolean shouldRsb() {

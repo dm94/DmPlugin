@@ -85,7 +85,7 @@ public class CustomEvents implements Behavior, Configurable<CustomEventsConfig> 
     }
 
     public boolean useKeyWithConditions(Condition condition, SelectableItem selectableItem) {
-        if (selectableItem != null && condition != null && condition.get(api).toBoolean()) {
+        if (selectableItem != null && condition != null && condition.get(api).allows()) {
             return useSelectableReadyWhenReady(selectableItem);
         }
         return false;
@@ -94,7 +94,7 @@ public class CustomEvents implements Behavior, Configurable<CustomEventsConfig> 
     public boolean useKeyWithConditions(ExtraKeyConditionsWithoutHealth extra) {
         if (extra.enable) {
             SelectableItem selectableItem = items.getItem(extra.Key);
-            if (selectableItem != null && extra.CONDITION != null && extra.CONDITION.get(api).toBoolean()) {
+            if (selectableItem != null && extra.CONDITION != null && extra.CONDITION.get(api).allows()) {
                 return useSelectableReadyWhenReady(selectableItem);
             }
         }

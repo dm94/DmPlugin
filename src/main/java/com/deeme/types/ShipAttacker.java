@@ -185,8 +185,11 @@ public class ShipAttacker {
     }
 
     private Character getAttackKey(Character defaultAmmo) {
-        Laser laser = getBestLaserAmmo();
+        if (defense != null) {
+            return defense.ammoKey;
+        }
 
+        Laser laser = getBestLaserAmmo();
         if (laser != null) {
             Character key = items.getKeyBind(laser);
             if (key != null) {
@@ -194,9 +197,6 @@ public class ShipAttacker {
             }
         }
 
-        if (defense != null) {
-            return defense.ammoKey;
-        }
         return defaultAmmo;
     }
 
@@ -261,7 +261,7 @@ public class ShipAttacker {
                     && heroapi.getHealth().hpPercent() > extra.HEALTH_RANGE.min
                     && target.getHealth().hpPercent() < extra.HEALTH_ENEMY_RANGE.max
                     && target.getHealth().hpPercent() > extra.HEALTH_ENEMY_RANGE.min
-                    && (extra.CONDITION == null || extra.CONDITION.get(api).toBoolean())) {
+                    && (extra.CONDITION == null || extra.CONDITION.get(api).allows())) {
                 return useSelectableReadyWhenReady(selectableItem);
             }
         }
