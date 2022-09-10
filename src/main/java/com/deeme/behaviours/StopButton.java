@@ -14,10 +14,14 @@ import com.github.manolo8.darkbot.modules.DisconnectModule;
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.other.Gui;
 import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BotAPI;
+import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.GameScreenAPI;
+import eu.darkbot.api.managers.HeroAPI;
+import eu.darkbot.api.managers.MovementAPI;
 import eu.darkbot.api.utils.Inject;
 
 @Feature(name = "StopButton", description = "Add a button to stop the bot completely")
@@ -25,7 +29,9 @@ public class StopButton implements Behavior, ExtraMenuProvider {
 
     protected final PluginAPI api;
     protected final BotAPI bot;
-
+    protected final HeroAPI heroapi;
+    protected final MovementAPI movement;
+    protected Collection<? extends Portal> portals;
     private final Gui lostConnectionGUI;
 
     public boolean stopBot = false;
@@ -46,6 +52,10 @@ public class StopButton implements Behavior, ExtraMenuProvider {
 
         this.api = api;
         this.bot = bot;
+        this.heroapi = api.getAPI(HeroAPI.class);
+        this.movement = api.getAPI(MovementAPI.class);
+        EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
+        this.portals = entities.getPortals();
 
         GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
         lostConnectionGUI = gameScreenAPI.getGui("lost_connection");
@@ -53,9 +63,21 @@ public class StopButton implements Behavior, ExtraMenuProvider {
 
     @Override
     public void onTickBehavior() {
-        if (stopBot && bot.getModule().canRefresh()) {
-            if (!isDisconnect() && !(bot.getModule() instanceof DisconnectModule)) {
-                bot.setModule(new DisconnectModule(null, "Stop Button"));
+        if (stopBot) {
+            if (bot.getModule().canRefresh()) {
+                if (!isDisconnect() && !(bot.getModule() instanceof DisconnectModule)) {
+                    bot.setModule(new DisconnectModule(null, "Stop Button"));
+                }
+            } else if (heroapi.getMap() != null && heroapi.getMap().isGG() && !portals.isEmpty()) {
+                Portal p = portals.stream().filter(m -> m.getTargetMap().isPresent() && !m.getTargetMap().get().isGG())
+                        .findFirst().orElse(null);
+                if (p != null && !p.isJumping()) {
+                    if (heroapi.distanceTo(p) < 200) {
+                        movement.jumpPortal(p);
+                    } else {
+                        movement.moveTo(p);
+                    }
+                }
             }
         }
         if (closeBot && isDisconnect()) {
