@@ -63,6 +63,8 @@ public class ExternalChat implements Task, Listener, ExtraMenuProvider {
         JPanel otherChatPanel = new JPanel((LayoutManager) new MigLayout(""));
         this.globalChatTextArea = new JTextArea();
         this.otherChatTextArea = new JTextArea();
+        globalChatTextArea.setEditable(false);
+        otherChatTextArea.setEditable(false);
         JScrollPane scroll = new JScrollPane(this.globalChatTextArea);
         scroll.getVerticalScrollBar().setUnitIncrement(15);
         globalChatPanel.add(scroll,
