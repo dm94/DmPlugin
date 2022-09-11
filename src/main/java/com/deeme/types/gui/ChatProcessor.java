@@ -6,12 +6,12 @@ import java.util.List;
 import javax.swing.JTextArea;
 import javax.swing.SwingWorker;
 
-public class ChatUI extends SwingWorker<List<String>, String> {
+public class ChatProcessor extends SwingWorker<List<String>, String> {
 
     private JTextArea globalChatTextArea;
     private ArrayList<String> globalChat = new ArrayList<>();
 
-    public ChatUI(JTextArea globalChatTextArea, ArrayList<String> globalChat) {
+    public ChatProcessor(JTextArea globalChatTextArea, ArrayList<String> globalChat) {
         this.globalChatTextArea = globalChatTextArea;
         this.globalChat = globalChat;
     }
