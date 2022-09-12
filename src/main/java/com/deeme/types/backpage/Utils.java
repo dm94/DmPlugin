@@ -96,7 +96,6 @@ public class Utils {
         if (data != null && data.contains("-")) {
             String[] strArray = data.split("-");
             if (strArray[1] != null) {
-                System.out.println(strArray[1]);
                 return strArray[1];
             }
 

@@ -16,12 +16,9 @@ import com.github.manolo8.darkbot.extensions.features.Feature;
 import com.github.manolo8.darkbot.modules.LootNCollectorModule;
 
 import eu.darkbot.api.PluginAPI;
-import eu.darkbot.api.game.entities.Station;
-import eu.darkbot.api.game.entities.Station.Refinery;
 import eu.darkbot.api.game.other.GameMap;
 import eu.darkbot.api.game.other.Location;
 import eu.darkbot.api.managers.AttackAPI;
-import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.MovementAPI;
 import eu.darkbot.api.managers.OreAPI;
@@ -32,10 +29,9 @@ import eu.darkbot.api.managers.StarSystemAPI.MapNotFoundException;
 import eu.darkbot.shared.modules.MapModule;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
-@Feature(name = "Palladium Hangar", description = "Collect palladium and change hangars to sell")
+@Feature(name = "Palladium Hangar (Old)", description = "Collect palladium and change hangars to sell")
 public class PaladiumModule extends LootNCollectorModule implements Configurable<PalladiumConfig> {
     protected PluginAPI api;
     protected OreAPI oreApi;
@@ -45,7 +41,6 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
     protected StatsAPI stats;
     private GameMap SELL_MAP;
     private GameMap ACTIVE_MAP;
-    private Collection<? extends Station> bases;
 
     private Main main;
     private OreTradeGui oreTradeOld;
@@ -108,9 +103,6 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
         this.movement = api.getAPI(MovementAPI.class);
         this.oreApi = api.getAPI(OreAPI.class);
         this.stats = api.getAPI(StatsAPI.class);
-
-        EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
-        this.bases = entities.getStations();
 
         StarSystemAPI starSystem = api.getAPI(StarSystemAPI.class);
         try {
@@ -303,30 +295,6 @@ public class PaladiumModule extends LootNCollectorModule implements Configurable
         if (configPa.goPortalChange)
             return super.canRefresh();
         return !heroapi.isAttacking() && !SharedFunctions.hasAttacker(heroapi, main);
-    }
-
-    private void sell() {
-        pet.setEnabled(false);
-        if (heroapi.getMap() != SELL_MAP) {
-            this.main.setModule(api.requireInstance(MapModule.class)).setTarget(this.SELL_MAP);
-        } else {
-            bases.stream().filter(b -> b instanceof Refinery && b.getLocationInfo().isInitialized())
-                    .findFirst().map(Refinery.class::cast).ifPresent(base -> {
-                        if (heroapi.distanceTo(base.getLocationInfo()) > 200) {
-                            double angle = base.angleTo(heroapi) + Math.random() * 0.2 - 0.1;
-                            movement.moveTo(Location.of(base.getLocationInfo().getCurrent(), angle,
-                                    100 + (100 * Math.random())));
-                        } else if (!heroapi.isMoving() && oreApi.showTrade(true, base)
-                                && System.currentTimeMillis() - 60_000 > sellClick) {
-                            oreApi.sellOre(Ore.PALLADIUM);
-                            sellClick = System.currentTimeMillis();
-                            if (oreApi.getAmount(Ore.PALLADIUM) < 15) {
-                                cargos++;
-                                oreApi.showTrade(false, base);
-                            }
-                        }
-                    });
-        }
     }
 
     private void sellOld() {
