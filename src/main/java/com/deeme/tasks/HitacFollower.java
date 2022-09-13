@@ -21,6 +21,7 @@ import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
+import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.GameLogAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.StarSystemAPI;
@@ -35,6 +36,7 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
     protected final HeroAPI hero;
     protected final GameLogAPI log;
     protected final StarSystemAPI star;
+    protected final ExtensionsAPI extensionsAPI;
     protected final Collection<? extends Npc> npcs;
 
     protected final Pattern pattern = Pattern.compile("[0-9]+-[0-9]+", Pattern.CASE_INSENSITIVE);
@@ -61,9 +63,11 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
+        this.extensionsAPI = api.getAPI(ExtensionsAPI.class);
         if (!Utils.discordCheck(auth.getAuthId())) {
             Utils.showDiscordDialog();
-            throw new UnsupportedOperationException("To use this option you need to be on my discord");
+            extensionsAPI.getFeatureInfo(this.getClass())
+                    .addFailure("To use this option you need to be on my discord", "Log in to my discord and reload");
         }
 
         this.api = api;
@@ -105,7 +109,7 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
 
     @EventHandler
     public void onLogMessage(GameLogAPI.LogMessageEvent message) {
-        if (followerConfig.enable) {
+        if (followerConfig.enable && extensionsAPI.getFeatureInfo(this.getClass()).isEnabled()) {
             String msg = message.getMessage();
             if (!msg.isEmpty() && msg.contains("Hitac")) {
                 if ((followerConfig.goToPVP && msg.contains("PvP")) || !msg.contains("PvP")) {

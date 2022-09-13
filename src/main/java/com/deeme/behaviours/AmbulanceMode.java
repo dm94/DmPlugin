@@ -18,6 +18,7 @@ import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem.Ability;
 import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BotAPI;
+import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.GroupAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
@@ -49,7 +50,9 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
 
         if (!Utils.discordCheck(auth.getAuthId())) {
             Utils.showDiscordDialog();
-            throw new UnsupportedOperationException("To use this option you need to be on my discord");
+            ExtensionsAPI extensionsAPI = api.getAPI(ExtensionsAPI.class);
+            extensionsAPI.getFeatureInfo(this.getClass())
+                    .addFailure("To use this option you need to be on my discord", "Log in to my discord and reload");
         }
 
         this.api = api;

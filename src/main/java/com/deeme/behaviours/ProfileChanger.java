@@ -15,6 +15,7 @@ import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.game.other.Lockable;
 import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BotAPI;
+import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.utils.Inject;
 
@@ -45,7 +46,9 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
 
         if (!Utils.discordCheck(auth.getAuthId())) {
             Utils.showDiscordDialog();
-            throw new UnsupportedOperationException("To use this option you need to be on my discord");
+            ExtensionsAPI extensionsAPI = api.getAPI(ExtensionsAPI.class);
+            extensionsAPI.getFeatureInfo(this.getClass())
+                    .addFailure("To use this option you need to be on my discord", "Log in to my discord and reload");
         }
 
         this.main = main;
@@ -62,7 +65,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     @Override
     public void onTickBehavior() {
         checkNPC();
-        if (config.condition == null && config.condition.get(api).allows()) {
+        if (config.condition == null || config.condition.get(api).allows()) {
             if (!config.npcExtraCondition.active || (config.npcExtraCondition.active
                     && config.npcExtraCondition.npcCounter >= config.npcExtraCondition.npcsToKill)) {
                 config.npcExtraCondition.npcCounter = 0;

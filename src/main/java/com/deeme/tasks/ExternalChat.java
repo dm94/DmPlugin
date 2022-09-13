@@ -24,6 +24,7 @@ import eu.darkbot.api.events.Listener;
 import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.extensions.Task;
 import eu.darkbot.api.managers.AuthAPI;
+import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.ChatAPI.MessageSentEvent;
 import eu.darkbot.api.utils.Inject;
 import eu.darkbot.util.Popups;
@@ -51,7 +52,9 @@ public class ExternalChat implements Task, Listener, ExtraMenuProvider {
 
         if (!Utils.discordCheck(auth.getAuthId())) {
             Utils.showDiscordDialog();
-            throw new UnsupportedOperationException("To use this option you need to be on my discord");
+            ExtensionsAPI extensionsAPI = api.getAPI(ExtensionsAPI.class);
+            extensionsAPI.getFeatureInfo(this.getClass())
+                    .addFailure("To use this option you need to be on my discord", "Log in to my discord and reload");
         }
 
         this.api = api;

@@ -120,6 +120,7 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
         this.lootModule = new LootCollectorModule(api);
         this.currentStatus = State.WAIT;
         this.lastStatus = State.WAIT;
+        this.activeHangar = null;
     }
 
     @Override
@@ -129,7 +130,7 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
 
     @Override
     public boolean canRefresh() {
-        return !heroapi.isMoving() && !attackApi.hasTarget() && lootModule.canRefresh();
+        return !heroapi.isMoving() && !attackApi.hasTarget();
     }
 
     private boolean canBeDisconnected() {
@@ -174,6 +175,7 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
                     && canBeDisconnected()) {
                 this.currentStatus = State.DEPOSIT_FULL_SWITCHING_HANGAR;
                 if (botApi.getModule().getClass() != HangarSwitcher.class) {
+                    this.activeHangar = null;
                     botApi.setModule(new HangarSwitcher(main, api, configPa.sellHangar));
                 }
             } else {
@@ -199,6 +201,7 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
                         activeHangar)) {
             this.currentStatus = State.SWITCHING_PALA_HANGAR;
             if (botApi.getModule().getClass() != HangarSwitcher.class) {
+                this.activeHangar = null;
                 botApi.setModule(new HangarSwitcher(main, api, configPa.collectHangar));
             }
         }
