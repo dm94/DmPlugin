@@ -76,7 +76,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
 
     private void checkNPC() {
         Lockable target = hero.getLocalTarget();
-        if (target != null && target.isValid()) {
+        if (target != null && target.isValid() && target.isOwned()) {
             if (target.getId() != lastNPCID) {
                 lastNPCID = target.getId();
                 String name = target.getEntityInfo().getUsername();

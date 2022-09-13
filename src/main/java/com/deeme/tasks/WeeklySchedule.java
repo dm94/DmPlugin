@@ -57,13 +57,15 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
         this.hangarChanger = new HangarChanger(main);
         this.lostConnection = main.guiManager.lostConnection;
         this.nextCheck = 0;
+        this.profileToUse = null;
         setup();
     }
 
     @Override
     public void tickStopped() {
-        if (stopBot)
+        if (stopBot) {
             tick();
+        }
     }
 
     @Override
@@ -82,7 +84,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
                 e.printStackTrace();
             }
         }
-        if (main.hero.map.gg) {
+        if (main.hero.getMap().isGG()) {
             return;
         }
 
@@ -164,14 +166,16 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
                 }
 
                 setProfile();
-                nextCheck = System.currentTimeMillis() + 300000;
+                nextCheck = System.currentTimeMillis() + 60000;
             }
         }
     }
 
     private void setProfile() {
-        if (profileToUse != null && !main.hero.map.gg) {
-            main.setConfig(profileToUse.BOT_PROFILE);
+        if (main.featureRegistry.getFeatureInfo(this.getClass()).isEnabled()) {
+            if (profileToUse != null && !main.hero.map.gg) {
+                main.setConfig(profileToUse.BOT_PROFILE);
+            }
         }
     }
 
@@ -195,6 +199,5 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
         }
 
         weeklyConfig.updateHangarList = true;
-        updateProfileToUse();
     }
 }

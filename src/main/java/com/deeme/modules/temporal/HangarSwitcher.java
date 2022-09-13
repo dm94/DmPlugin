@@ -87,6 +87,7 @@ public class HangarSwitcher extends TemporalModule {
     @Override
     public void goBack() {
         bot.setRunning(true);
+        Main.API.handleRefresh();
         super.goBack();
     }
 
@@ -97,49 +98,52 @@ public class HangarSwitcher extends TemporalModule {
 
     @Override
     public void onTickModule() {
-        if (hangarToChage == null) {
-            this.currentStatus = State.NO_HANGAR_ERROR;
-            goBack();
-        }
-        if (waitinUntil > System.currentTimeMillis()) {
-            return;
-        }
-        if (activeHangar == null) {
-            updateHangarActive();
-            return;
-        } else if (!activeHangar.equals(hangarToChage)) {
-            if (!heroapi.isMoving()) {
-                if (isDisconnect()) {
-                    if (!backpageAPI.isInstanceValid()) {
-                        this.currentStatus = State.SID_KO;
-                        waitinUntil = System.currentTimeMillis() + 60000;
-                        return;
-                    } else {
-                        if (hangarChanged || hangarTry >= 3) {
-                            this.currentStatus = State.RELOAD_GAME;
-                            Main.API.handleRefresh();
-                            goBack();
+        try {
+            if (hangarToChage == null) {
+                this.currentStatus = State.NO_HANGAR_ERROR;
+                goBack();
+            }
+            if (waitinUntil > System.currentTimeMillis()) {
+                return;
+            }
+            if (activeHangar == null) {
+                updateHangarActive();
+                return;
+            } else if (!activeHangar.equals(hangarToChage)) {
+                if (!heroapi.isMoving()) {
+                    if (isDisconnect()) {
+                        if (!backpageAPI.isInstanceValid()) {
+                            this.currentStatus = State.SID_KO;
+                            waitinUntil = System.currentTimeMillis() + 60000;
+                            return;
                         } else {
-                            this.currentStatus = State.SWITCHING_HANGAR;
-                            if (changeHangar(hangarToChage)) {
-                                System.out.println("Hangar changed to: " + hangarToChage);
-                                hangarChanged = true;
-                                this.currentStatus = State.HANGAR_CHANGED;
-                            } else if (hangarTry < 4) {
-                                hangarTry++;
+                            if (hangarChanged || hangarTry >= 3) {
+                                this.currentStatus = State.RELOAD_GAME;
+                                goBack();
+                            } else {
+                                this.currentStatus = State.SWITCHING_HANGAR;
+                                if (changeHangar(hangarToChage)) {
+                                    System.out.println("Hangar changed to: " + hangarToChage);
+                                    hangarChanged = true;
+                                    this.currentStatus = State.HANGAR_CHANGED;
+                                } else if (hangarTry < 4) {
+                                    hangarTry++;
+                                }
+                                this.activeHangar = null;
+                                waitinUntil = System.currentTimeMillis() + 120000;
                             }
-                            this.activeHangar = null;
-                            waitinUntil = System.currentTimeMillis() + 120000;
                         }
+                    } else {
+                        disconnect();
                     }
                 } else {
-                    disconnect();
+                    goBack();
                 }
             } else {
                 goBack();
             }
-        } else {
-            goBack();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

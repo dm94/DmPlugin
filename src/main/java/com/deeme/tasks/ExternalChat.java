@@ -1,16 +1,18 @@
 package com.deeme.tasks;
 
-import java.awt.LayoutManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-
+import java.awt.LayoutManager;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 import javax.swing.text.DefaultCaret;
+import net.miginfocom.swing.MigLayout;
 
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
@@ -28,13 +30,13 @@ import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.ChatAPI.MessageSentEvent;
 import eu.darkbot.api.utils.Inject;
 import eu.darkbot.util.Popups;
-import net.miginfocom.swing.MigLayout;
 
 @Feature(name = "ExternalChat", description = "See the chat")
 public class ExternalChat implements Task, Listener, ExtraMenuProvider {
 
     protected final PluginAPI api;
-    private JTabbedPane tabbedPane;
+    protected final ExtensionsAPI extensionsAPI;
+    private JPanel mainPanel;
     private JTextArea globalChatTextArea;
     private JTextArea otherChatTextArea;
     private ArrayList<String> globalChat = new ArrayList<>();
@@ -50,17 +52,17 @@ public class ExternalChat implements Task, Listener, ExtraMenuProvider {
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
+        this.extensionsAPI = api.getAPI(ExtensionsAPI.class);
         if (!Utils.discordCheck(auth.getAuthId())) {
             Utils.showDiscordDialog();
-            ExtensionsAPI extensionsAPI = api.getAPI(ExtensionsAPI.class);
             extensionsAPI.getFeatureInfo(this.getClass())
                     .addFailure("To use this option you need to be on my discord", "Log in to my discord and reload");
         }
 
         this.api = api;
 
-        this.tabbedPane = new JTabbedPane();
-        JPanel panel = new JPanel((LayoutManager) new MigLayout(""));
+        this.mainPanel = new JPanel((LayoutManager) new MigLayout(""));
+        JTabbedPane tabbedPane = new JTabbedPane();
         JPanel globalChatPanel = new JPanel((LayoutManager) new MigLayout(""));
         JPanel otherChatPanel = new JPanel((LayoutManager) new MigLayout(""));
         this.globalChatTextArea = new JTextArea();
@@ -81,9 +83,16 @@ public class ExternalChat implements Task, Listener, ExtraMenuProvider {
                         + (Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 1.3D) + ", width :"
                         + (Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 3.0D) + ":"
                         + (Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 1.4D));
-        this.tabbedPane.add(globalChatPanel, "Global");
-        this.tabbedPane.add(otherChatPanel, "Others");
-        panel.add(this.tabbedPane, "span");
+        JButton clearBtn = new JButton("Clear");
+        clearBtn.addActionListener(e -> {
+            this.globalChat.clear();
+            this.otherChats.clear();
+            SwingUtilities.getWindowAncestor(clearBtn).setVisible(false);
+        });
+        tabbedPane.add(globalChatPanel, "Global");
+        tabbedPane.add(otherChatPanel, "Others");
+        this.mainPanel.add(tabbedPane, "span");
+        this.mainPanel.add(clearBtn, "span");
     }
 
     @Override
@@ -92,11 +101,17 @@ public class ExternalChat implements Task, Listener, ExtraMenuProvider {
 
     @EventHandler
     public void onChatMessage(MessageSentEvent event) {
-        String message = event.getMessage().getUsername() + " | " + event.getMessage().getMessage();
-        if (event.getRoom().toLowerCase().contains("global")) {
-            globalChat.add(message);
-        } else {
-            otherChats.add(event.getRoom() + " | " + message);
+        if (extensionsAPI.getFeatureInfo(this.getClass()).isEnabled()) {
+            String message = String.format("%s %s : %s",
+                    (event.getMessage().getClanTag() != "ERROR" ? "[" + event.getMessage().getClanTag() + "]" : ""),
+                    event.getMessage().getUsername(),
+                    event.getMessage().getMessage());
+
+            if (event.getRoom().toLowerCase().contains("global")) {
+                globalChat.add(message);
+            } else {
+                otherChats.add(event.getRoom() + " | " + message);
+            }
         }
     }
 
@@ -115,6 +130,6 @@ public class ExternalChat implements Task, Listener, ExtraMenuProvider {
         caretOthers.setUpdatePolicy(1);
         new ChatProcessor(this.globalChatTextArea, this.globalChat).execute();
         new ChatProcessor(this.otherChatTextArea, this.otherChats).execute();
-        Popups.showMessageAsync("Chat", new Object[] { this.tabbedPane }, -1);
+        Popups.showMessageAsync("Chat", new Object[] { this.mainPanel }, -1);
     }
 }
