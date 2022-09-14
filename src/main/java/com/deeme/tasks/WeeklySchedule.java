@@ -1,19 +1,30 @@
 package com.deeme.tasks;
 
+import com.deeme.modules.PallladiumHangar;
+import com.deeme.modules.temporal.HangarSwitcher;
 import com.deeme.types.VerifierChecker;
-import com.deeme.types.backpage.HangarChanger;
 import com.deeme.types.backpage.Utils;
 import com.deeme.types.config.Hour;
 import com.deeme.types.config.Profile;
 import com.deeme.types.config.WeeklyConfig;
 import com.deeme.types.gui.ShipSupplier;
 import com.github.manolo8.darkbot.Main;
-import com.github.manolo8.darkbot.core.itf.Configurable;
-import com.github.manolo8.darkbot.core.itf.InstructionProvider;
-import com.github.manolo8.darkbot.core.itf.Task;
-import com.github.manolo8.darkbot.core.objects.Gui;
-import com.github.manolo8.darkbot.extensions.features.Feature;
-import com.github.manolo8.darkbot.utils.AuthAPI;
+import com.github.manolo8.darkbot.backpage.hangar.Hangar;
+import com.github.manolo8.darkbot.modules.DisconnectModule;
+
+import eu.darkbot.api.PluginAPI;
+import eu.darkbot.api.config.ConfigSetting;
+import eu.darkbot.api.extensions.Configurable;
+import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.extensions.InstructionProvider;
+import eu.darkbot.api.extensions.Task;
+import eu.darkbot.api.game.other.Gui;
+import eu.darkbot.api.managers.AuthAPI;
+import eu.darkbot.api.managers.BotAPI;
+import eu.darkbot.api.managers.ExtensionsAPI;
+import eu.darkbot.api.managers.GameScreenAPI;
+import eu.darkbot.api.managers.HeroAPI;
+import eu.darkbot.api.utils.Inject;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
@@ -21,15 +32,20 @@ import java.util.Arrays;
 
 @Feature(name = "WeeklySchedule", description = "Use different module, map for a weekly schedule")
 public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, InstructionProvider {
-
+    protected final PluginAPI api;
+    protected final ExtensionsAPI extensionsAPI;
+    protected final HeroAPI heroapi;
+    protected final BotAPI botApi;
     private WeeklyConfig weeklyConfig;
     private Main main;
     private long nextCheck = 0;
-    private HangarChanger hangarChanger;
     private boolean changingHangar = false;
     private boolean stopBot = false;
-    private Gui lostConnection;
+    private Gui lostConnectionGUI;
     Profile profileToUse = null;
+    private Integer activeHangar = null;
+    private long disconectTime = 0;
+    private long nextCheckCurrentHangar = 0;
 
     @Override
     public String instructions() {
@@ -39,89 +55,103 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
                 "The hangars to be used have to be in favourites";
     }
 
-    @Override
-    public void setConfig(WeeklyConfig con) {
-        this.weeklyConfig = con;
-        setup();
+    public WeeklySchedule(Main main, PluginAPI api) {
+        this(main, api, api.requireAPI(AuthAPI.class));
     }
 
-    @Override
-    public void install(Main m) {
+    @Inject
+    public WeeklySchedule(Main main, PluginAPI api, AuthAPI auth) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
-            return;
-        VerifierChecker.checkAuthenticity();
+            throw new SecurityException();
+        VerifierChecker.checkAuthenticity(auth);
 
         Utils.showDonateDialog();
 
-        this.main = m;
-        this.hangarChanger = new HangarChanger(main);
-        this.lostConnection = main.guiManager.lostConnection;
+        this.main = main;
+        this.api = api;
+        this.heroapi = api.getAPI(HeroAPI.class);
+        this.botApi = api.getAPI(BotAPI.class);
+        this.extensionsAPI = api.getAPI(ExtensionsAPI.class);
+
+        GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
+        lostConnectionGUI = gameScreenAPI.getGui("lost_connection");
+
         this.nextCheck = 0;
         this.profileToUse = null;
-        setup();
+        this.activeHangar = null;
     }
 
     @Override
-    public void tickStopped() {
-        if (stopBot) {
-            tick();
+    public void setConfig(ConfigSetting<WeeklyConfig> arg0) {
+        this.weeklyConfig = arg0.getValue();
+        for (int i = 0; i < 24; i++) {
+            String oneHour = String.format("%02d", i);
+            Hour hour = this.weeklyConfig.Hours_Changes.get(oneHour);
+            if (hour == null) {
+                hour = new Hour();
+                if (!oneHour.equals("ERROR") && !oneHour.isEmpty()) {
+                    weeklyConfig.Hours_Changes.put(oneHour, hour);
+                }
+            }
+        }
+
+        this.weeklyConfig.updateHangarList = true;
+    }
+
+    @Override
+    public void onBackgroundTick() {
+        if (stopBot || changingHangar) {
+            onTickTask();
         }
     }
 
     @Override
-    public void tick() {
+    public void onTickTask() {
         if (!weeklyConfig.activate) {
             return;
         }
 
-        if (weeklyConfig.updateHangarList && main.backpage.isInstanceValid()) {
-            try {
-                main.backpage.hangarManager.updateHangarList();
-                if (ShipSupplier.updateOwnedShips(
-                        main.backpage.hangarManager.getHangarList().getData().getRet().getShipInfos()))
-                    weeklyConfig.updateHangarList = false;
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        if (main.hero.getMap().isGG()) {
+        tryUpdateHangarList();
+        if (heroapi.getMap().isGG()) {
             return;
         }
 
         if (weeklyConfig.changeHangar && profileToUse != null && profileToUse.hangarId != null
-                && !main.config.GENERAL.CURRENT_MODULE.contains("Palladium Hangar")) {
-            if (hangarChanger.activeHangar != null) {
-                if (!profileToUse.hangarId.equals(hangarChanger.activeHangar)) {
-                    if (hangarChanger.isDisconnect()) {
-                        hangarChanger.disconnectChangeHangarAndReload(profileToUse.hangarId);
-                    } else {
-                        hangarChanger.setDisconnectModule("WeeklySchedule: To change hangar");
+                && !isRunningPalladiumModule()) {
+            if (activeHangar != null) {
+                if (!profileToUse.hangarId.equals(activeHangar)) {
+                    if (isDisconnect()) {
+                        if (botApi.getModule().getClass() != HangarSwitcher.class) {
+                            botApi.setModule(new HangarSwitcher(main, api, profileToUse.hangarId));
+                        }
+                        this.activeHangar = null;
+                    } else if (botApi.getModule().getClass() != DisconnectModule.class) {
+                        botApi.setModule(new DisconnectModule(null, "WeeklySchedule: To change hangar"));
                     }
                     changingHangar = true;
-                    return;
                 } else {
                     changingHangar = false;
                 }
             } else {
-                hangarChanger.updateHangarActive();
-                changingHangar = false;
-                return;
+                updateHangarActive();
             }
+        } else {
+            changingHangar = false;
         }
-
         if (!changingHangar) {
             updateProfileToUse();
 
             if (stopBot) {
-                if (!main.hero.map.gg && !lostConnection.visible) {
-                    hangarChanger.disconectTime = System.currentTimeMillis();
-                    hangarChanger.setDisconnectModule("Stop by WeeklySchedule");
+                if (!heroapi.getMap().isGG() && !isDisconnect()) {
+                    disconectTime = System.currentTimeMillis();
+                    botApi.setModule(new DisconnectModule(null, "Stop by WeeklySchedule"));
                 }
-            } else if (hangarChanger.disconectTime > 0) {
-                hangarChanger.reloadAfterDisconnect(true);
+            } else if (disconectTime > 0) {
+                disconectTime = 0;
+                Main.API.handleRefresh();
+                botApi.setRunning(true);
             }
         }
-
     }
 
     private void updateProfileToUse() {
@@ -172,32 +202,54 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
     }
 
     private void setProfile() {
-        if (main.featureRegistry.getFeatureInfo(this.getClass()).isEnabled()) {
-            if (profileToUse != null && !main.hero.map.gg) {
+        if (extensionsAPI.getFeatureInfo(this.getClass()).isEnabled()) {
+            if (profileToUse != null && heroapi.getMap() != null && !heroapi.getMap().isGG()) {
                 main.setConfig(profileToUse.BOT_PROFILE);
             }
         }
     }
 
-    private void setup() {
-        if (main == null || weeklyConfig == null)
+    private boolean isRunningPalladiumModule() {
+        return botApi.getModule().getClass() == PallladiumHangar.class;
+    }
+
+    private void tryUpdateHangarList() {
+        if (!weeklyConfig.updateHangarList || changingHangar || !main.backpage.isInstanceValid()) {
             return;
-
-        AuthAPI auth = VerifierChecker.getAuthApi();
-        if (!auth.isAuthenticated())
-            auth.setupAuth();
-
-        for (int i = 0; i < 24; i++) {
-            String oneHour = String.format("%02d", i);
-            Hour hour = this.weeklyConfig.Hours_Changes.get(oneHour);
-            if (hour == null) {
-                hour = new Hour();
-                if (!oneHour.equals("ERROR") && !oneHour.isEmpty()) {
-                    weeklyConfig.Hours_Changes.put(oneHour, hour);
-                }
-            }
         }
 
-        weeklyConfig.updateHangarList = true;
+        try {
+            this.main.backpage.hangarManager.updateHangarList();
+            if (ShipSupplier.updateOwnedShips(
+                    this.main.backpage.hangarManager.getHangarList().getData().getRet().getShipInfos())) {
+                this.weeklyConfig.updateHangarList = false;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private boolean isDisconnect() {
+        return lostConnectionGUI != null && lostConnectionGUI.isVisible();
+    }
+
+    private void updateHangarActive() {
+        if (nextCheckCurrentHangar > System.currentTimeMillis() || !main.backpage.isInstanceValid()) {
+            return;
+        }
+        try {
+            nextCheckCurrentHangar = System.currentTimeMillis() + 30000;
+            this.main.backpage.hangarManager.updateHangarList();
+            this.main.backpage.hangarManager.updateCurrentHangar();
+            activeHangar = this.main.backpage.hangarManager.getHangarList().getData().getRet().getHangars().stream()
+                    .filter(Hangar::isActive)
+                    .map(Hangar::getHangarId)
+                    .findFirst()
+                    .orElse(null);
+
+            System.out.println("Current hangar: " + activeHangar);
+        } catch (Exception ignored) {
+            activeHangar = null;
+        }
     }
 }

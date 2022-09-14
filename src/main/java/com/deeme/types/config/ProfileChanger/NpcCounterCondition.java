@@ -19,5 +19,5 @@ public class NpcCounterCondition {
 
     @Option("NPCs killed")
     @Num(min = 0, max = 1000000, step = 1)
-    public transient int npcCounter = 0;
+    public int npcCounter = 0;
 }
