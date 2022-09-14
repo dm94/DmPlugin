@@ -117,7 +117,10 @@ public class HangarSwitcher extends TemporalModule {
                             waitinUntil = System.currentTimeMillis() + 60000;
                             return;
                         } else {
-                            if (hangarChanged || hangarTry >= 3) {
+                            if (hangarChanged) {
+                                waitinUntil = System.currentTimeMillis() + 10000;
+                                activeHangar = null;
+                            } else if (hangarTry >= 3) {
                                 this.currentStatus = State.RELOAD_GAME;
                                 goBack();
                             } else {
@@ -126,11 +129,12 @@ public class HangarSwitcher extends TemporalModule {
                                     System.out.println("Hangar changed to: " + hangarToChage);
                                     hangarChanged = true;
                                     this.currentStatus = State.HANGAR_CHANGED;
+                                    waitinUntil = System.currentTimeMillis() + 10000;
                                 } else if (hangarTry < 4) {
                                     hangarTry++;
+                                    waitinUntil = System.currentTimeMillis() + 20000;
                                 }
                                 this.activeHangar = null;
-                                waitinUntil = System.currentTimeMillis() + 120000;
                             }
                         }
                     } else {
@@ -165,13 +169,11 @@ public class HangarSwitcher extends TemporalModule {
                 && !logout.isVisible() && !heroapi.isMoving()) {
             System.out.println("Disconnecting...");
             logout.show(true);
-            waitinUntil = System.currentTimeMillis() + 21000;
         }
     }
 
     private void updateHangarActive() {
         this.currentStatus = State.LOADING_HANGARS;
-        waitinUntil = System.currentTimeMillis() + 5000;
         try {
             hangarManager.updateHangarList();
             hangarManager.updateCurrentHangar();

@@ -20,11 +20,13 @@ import eu.darkbot.api.extensions.Module;
 import eu.darkbot.api.game.entities.Station;
 import eu.darkbot.api.game.entities.Station.Refinery;
 import eu.darkbot.api.game.other.GameMap;
+import eu.darkbot.api.game.other.Gui;
 import eu.darkbot.api.game.other.Location;
 import eu.darkbot.api.managers.AttackAPI;
 import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
+import eu.darkbot.api.managers.GameScreenAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.MovementAPI;
 import eu.darkbot.api.managers.OreAPI;
@@ -38,7 +40,7 @@ import eu.darkbot.shared.modules.LootCollectorModule;
 import eu.darkbot.shared.modules.MapModule;
 import eu.darkbot.shared.utils.SafetyFinder;
 
-@Feature(name = "Palladium Hangar", description = "New version. Collect palladium and change hangars to sell")
+@Feature(name = "Palladium Hangar", description = "Collect palladium and change hangars to sell")
 public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
     protected final Main main;
     protected final PluginAPI api;
@@ -52,6 +54,7 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
     private GameMap SELL_MAP;
     private GameMap ACTIVE_MAP;
     private Collection<? extends Station> bases;
+    private Gui tradeGui;
 
     private PalladiumConfig configPa;
     protected LootCollectorModule lootModule;
@@ -102,6 +105,9 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
         this.oreApi = api.getAPI(OreAPI.class);
         this.stats = api.getAPI(StatsAPI.class);
         this.pet = api.getAPI(PetAPI.class);
+        GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
+        tradeGui = gameScreenAPI.getGui("ore_trade");
+
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
         this.bases = entities.getStations();
 
@@ -185,6 +191,9 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
         } else if (activeHangar.equals(configPa.collectHangar)) {
             if (heroapi.getMap() != null && heroapi.getMap().getId() == this.ACTIVE_MAP.getId()) {
                 this.currentStatus = State.LOOT_PALADIUM;
+                if (tradeGui != null && tradeGui.isVisible()) {
+                    tradeGui.setVisible(false);
+                }
                 lootModule.onTickModule();
             } else {
                 this.currentStatus = State.HANGAR_PALA_OTHER_MAP;
@@ -192,7 +201,9 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
                 if (configPa.sellOnDie && oreApi.getAmount(Ore.PALLADIUM) > 15) {
                     sell();
                 } else {
-                    oreApi.showTrade(false, null);
+                    if (tradeGui != null && tradeGui.isVisible()) {
+                        tradeGui.setVisible(false);
+                    }
                     this.main.setModule(api.requireInstance(MapModule.class)).setTarget(this.ACTIVE_MAP);
                 }
             }

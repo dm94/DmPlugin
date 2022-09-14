@@ -7,12 +7,11 @@ import javax.swing.JComponent;
 
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
-import com.github.manolo8.darkbot.Main;
-import com.github.manolo8.darkbot.core.itf.ExtraMenuProvider;
 import com.github.manolo8.darkbot.modules.DisconnectModule;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.extensions.Behavior;
+import eu.darkbot.api.extensions.ExtraMenus;
 import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.other.Gui;
@@ -25,7 +24,7 @@ import eu.darkbot.api.managers.MovementAPI;
 import eu.darkbot.api.utils.Inject;
 
 @Feature(name = "StopButton", description = "Add a button to stop the bot completely")
-public class StopButton implements Behavior, ExtraMenuProvider {
+public class StopButton implements Behavior, ExtraMenus {
 
     protected final PluginAPI api;
     protected final BotAPI bot;
@@ -94,9 +93,9 @@ public class StopButton implements Behavior, ExtraMenuProvider {
     }
 
     @Override
-    public Collection<JComponent> getExtraMenuItems(Main arg0) {
+    public Collection<JComponent> getExtraMenuItems(PluginAPI pluginAPI) {
         return Arrays.asList(
-                createSeparator("DmPlugin"),
+                createSeparator("StopButton"),
                 create("Stop Bot", e -> {
                     stopBot = true;
                 }), create("Stop Bot + Close", e -> {

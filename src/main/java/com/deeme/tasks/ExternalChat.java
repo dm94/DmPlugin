@@ -17,12 +17,11 @@ import net.miginfocom.swing.MigLayout;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 import com.deeme.types.gui.ChatProcessor;
-import com.github.manolo8.darkbot.Main;
-import com.github.manolo8.darkbot.core.itf.ExtraMenuProvider;
 import java.awt.Toolkit;
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.events.EventHandler;
 import eu.darkbot.api.events.Listener;
+import eu.darkbot.api.extensions.ExtraMenus;
 import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.extensions.Task;
 import eu.darkbot.api.managers.AuthAPI;
@@ -32,7 +31,7 @@ import eu.darkbot.api.utils.Inject;
 import eu.darkbot.util.Popups;
 
 @Feature(name = "ExternalChat", description = "See the chat")
-public class ExternalChat implements Task, Listener, ExtraMenuProvider {
+public class ExternalChat implements Task, Listener, ExtraMenus {
 
     protected final PluginAPI api;
     protected final ExtensionsAPI extensionsAPI;
@@ -116,8 +115,9 @@ public class ExternalChat implements Task, Listener, ExtraMenuProvider {
     }
 
     @Override
-    public Collection<JComponent> getExtraMenuItems(Main main) {
+    public Collection<JComponent> getExtraMenuItems(PluginAPI pluginAPI) {
         return Arrays.asList(
+                createSeparator("ExternalChat"),
                 create("Show chat", e -> {
                     showChat();
                 }));
