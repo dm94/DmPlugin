@@ -24,6 +24,7 @@ public class JDayChangeTable extends InfoTable<GenericTableModel, Hour> implemen
         super.getRowSorter().setSortKeys(Arrays.asList(new RowSorter.SortKey(0, SortOrder.ASCENDING)));
         super.updateUI();
     }
+
     @Override
     public void setValueAt(Object value, int row, int column) {
         super.setValueAt(value, row, column);
@@ -31,7 +32,8 @@ public class JDayChangeTable extends InfoTable<GenericTableModel, Hour> implemen
 
     public static class RenderColors extends DefaultTableCellRenderer {
         @Override
-        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+                int row, int col) {
             if (value.toString().contains("Stop")) {
                 setBackground(Color.lightGray);
             } else if (value.toString().contains("P1")) {
@@ -42,7 +44,7 @@ public class JDayChangeTable extends InfoTable<GenericTableModel, Hour> implemen
                 setBackground(new Color(133, 118, 144));
             } else if (value.toString().contains("P4")) {
                 setBackground(new Color(97, 141, 176));
-            }else {
+            } else {
                 setBackground(Color.DARK_GRAY);
             }
             return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);

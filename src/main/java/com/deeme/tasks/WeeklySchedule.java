@@ -30,6 +30,9 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+
 @Feature(name = "WeeklySchedule", description = "Use different module, map for a weekly schedule")
 public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, InstructionProvider {
     protected final PluginAPI api;
@@ -46,6 +49,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
     private Integer activeHangar = null;
     private long disconectTime = 0;
     private long nextCheckCurrentHangar = 0;
+    private String lastCheck = "";
 
     @Override
     public String instructions() {
@@ -57,6 +61,11 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
 
     public WeeklySchedule(Main main, PluginAPI api) {
         this(main, api, api.requireAPI(AuthAPI.class));
+    }
+
+    public JComponent beforeConfig() {
+        JLabel hourNow = new JLabel("Last Check: " + lastCheck);
+        return hourNow;
     }
 
     @Inject
@@ -144,7 +153,9 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
             if (stopBot) {
                 if (!heroapi.getMap().isGG() && !isDisconnect()) {
                     disconectTime = System.currentTimeMillis();
-                    botApi.setModule(new DisconnectModule(null, "Stop by WeeklySchedule"));
+                    if (botApi.getModule().getClass() != DisconnectModule.class) {
+                        botApi.setModule(new DisconnectModule(null, "Stop by WeeklySchedule"));
+                    }
                 }
             } else if (disconectTime > 0) {
                 disconectTime = 0;
@@ -158,6 +169,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
         if (nextCheck < System.currentTimeMillis()) {
             LocalDateTime da = LocalDateTime.now();
             int currentHour = da.getHour();
+            lastCheck = String.format("%02d", da.getHour()) + ":" + String.format("%02d", da.getMinute());
             Hour hour = this.weeklyConfig.Hours_Changes.get(String.format("%02d", currentHour));
             String profile = "";
             if (hour != null) {

@@ -16,6 +16,7 @@ import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.entities.Player;
 import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.entities.Ship;
+import eu.darkbot.api.game.items.SelectableItem.Cpu;
 import eu.darkbot.api.game.items.SelectableItem.Special;
 import eu.darkbot.api.game.other.GameMap;
 import eu.darkbot.api.managers.AuthAPI;
@@ -61,6 +62,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     protected long laserTime;
     protected long fixTimes;
     protected long clickDelay;
+    protected long lastTimeAttack = 0;
 
     private SafetyFinder safety;
     private double lastDistanceTarget = 1000;
@@ -138,6 +140,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     public void onTickModule() {
         if (!pvpConfig.move || safety.tick()) {
             if (getTarget()) {
+                lastTimeAttack = System.currentTimeMillis();
                 if (pvpConfig.changeConfig) {
                     setConfigToUse();
                 }
@@ -159,7 +162,6 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
                 shipAttacker.useKeyWithConditions(pvpConfig.ISH, Special.ISH_01);
                 shipAttacker.useKeyWithConditions(pvpConfig.SMB, Special.SMB_01);
                 shipAttacker.useKeyWithConditions(pvpConfig.PEM, Special.EMP_01);
-                shipAttacker.useKeyWithConditions(pvpConfig.otherKey, null);
 
                 shipAttacker.tryAttackOrFix();
 
@@ -170,6 +172,11 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
                 attackConfigLost = false;
                 target = null;
                 shipAttacker.resetDefenseData();
+                if (pvpConfig.autoCloak.autoCloakShip && !heroapi.isInvisible()
+                        && lastTimeAttack < (System.currentTimeMillis()
+                                + (pvpConfig.autoCloak.secondsOfWaiting * 1000))) {
+                    shipAttacker.useSelectableReadyWhenReady(Cpu.CL04K);
+                }
                 if (pvpConfig.move) {
                     if (pvpConfig.changeConfig) {
                         heroapi.setRoamMode();

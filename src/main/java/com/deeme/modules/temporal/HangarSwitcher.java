@@ -32,6 +32,7 @@ public class HangarSwitcher extends TemporalModule {
     private long waitinUntil = 0;
     private int hangarTry = 0;
     private boolean hangarChanged = false;
+    private int checkCount = 0;
 
     private enum State {
         WAIT("Waiting"),
@@ -67,6 +68,7 @@ public class HangarSwitcher extends TemporalModule {
         this.bot = api.getAPI(BotAPI.class);
         this.backpageAPI = api.getAPI(BackpageAPI.class);
         this.hangarToChage = hangar;
+        this.checkCount = 0;
 
         GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
         lostConnectionGUI = gameScreenAPI.getGui("lost_connection");
@@ -120,6 +122,10 @@ public class HangarSwitcher extends TemporalModule {
                             if (hangarChanged) {
                                 waitinUntil = System.currentTimeMillis() + 10000;
                                 activeHangar = null;
+                                checkCount++;
+                                if (checkCount > 6) {
+                                    hangarChanged = false;
+                                }
                             } else if (hangarTry >= 3) {
                                 this.currentStatus = State.RELOAD_GAME;
                                 goBack();
