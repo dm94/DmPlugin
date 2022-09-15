@@ -17,7 +17,7 @@ public class DefenseLaserSupplier implements LaserSelector, PrioritizedSupplier<
     private boolean useRsb, useRcb, useSab, rsbActive = false;
 
     private Sab sab;
-    private long usedRsb;
+    private long usedRsb = 0;
 
     public DefenseLaserSupplier(PluginAPI api, HeroAPI heroapi, HeroItemsAPI items, Sab sab, boolean rsbActive) {
         this.api = api;
@@ -28,10 +28,9 @@ public class DefenseLaserSupplier implements LaserSelector, PrioritizedSupplier<
     }
 
     public Laser get() {
-        getPriority();
-        return useRcb ? Laser.RCB_140
-                : useRsb ? Laser.RSB_75
-                        : useSab ? Laser.SAB_50
+        return shouldRcb() ? Laser.RCB_140
+                : shouldRsb() ? Laser.RSB_75
+                        : shouldSab() ? Laser.SAB_50
                                 : Laser.UCB_100;
     }
 
@@ -44,11 +43,11 @@ public class DefenseLaserSupplier implements LaserSelector, PrioritizedSupplier<
     private boolean shouldRsb() {
         if (this.rsbActive) {
             boolean isReady = items.getItem(Laser.RSB_75, ItemFlag.USABLE, ItemFlag.READY).isPresent();
-            if (isReady && usedRsb < System.currentTimeMillis() - 1000) {
-                usedRsb = System.currentTimeMillis();
-            }
 
-            return isReady && usedRsb > System.currentTimeMillis() - 500;
+            Character key = items.getKeyBind(Laser.RSB_75);
+            if (key != null && isReady && usedRsb < System.currentTimeMillis() - 1000) {
+                return isReady && usedRsb < System.currentTimeMillis() - 500;
+            }
         }
         return false;
     }
@@ -57,9 +56,10 @@ public class DefenseLaserSupplier implements LaserSelector, PrioritizedSupplier<
         if (this.rsbActive) {
             boolean isReady = items.getItem(Laser.RCB_140, ItemFlag.USABLE, ItemFlag.READY).isPresent();
 
-            if (isReady && usedRsb < System.currentTimeMillis() - 1000)
-                usedRsb = System.currentTimeMillis();
-            return isReady && usedRsb > System.currentTimeMillis() - 500;
+            Character key = items.getKeyBind(Laser.RCB_140);
+            if (key != null && isReady && usedRsb < System.currentTimeMillis() - 1000) {
+                return isReady && usedRsb < System.currentTimeMillis() - 500;
+            }
         }
         return false;
     }

@@ -185,16 +185,16 @@ public class ShipAttacker {
     }
 
     private Character getAttackKey(Character defaultAmmo) {
-        if (defense != null) {
-            return defense.ammoKey;
-        }
-
         Laser laser = getBestLaserAmmo();
         if (laser != null) {
             Character key = items.getKeyBind(laser);
             if (key != null) {
                 return key;
             }
+        }
+
+        if (defense != null) {
+            return defense.ammoKey;
         }
 
         return defaultAmmo;
@@ -204,7 +204,7 @@ public class ShipAttacker {
         return rocketSupplier.get();
     }
 
-    public SelectableItem getBestFormation() {
+    public Formation getBestFormation() {
         return formationSupplier.get();
     }
 
@@ -327,7 +327,7 @@ public class ShipAttacker {
 
     public void setMode(ShipMode config, boolean useBestFormation) {
         if (useBestFormation) {
-            Formation formation = (Formation) getBestFormation();
+            Formation formation = getBestFormation();
             setMode(config, formation);
         } else {
             heroapi.setMode(config);

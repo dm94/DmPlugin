@@ -1,20 +1,14 @@
 package com.deeme.types;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-
 import eu.darkbot.api.extensions.selectors.PrioritizedSupplier;
-import eu.darkbot.api.game.items.ItemCategory;
 import eu.darkbot.api.game.items.ItemFlag;
-import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.game.items.SelectableItem.Formation;
 import eu.darkbot.api.game.other.Lockable;
 import eu.darkbot.api.game.other.Movable;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
 
-public class FormationSupplier implements PrioritizedSupplier<SelectableItem> {
+public class FormationSupplier implements PrioritizedSupplier<Formation> {
     protected final HeroItemsAPI items;
     protected final HeroAPI heroapi;
 
@@ -23,45 +17,46 @@ public class FormationSupplier implements PrioritizedSupplier<SelectableItem> {
     private boolean focusSpeed = false;
     private boolean focusPenetration = false;
 
-    List<String> damageOrder = Arrays.asList(Formation.DRILL.getId(), Formation.PINCER.getId(), Formation.STAR.getId(),
-            Formation.DOUBLE_ARROW.getId());
-
     public FormationSupplier(HeroAPI heroapi, HeroItemsAPI items) {
         this.heroapi = heroapi;
         this.items = items;
     }
 
-    public SelectableItem get() {
-        boolean isAvailable = false;
-        if (focusSpeed) {
-            isAvailable = items.getItem(Formation.WHEEL, ItemFlag.USABLE, ItemFlag.READY).isPresent();
-            if (isAvailable) {
-                return Formation.WHEEL;
+    public Formation get() {
+        Lockable target = heroapi.getLocalTarget();
+        if (target != null && target.isValid()) {
+            if (shoulFocusSpeed(target)) {
+                if (items.getItem(Formation.WHEEL, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+                    return Formation.WHEEL;
+                }
             }
-        }
-        if (focusPenetration) {
-            isAvailable = items.getItem(Formation.MOTH, ItemFlag.USABLE, ItemFlag.READY).isPresent();
-            if (isAvailable) {
-                return Formation.MOTH;
-            } else {
-                isAvailable = items.getItem(Formation.DOUBLE_ARROW, ItemFlag.USABLE, ItemFlag.READY).isPresent();
-                if (isAvailable) {
+            if (shoulFocusPenetration(target)) {
+                if (items.getItem(Formation.MOTH, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+                    return Formation.MOTH;
+                }
+                if (items.getItem(Formation.DOUBLE_ARROW, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                     return Formation.DOUBLE_ARROW;
                 }
             }
-        }
 
-        if (useDiamond) {
-            isAvailable = items.getItem(Formation.DIAMOND, ItemFlag.USABLE, ItemFlag.READY).isPresent();
-            if (isAvailable) {
+            if (shoulUseDiamond() && items.getItem(Formation.DIAMOND, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                 return Formation.DIAMOND;
             }
-        }
 
-        if (focusDamage) {
-            return items.getItems(ItemCategory.DRONE_FORMATIONS).stream()
-                    .filter(item -> item.isUsable() && item.isAvailable())
-                    .sorted(Comparator.comparing(i -> damageOrder.indexOf(i.getId()))).findFirst().orElse(null);
+            if (shoulFocusDamage(target)) {
+                if (items.getItem(Formation.DRILL, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+                    return Formation.DRILL;
+                }
+                if (items.getItem(Formation.PINCER, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+                    return Formation.PINCER;
+                }
+                if (items.getItem(Formation.STAR, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+                    return Formation.STAR;
+                }
+                if (items.getItem(Formation.DOUBLE_ARROW, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+                    return Formation.DOUBLE_ARROW;
+                }
+            }
         }
 
         return Formation.MOTH;

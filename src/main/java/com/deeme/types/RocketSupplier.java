@@ -1,4 +1,5 @@
 package com.deeme.types;
+
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -20,7 +21,8 @@ public class RocketSupplier implements PrioritizedSupplier<SelectableItem> {
     private boolean stopEnemy = false;
     private boolean usePLD = false;
 
-    List<String> damageOrder = Arrays.asList(Rocket.PLT_3030.getId(), Rocket.PLT_2021.getId(), Rocket.PLT_2026.getId(), Rocket.R_310.getId());
+    List<String> damageOrder = Arrays.asList(Rocket.PLT_3030.getId(), Rocket.PLT_2021.getId(), Rocket.PLT_2026.getId(),
+            Rocket.R_310.getId());
 
     public RocketSupplier(HeroAPI heroapi, HeroItemsAPI items, double hpMin) {
         this.heroapi = heroapi;
@@ -29,29 +31,25 @@ public class RocketSupplier implements PrioritizedSupplier<SelectableItem> {
     }
 
     public SelectableItem get() {
-        boolean isAvailable = false;
-        if (stopEnemy) {
-            isAvailable = items.getItem(Rocket.R_IC3, ItemFlag.USABLE, ItemFlag.READY).isPresent();
-            if (isAvailable) {
-                return Rocket.R_IC3;
-            } else {
-                isAvailable = items.getItem(Rocket.DCR_250, ItemFlag.USABLE, ItemFlag.READY).isPresent();
-                if (isAvailable) {
+        Lockable target = heroapi.getLocalTarget();
+        if (target != null && target.isValid()) {
+            if (shoulFocusSpeed(target)) {
+                if (items.getItem(Rocket.R_IC3, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+                    return Rocket.R_IC3;
+                }
+                if (items.getItem(Rocket.DCR_250, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                     return Rocket.DCR_250;
                 }
             }
-        }
 
-        if (usePLD) {
-            isAvailable = items.getItem(Rocket.PLD_8, ItemFlag.USABLE, ItemFlag.READY).isPresent();
-            if (isAvailable) {
+            if (shoulUsePLD(target) && items.getItem(Rocket.PLD_8, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                 return Rocket.PLD_8;
             }
         }
-
         try {
             return items.getItems(ItemCategory.ROCKETS).stream()
-            .filter(item -> item.isUsable() && item.isAvailable()).sorted(Comparator.comparing(i -> damageOrder.indexOf(i.getId()))).findFirst().orElse(null);
+                    .filter(item -> item.isUsable() && item.isAvailable())
+                    .sorted(Comparator.comparing(i -> damageOrder.indexOf(i.getId()))).findFirst().orElse(null);
         } catch (Exception e) {
             return null;
         }
@@ -61,13 +59,15 @@ public class RocketSupplier implements PrioritizedSupplier<SelectableItem> {
         double distance = heroapi.getLocationInfo().getCurrent().distanceTo(target.getLocationInfo());
         double speed = target instanceof Movable ? ((Movable) target).getSpeed() : 0;
 
-        return (distance > 400 && speed > heroapi.getSpeed()) || (distance < 600 && speed > heroapi.getSpeed() && heroapi.getHealth().hpPercent() < hpMin);
+        return (distance > 400 && speed > heroapi.getSpeed())
+                || (distance < 600 && speed > heroapi.getSpeed() && heroapi.getHealth().hpPercent() < hpMin);
     }
 
     private boolean shoulUsePLD(Lockable target) {
-        return target instanceof Movable ? ((Movable) target).isAiming(heroapi) : false;
+        return target instanceof Movable ? ((Movable) target).isAiming(heroapi) && heroapi.getHealth().hpPercent() < 0.5
+                : false;
     }
-    
+
     @Override
     public Priority getPriority() {
         Lockable target = heroapi.getLocalTarget();
