@@ -1,5 +1,7 @@
 package com.deeme.behaviours;
 
+import com.deeme.modules.PVPModule;
+import com.deeme.modules.SentinelModule;
 import com.deeme.modules.temporal.DefenseModule;
 import com.deeme.types.SharedFunctions;
 import com.deeme.types.VerifierChecker;
@@ -77,7 +79,9 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
         if (heroapi.getMap() != null && heroapi.getMap().isGG()) {
             return;
         }
-        if (botApi.getModule().getClass() != DefenseModule.class) {
+        if (botApi.getModule().getClass() != DefenseModule.class
+                && !(botApi.getModule().getClass() == PVPModule.class && heroapi.isAttacking())
+                && !(botApi.getModule().getClass() == SentinelModule.class && heroapi.isAttacking())) {
             if (isUnderAttack()) {
                 botApi.setModule(new DefenseModule(api, defenseConfig, target));
             }
@@ -87,7 +91,7 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
     public boolean inGroupAttacked(int id) {
         if (group.hasGroup()) {
             for (GroupMember member : group.getMembers()) {
-                if (member.getId() == id && member.isAttacked()) {
+                if (!member.isDead() && member.getId() == id && member.isAttacked()) {
                     return true;
                 }
             }
@@ -99,9 +103,12 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
         if (target != null && target.isValid()) {
             return true;
         }
-        target = SharedFunctions.getAttacker(heroapi, players, heroapi);
-        if (target != null) {
-            return true;
+
+        if (defenseConfig.respondAttacks) {
+            target = SharedFunctions.getAttacker(heroapi, players, heroapi);
+            if (target != null) {
+                return true;
+            }
         }
 
         List<Player> ships = players.stream()
@@ -145,7 +152,7 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
     private GroupMember getMemberGroupAttacked() {
         if (group.hasGroup()) {
             for (GroupMember member : group.getMembers()) {
-                if (member.getMapId() == heroapi.getMap().getId() && member.isAttacked()
+                if (!member.isDead() && member.getMapId() == heroapi.getMap().getId() && member.isAttacked()
                         && member.getTargetInfo() != null
                         && member.getTargetInfo().getShipType() != 0 && !member.getTargetInfo().getUsername().isEmpty()
                         && !SharedFunctions.isNpc(configApi, member.getTargetInfo().getUsername())) {

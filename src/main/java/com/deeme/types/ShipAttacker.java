@@ -171,7 +171,7 @@ public class ShipAttacker {
             API.keyboardClick(lastShot = getAttackKey());
         } else if (API instanceof DarkBoatAdapter) {
             heroapi.triggerLaserAttack();
-        } else {
+        } else if (target != null && target.isValid()) {
             target.trySelect(true);
         }
     }
@@ -257,10 +257,11 @@ public class ShipAttacker {
                 selectableItem = items.getItem(extra.Key);
             }
 
-            if (heroapi.getHealth().hpPercent() < extra.HEALTH_RANGE.max
+            if (selectableItem != null && heroapi.getHealth().hpPercent() < extra.HEALTH_RANGE.max
                     && heroapi.getHealth().hpPercent() > extra.HEALTH_RANGE.min
-                    && target.getHealth().hpPercent() < extra.HEALTH_ENEMY_RANGE.max
-                    && target.getHealth().hpPercent() > extra.HEALTH_ENEMY_RANGE.min
+                    && heroapi.getLocalTarget() != null
+                    && heroapi.getLocalTarget().getHealth().hpPercent() < extra.HEALTH_ENEMY_RANGE.max
+                    && heroapi.getLocalTarget().getHealth().hpPercent() > extra.HEALTH_ENEMY_RANGE.min
                     && (extra.CONDITION == null || extra.CONDITION.get(api).allows())) {
                 return useSelectableReadyWhenReady(selectableItem);
             }
@@ -287,7 +288,7 @@ public class ShipAttacker {
     public boolean inGroupAttacked(int id) {
         if (group.hasGroup()) {
             for (GroupMember member : group.getMembers()) {
-                if (member.getId() == id && member.isAttacked()) {
+                if (!member.isDead() && member.getId() == id && member.isAttacked()) {
                     return true;
                 }
             }
@@ -305,7 +306,7 @@ public class ShipAttacker {
     private GroupMember getMemberGroupAttacked() {
         if (group.hasGroup()) {
             for (GroupMember member : group.getMembers()) {
-                if (member.getMapId() == heroapi.getMap().getId() && member.isAttacked()
+                if (!member.isDead() && member.getMapId() == heroapi.getMap().getId() && member.isAttacked()
                         && member.getTargetInfo() != null
                         && member.getTargetInfo().getShipType() != 0 && !member.getTargetInfo().getUsername().isEmpty()
                         && !SharedFunctions.isNpc(configAPI, member.getTargetInfo().getUsername())) {
@@ -328,7 +329,11 @@ public class ShipAttacker {
     public void setMode(ShipMode config, boolean useBestFormation) {
         if (useBestFormation) {
             Formation formation = getBestFormation();
-            setMode(config, formation);
+            if (formation != null) {
+                setMode(config, formation);
+            } else {
+                heroapi.setMode(config);
+            }
         } else {
             heroapi.setMode(config);
         }
@@ -351,7 +356,7 @@ public class ShipAttacker {
         if (heroapi.getMap().isPvp() || allPortals.stream().filter(p -> heroapi.distanceTo(p) < maxDistance).findFirst()
                 .orElse(null) == null) {
             return allShips.stream()
-                    .filter(s -> (s.getEntityInfo().isEnemy()
+                    .filter(s -> (s.getEntityInfo().isEnemy() && !s.getEffects().toString().contains("290")
                             && s.getLocationInfo().distanceTo(heroapi) <= maxDistance)
                             && !SharedFunctions.isPet(s.getEntityInfo().getUsername()))
                     .sorted(Comparator.comparingDouble(s -> s.getLocationInfo().distanceTo(heroapi))).findAny()

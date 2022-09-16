@@ -32,6 +32,7 @@ public class AmbulanceModule extends TemporalModule {
     private long clickDelay;
     private long keyDelay;
     private State currentStatus;
+    private long maxModuleTime = 0;
 
     private boolean abilityUsed = false;
 
@@ -72,6 +73,7 @@ public class AmbulanceModule extends TemporalModule {
         this.abilityToUse = abilityToUse;
         this.players = entities.getPlayers();
         this.currentStatus = State.INIT;
+        this.maxModuleTime = System.currentTimeMillis() + 60000;
     }
 
     @Override
@@ -88,6 +90,9 @@ public class AmbulanceModule extends TemporalModule {
     public void onTickModule() {
         try {
             if (idMember != 0 && abilityToUse != null) {
+                if (maxModuleTime != 0 && maxModuleTime < System.currentTimeMillis()) {
+                    super.goBack();
+                }
                 if (!abilityUsed) {
                     this.currentStatus = State.SEARCHING_MEMBER;
                     Player player = getPlayerIfIsClosed();
@@ -126,7 +131,7 @@ public class AmbulanceModule extends TemporalModule {
                                 clickDelay = System.currentTimeMillis();
                             }
                         } else {
-                            movement.moveTo(oldTarget);
+                            super.goBack();
                         }
                     } else {
                         super.goBack();
@@ -142,13 +147,13 @@ public class AmbulanceModule extends TemporalModule {
     }
 
     private Player getPlayerIfIsClosed() {
-        return players.stream().filter(player -> player.getId() == idMember && heroapi.distanceTo(player) <= 1000)
+        return players.stream().filter(player -> player.getId() == idMember && heroapi.distanceTo(player) <= 2000)
                 .findFirst().orElse(null);
     }
 
     public void goToMemberAttacked() {
         GroupMember member = getMember();
-        if (member != null) {
+        if (member != null && !member.isDead()) {
             this.currentStatus = State.TRAVEL_TO_MEMBER;
             movement.moveTo(member.getLocation());
         } else {
@@ -177,7 +182,7 @@ public class AmbulanceModule extends TemporalModule {
     private GroupMember getMember() {
         if (groupAPI.hasGroup()) {
             for (GroupMember member : groupAPI.getMembers()) {
-                if (member.getMapId() == heroapi.getMap().getId() && member.getId() == idMember) {
+                if (!member.isDead() && member.getMapId() == heroapi.getMap().getId() && member.getId() == idMember) {
                     return member;
                 }
             }

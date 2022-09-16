@@ -132,19 +132,24 @@ public class DefenseModule extends TemporalModule {
 
     private boolean isUnderAttack() {
         if (shipAttacker.getTarget() != null && shipAttacker.getTarget().isValid()
-                && shipAttacker.getTarget().getEntityInfo().isEnemy()) {
+                && shipAttacker.getTarget().getEntityInfo().isEnemy()
+                && shipAttacker.getTarget().getLocationInfo().distanceTo(heroapi) < 1500) {
             return true;
         }
 
-        if (target != null && target.isValid()) {
+        if (target != null && target.isValid()
+                && target.getLocationInfo().distanceTo(heroapi) < 1500) {
             shipAttacker.setTarget((Ship) target);
             return true;
         }
 
-        Entity newTarget = SharedFunctions.getAttacker(heroapi, players, heroapi);
-        if (newTarget != null && newTarget.isValid()) {
-            shipAttacker.setTarget((Ship) target);
-            return true;
+        Entity newTarget = null;
+        if (defenseConfig.respondAttacks) {
+            newTarget = SharedFunctions.getAttacker(heroapi, players, heroapi);
+            if (newTarget != null && newTarget.isValid()) {
+                shipAttacker.setTarget((Ship) target);
+                return true;
+            }
         }
 
         List<Player> ships = players.stream()

@@ -11,7 +11,7 @@ public class ExtraKeyConditions {
     @Option(value = "Enable")
     public boolean enable = false;
 
-    @Option("Key")
+    @Option(value = "Key", description = "Often this is not necessary")
     public Character Key;
 
     @Option(value = "Health", description = "If health between")

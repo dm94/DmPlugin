@@ -189,6 +189,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                     if (isNpc) {
                         npcMove();
                     } else {
+                        shipAttacker.tryAttackOrFix();
                         shipAttacker.vsMove();
                     }
                     if (sConfig.useAbility) {
@@ -346,9 +347,10 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
 
     private void goToLeader() {
         for (eu.darkbot.api.game.group.GroupMember m : group.getMembers()) {
-            if (m.getId() != heroapi.getId() && ((sConfig.MASTER_ID != 0 && m.getId() == sConfig.MASTER_ID) ||
-                    sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(m.getId())) ||
-                    (sConfig.followGroupLeader && m.isLeader()))) {
+            if (!m.isDead() && m.getId() != heroapi.getId()
+                    && ((sConfig.MASTER_ID != 0 && m.getId() == sConfig.MASTER_ID) ||
+                            sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(m.getId())) ||
+                            (sConfig.followGroupLeader && m.isLeader()))) {
                 if (m.isLeader()) {
                     groupLeaderID = m.getId();
                 }

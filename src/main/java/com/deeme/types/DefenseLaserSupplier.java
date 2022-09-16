@@ -17,7 +17,6 @@ public class DefenseLaserSupplier implements LaserSelector, PrioritizedSupplier<
     private boolean useRsb, useRcb, useSab, rsbActive = false;
 
     private Sab sab;
-    private long usedRsb = 0;
 
     public DefenseLaserSupplier(PluginAPI api, HeroAPI heroapi, HeroItemsAPI items, Sab sab, boolean rsbActive) {
         this.api = api;
@@ -42,11 +41,10 @@ public class DefenseLaserSupplier implements LaserSelector, PrioritizedSupplier<
 
     private boolean shouldRsb() {
         if (this.rsbActive) {
-            boolean isReady = items.getItem(Laser.RSB_75, ItemFlag.USABLE, ItemFlag.READY).isPresent();
-
             Character key = items.getKeyBind(Laser.RSB_75);
-            if (key != null && isReady && usedRsb < System.currentTimeMillis() - 1000) {
-                return isReady && usedRsb < System.currentTimeMillis() - 500;
+            if (key != null) {
+                return items.getItem(Laser.RSB_75, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.POSITIVE_QUANTITY)
+                        .isPresent();
             }
         }
         return false;
@@ -54,11 +52,11 @@ public class DefenseLaserSupplier implements LaserSelector, PrioritizedSupplier<
 
     private boolean shouldRcb() {
         if (this.rsbActive) {
-            boolean isReady = items.getItem(Laser.RCB_140, ItemFlag.USABLE, ItemFlag.READY).isPresent();
 
             Character key = items.getKeyBind(Laser.RCB_140);
-            if (key != null && isReady && usedRsb < System.currentTimeMillis() - 1000) {
-                return isReady && usedRsb < System.currentTimeMillis() - 500;
+            if (key != null) {
+                return items.getItem(Laser.RCB_140, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.POSITIVE_QUANTITY)
+                        .isPresent();
             }
         }
         return false;

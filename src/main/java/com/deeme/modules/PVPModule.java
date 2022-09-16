@@ -26,6 +26,7 @@ import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.MovementAPI;
+import eu.darkbot.api.managers.PetAPI;
 import eu.darkbot.api.managers.StarSystemAPI;
 import eu.darkbot.api.utils.Inject;
 import eu.darkbot.shared.modules.CollectorModule;
@@ -46,6 +47,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     protected final MovementAPI movement;
     protected final StarSystemAPI starSystem;
     protected final BotAPI bot;
+    protected final PetAPI pet;
 
     protected final Collection<? extends Portal> portals;
     protected final Collection<? extends Player> players;
@@ -96,6 +98,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         this.movement = movement;
         this.starSystem = api.getAPI(StarSystemAPI.class);
         this.bot = api.getAPI(BotAPI.class);
+        this.pet = api.getAPI(PetAPI.class);
         this.workingMap = configApi.requireConfig("general.working_map");
         this.configOffensive = configApi.requireConfig("general.offensive");
         this.configRun = configApi.requireConfig("general.run");
@@ -138,6 +141,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
 
     @Override
     public void onTickModule() {
+        pet.setEnabled(true);
         if (!pvpConfig.move || safety.tick()) {
             if (getTarget()) {
                 lastTimeAttack = System.currentTimeMillis();
@@ -151,12 +155,12 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
                     shipAttacker.changeRocket();
                 }
 
-                if (pvpConfig.useAbility) {
-                    shipAttacker.useHability();
+                if (target != null && target.isValid() && heroapi.getLocationInfo().distanceTo(target) < 575) {
+                    shipAttacker.useKeyWithConditions(pvpConfig.ability, null);
                 }
 
-                if (heroapi.getLocationInfo().distanceTo(target) < 575) {
-                    shipAttacker.useKeyWithConditions(pvpConfig.ability, null);
+                if (pvpConfig.useAbility) {
+                    shipAttacker.useHability();
                 }
 
                 shipAttacker.useKeyWithConditions(pvpConfig.ISH, Special.ISH_01);

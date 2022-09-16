@@ -127,7 +127,9 @@ public class AutoChangeMap implements Task, Configurable<ChangeMapConfig> {
             if (i == mapChosse) {
                 if (chosseMap.getValue().time > 0) {
                     waitingTimeNextMap = System.currentTimeMillis() +
-                            (chosseMap.getValue().time + rand.nextInt(10)) * 60000L;
+                            (chosseMap.getValue().time + rand.nextInt(5)) * 60000L;
+                } else {
+                    waitingTimeNextMap = 0;
                 }
 
                 if (chosseMap.getValue().deaths > 0) {

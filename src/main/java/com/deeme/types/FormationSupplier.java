@@ -3,6 +3,7 @@ package com.deeme.types;
 import eu.darkbot.api.extensions.selectors.PrioritizedSupplier;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem.Formation;
+import eu.darkbot.api.game.items.SelectableItem.Laser;
 import eu.darkbot.api.game.other.Lockable;
 import eu.darkbot.api.game.other.Movable;
 import eu.darkbot.api.managers.HeroAPI;
@@ -12,10 +13,7 @@ public class FormationSupplier implements PrioritizedSupplier<Formation> {
     protected final HeroItemsAPI items;
     protected final HeroAPI heroapi;
 
-    private boolean useDiamond = false;
-    private boolean focusDamage = false;
-    private boolean focusSpeed = false;
-    private boolean focusPenetration = false;
+    private boolean useDiamond, useCrab, focusDamage, focusSpeed, focusPenetration = false;
 
     public FormationSupplier(HeroAPI heroapi, HeroItemsAPI items) {
         this.heroapi = heroapi;
@@ -39,6 +37,10 @@ public class FormationSupplier implements PrioritizedSupplier<Formation> {
                 }
             }
 
+            if (shoulUseCrab() && items.getItem(Formation.CRAB, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+                return Formation.CRAB;
+            }
+
             if (shoulUseDiamond() && items.getItem(Formation.DIAMOND, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                 return Formation.DIAMOND;
             }
@@ -59,7 +61,7 @@ public class FormationSupplier implements PrioritizedSupplier<Formation> {
             }
         }
 
-        return Formation.MOTH;
+        return null;
     }
 
     private boolean shoulFocusDamage(Lockable target) {
@@ -78,7 +80,13 @@ public class FormationSupplier implements PrioritizedSupplier<Formation> {
     }
 
     private boolean shoulUseDiamond() {
-        return heroapi.getHealth().hpPercent() < 0.7 && heroapi.getHealth().shieldPercent() < 0.1;
+        return heroapi.getHealth().hpPercent() < 0.7 && heroapi.getHealth().shieldPercent() < 0.1
+                && heroapi.getHealth().getMaxShield() > 50000;
+    }
+
+    private boolean shoulUseCrab() {
+        return heroapi.getLaser() == Laser.SAB_50
+                || (heroapi.getHealth().hpPercent() < 0.2 && heroapi.getHealth().getShield() > 30000);
     }
 
     @Override
@@ -89,9 +97,11 @@ public class FormationSupplier implements PrioritizedSupplier<Formation> {
             focusPenetration = shoulFocusPenetration(target);
             focusSpeed = shoulFocusSpeed(target);
             useDiamond = shoulUseDiamond();
+            useCrab = shoulUseCrab();
         }
         return focusSpeed ? Priority.HIGHEST
                 : focusPenetration ? Priority.HIGH
-                        : focusDamage ? Priority.MODERATE : useDiamond ? Priority.LOW : Priority.LOWEST;
+                        : useCrab ? Priority.MODERATE
+                                : useDiamond ? Priority.MODERATE : focusPenetration ? Priority.LOW : Priority.LOWEST;
     }
 }

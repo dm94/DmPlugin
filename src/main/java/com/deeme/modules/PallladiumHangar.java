@@ -185,6 +185,7 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
                     botApi.setModule(new HangarSwitcher(main, api, configPa.sellHangar));
                 }
             } else {
+                pet.setEnabled(true);
                 lootModule.onTickModule();
                 currentStatus = State.SEARCHING_PORTALS;
             }
@@ -194,6 +195,7 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
                 if (tradeGui != null && tradeGui.isVisible()) {
                     tradeGui.setVisible(false);
                 }
+                pet.setEnabled(true);
                 lootModule.onTickModule();
             } else {
                 this.currentStatus = State.HANGAR_PALA_OTHER_MAP;

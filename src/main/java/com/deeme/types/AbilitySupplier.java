@@ -207,7 +207,8 @@ public class AbilitySupplier implements PrioritizedSupplier<Ability> {
         }
         if (group.hasGroup()) {
             for (GroupMember member : group.getMembers()) {
-                if (member.isAttacked() && member.isLocked() && member.getMemberInfo().hpPercent() < 0.5) {
+                if (!member.isDead() && member.isAttacked() && member.isLocked()
+                        && member.getMemberInfo().hpPercent() < 0.5) {
                     return true;
                 }
             }
@@ -223,7 +224,7 @@ public class AbilitySupplier implements PrioritizedSupplier<Ability> {
 
         if (group.hasGroup()) {
             for (GroupMember member : group.getMembers()) {
-                if (member.isAttacked() && member.getLocation().distanceTo(heroapi) < 500) {
+                if (!member.isDead() && member.isAttacked() && member.getLocation().distanceTo(heroapi) < 500) {
                     return true;
                 }
             }
@@ -239,7 +240,8 @@ public class AbilitySupplier implements PrioritizedSupplier<Ability> {
 
         if (group.hasGroup()) {
             for (GroupMember member : group.getMembers()) {
-                if (member.isAttacked() && member.isLocked() && member.getMemberInfo().shieldPercent() < 0.5) {
+                if (!member.isDead() && member.isAttacked() && member.isLocked()
+                        && member.getMemberInfo().shieldPercent() < 0.5) {
                     return true;
                 }
             }

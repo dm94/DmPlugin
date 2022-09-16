@@ -98,7 +98,7 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
     private int getMemberLowLife() {
         if (group.hasGroup()) {
             for (GroupMember member : group.getMembers()) {
-                if (member.isAttacked() && member.getMapId() == heroapi.getMap().getId()
+                if (!member.isDead() && member.isAttacked() && member.getMapId() == heroapi.getMap().getId()
                         && member.getMemberInfo().getHp() > 1
                         && member.getMemberInfo().hpPercent() < config.healthToRepair) {
                     return member.getId();
@@ -111,7 +111,7 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
     private int getMemberLowShield() {
         if (group.hasGroup()) {
             for (GroupMember member : group.getMembers()) {
-                if (member.isAttacked() && member.getMapId() == heroapi.getMap().getId()
+                if (!member.isDead() && member.isAttacked() && member.getMapId() == heroapi.getMap().getId()
                         && member.getMemberInfo().getMaxShield() > 1000
                         && member.getMemberInfo().shieldPercent() < config.healthToRepair) {
                     return member.getId();

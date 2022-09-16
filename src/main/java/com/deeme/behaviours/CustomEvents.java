@@ -7,7 +7,7 @@ import java.util.List;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 import com.deeme.types.config.CustomEventsConfig;
-import com.deeme.types.config.ExtraKeyConditionsWithoutHealth;
+import com.deeme.types.config.ExtraKeyConditionsKey;
 import com.github.manolo8.darkbot.config.Config;
 
 import eu.darkbot.api.PluginAPI;
@@ -91,7 +91,7 @@ public class CustomEvents implements Behavior, Configurable<CustomEventsConfig> 
         return false;
     }
 
-    public boolean useKeyWithConditions(ExtraKeyConditionsWithoutHealth extra) {
+    public boolean useKeyWithConditions(ExtraKeyConditionsKey extra) {
         if (extra.enable) {
             SelectableItem selectableItem = items.getItem(extra.Key);
             if (selectableItem != null && extra.CONDITION != null && extra.CONDITION.get(api).allows()) {

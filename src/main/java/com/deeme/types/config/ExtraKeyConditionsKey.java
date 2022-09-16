@@ -4,7 +4,7 @@ import com.github.manolo8.darkbot.config.types.Option;
 
 import eu.darkbot.api.config.types.Condition;
 
-public class ExtraKeyConditionsWithoutHealth {
+public class ExtraKeyConditionsKey {
 
     @Option("Enable")
     public boolean enable = false;

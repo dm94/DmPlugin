@@ -29,10 +29,10 @@ public class PVPConfig {
 
     @Option(value = "Maximum range for enemies", description = "Enemies above this range will not be attacked")
     @Num(min = 0, max = 1000, step = 50)
-    public int rangeForEnemies = 100;
+    public int rangeForEnemies = 500;
 
     @Option(value = "Maximum range for the enemy attacked", description = "Above this range the enemy is considered to have escaped.")
-    @Num(min = 1000, max = 3000, step = 100)
+    @Num(min = 1000, max = 4000, step = 100)
     public int rangeForAttackedEnemy = 2000;
 
     @Option(value = "RCB-140 | RSB-75", description = "Use RCB-140 | RSB-75")
