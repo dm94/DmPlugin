@@ -174,7 +174,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
                 shipAttacker.resetDefenseData();
                 if (pvpConfig.autoCloak.autoCloakShip && !heroapi.isInvisible()
                         && lastTimeAttack < (System.currentTimeMillis()
-                                + (pvpConfig.autoCloak.secondsOfWaiting * 1000))) {
+                                - (pvpConfig.autoCloak.secondsOfWaiting * 1000))) {
                     shipAttacker.useSelectableReadyWhenReady(Cpu.CL04K);
                 }
                 if (pvpConfig.move) {

@@ -1,8 +1,6 @@
 package com.deeme.types;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.extensions.selectors.PrioritizedSupplier;
@@ -10,9 +8,7 @@ import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.entities.Ship;
 import eu.darkbot.api.game.group.GroupMember;
 import eu.darkbot.api.game.items.ItemFlag;
-import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.game.items.SelectableItem.Ability;
-import eu.darkbot.api.game.items.SelectableItem.Formation;
 import eu.darkbot.api.game.other.Lockable;
 import eu.darkbot.api.game.other.Movable;
 import eu.darkbot.api.managers.EntitiesAPI;
@@ -20,16 +16,13 @@ import eu.darkbot.api.managers.GroupAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
 
-public class AbilitySupplier implements PrioritizedSupplier<SelectableItem> {
+public class AbilitySupplier implements PrioritizedSupplier<Ability> {
     protected HeroItemsAPI items;
     protected HeroAPI heroapi;
     protected GroupAPI group;
     protected final PluginAPI api;
 
-    private boolean focusShield, focusHealth, focusSpeed, focusEvade, focusDamage, focusHelpTank = false;
-
-    List<String> damageOrder = Arrays.asList(Formation.DRILL.getId(), Formation.PINCER.getId(), Formation.STAR.getId(),
-            Formation.DOUBLE_ARROW.getId());
+    private boolean focusShield, focusHealth, focusSpeed, focusEvade, focusHelpTank = false;
 
     public AbilitySupplier(PluginAPI api) {
         this.api = api;
@@ -38,8 +31,8 @@ public class AbilitySupplier implements PrioritizedSupplier<SelectableItem> {
         this.items = api.getAPI(HeroItemsAPI.class);
     }
 
-    public SelectableItem get() {
-        if (focusHealth) {
+    public Ability get() {
+        if (shoulFocusHealth()) {
             if (items.getItem(Ability.AEGIS_REPAIR_POD, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                 return Ability.AEGIS_REPAIR_POD;
             }
@@ -58,11 +51,12 @@ public class AbilitySupplier implements PrioritizedSupplier<SelectableItem> {
             }
         }
 
-        if (focusShield && items.getItem(Ability.AEGIS_SHIELD_REPAIR, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+        if (shoulFocusShield()
+                && items.getItem(Ability.AEGIS_SHIELD_REPAIR, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
             return Ability.AEGIS_SHIELD_REPAIR;
         }
 
-        if (focusSpeed) {
+        if (shoulFocusSpeed()) {
             if (items.getItem(Ability.CITADEL_TRAVEL, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                 return Ability.CITADEL_TRAVEL;
             }
@@ -86,7 +80,7 @@ public class AbilitySupplier implements PrioritizedSupplier<SelectableItem> {
             }
         }
 
-        if (focusEvade) {
+        if (shoulFocusEvade()) {
             if (items.getItem(Ability.SPEARHEAD_ULTIMATE_CLOAK, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                 return Ability.SPEARHEAD_ULTIMATE_CLOAK;
             }
@@ -101,7 +95,7 @@ public class AbilitySupplier implements PrioritizedSupplier<SelectableItem> {
             }
         }
 
-        if (focusHelpTank) {
+        if (shouldFocusHelpTank()) {
             if (items.getItem(Ability.CITADEL_DRAW_FIRE, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                 return Ability.CITADEL_DRAW_FIRE;
             }
@@ -110,7 +104,7 @@ public class AbilitySupplier implements PrioritizedSupplier<SelectableItem> {
             }
         }
 
-        if (focusEvade) {
+        if (shoulFocusEvade()) {
             if (items.getItem(Ability.CITADEL_PLUS_PRISMATIC_ENDURANCE, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                 return Ability.CITADEL_PLUS_PRISMATIC_ENDURANCE;
             }
@@ -134,7 +128,7 @@ public class AbilitySupplier implements PrioritizedSupplier<SelectableItem> {
             }
         }
 
-        if (focusDamage) {
+        if (shoulFocusDamage()) {
             if (items.getItem(Ability.SPEARHEAD_TARGET_MARKER, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                 return Ability.SPEARHEAD_TARGET_MARKER;
             }
@@ -175,33 +169,36 @@ public class AbilitySupplier implements PrioritizedSupplier<SelectableItem> {
 
     @Override
     public Priority getPriority() {
-        Lockable target = heroapi.getLocalTarget();
-        if (target != null && target.isValid()) {
-            focusSpeed = shoulFocusSpeed(target);
-            focusHealth = shoulFocusHealth();
-            focusShield = shoulFocusShield();
-            focusEvade = shoulFocusEvade();
-            focusHelpTank = shouldFocusHelpTank();
-            focusDamage = shoulFocusDamage(target);
-        }
+        focusSpeed = shoulFocusSpeed();
+        focusHealth = shoulFocusHealth();
+        focusShield = shoulFocusShield();
+        focusEvade = shoulFocusEvade();
+        focusHelpTank = shouldFocusHelpTank();
         return focusHealth || focusShield ? Priority.HIGHEST
                 : focusSpeed ? Priority.HIGH
                         : focusEvade || focusHelpTank ? Priority.MODERATE : Priority.LOWEST;
     }
 
-    private boolean shoulFocusDamage(Lockable target) {
-        if (target.getEntityInfo() != null && target.getEntityInfo().isEnemy()
-                && target.getHealth().hpPercent() > 0.3) {
-            return true;
+    private boolean shoulFocusDamage() {
+        Lockable target = heroapi.getLocalTarget();
+        if (target != null && target.isValid()) {
+            if (target.getEntityInfo() != null && target.getEntityInfo().isEnemy()
+                    && target.getHealth().hpPercent() > 0.3) {
+                return true;
+            }
         }
 
         return false;
     }
 
-    private boolean shoulFocusSpeed(Lockable target) {
-        double distance = heroapi.getLocationInfo().getCurrent().distanceTo(target.getLocationInfo());
-        double speed = target instanceof Movable ? ((Movable) target).getSpeed() : 0;
-        return distance > 800 && speed > heroapi.getSpeed();
+    private boolean shoulFocusSpeed() {
+        Lockable target = heroapi.getLocalTarget();
+        if (target != null && target.isValid()) {
+            double distance = heroapi.getLocationInfo().getCurrent().distanceTo(target.getLocationInfo());
+            double speed = target instanceof Movable ? ((Movable) target).getSpeed() : 0;
+            return distance > 800 && speed > heroapi.getSpeed();
+        }
+        return false;
     }
 
     private boolean shoulFocusHealth() {

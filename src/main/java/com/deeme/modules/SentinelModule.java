@@ -213,7 +213,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
 
                     if (sConfig.autoCloak.autoCloakShip && !heroapi.isInvisible()
                             && lastTimeAttack < (System.currentTimeMillis()
-                                    + (sConfig.autoCloak.secondsOfWaiting * 1000))) {
+                                    - (sConfig.autoCloak.secondsOfWaiting * 1000))) {
                         shipAttacker.useSelectableReadyWhenReady(Cpu.CL04K);
                     }
                 } else {
@@ -237,16 +237,15 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                     goToLeader();
                 } else {
                     if (lastMap != heroapi.getMap().getId()) {
-                        maximumWaitingTime = System.currentTimeMillis() + 120000;
+                        maximumWaitingTime = System.currentTimeMillis() + 60000;
                     }
                     acceptGroupSentinel();
                     if (lastMap != heroapi.getMap().getId() && currentStatus != State.WAIT_GROUP_LOADING
                             && currentStatus != State.WAIT) {
                         currentStatus = State.WAIT_GROUP_LOADING;
-                        maximumWaitingTime = System.currentTimeMillis() + 120000;
+                        maximumWaitingTime = System.currentTimeMillis() + 60000;
                     } else if (maximumWaitingTime <= System.currentTimeMillis()) {
                         currentStatus = State.WAIT;
-
                         GameMap map = getWorkingMap();
                         if (!portals.isEmpty() && map != starSystem.getCurrentMap()) {
                             currentStatus = State.TRAVELING_TO_WORKING_MAP;

@@ -75,8 +75,9 @@ public class AutoChangeMap implements Task, Configurable<ChangeMapConfig> {
 
     @Override
     public void onTickTask() {
-        if (hero.getMap().isGG())
+        if (hero.getMap().isGG()) {
             return;
+        }
 
         if ((firstTick || (waitingTimeNextMap != 0 && waitingTimeNextMap <= System.currentTimeMillis()) ||
                 (mapMaxDeaths > 0 && repair.getDeathAmount() >= mapMaxDeaths)
@@ -141,7 +142,7 @@ public class AutoChangeMap implements Task, Configurable<ChangeMapConfig> {
                 } catch (MapNotFoundException e) {
                 }
 
-                return;
+                break;
             }
             i++;
         }
