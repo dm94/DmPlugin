@@ -1,6 +1,5 @@
-package com.deeme.types.config;
+package com.deeme.types.config.ProfileChanger;
 
-import com.deeme.types.config.ProfileChanger.NpcCounterCondition;
 import com.deeme.types.gui.ConfigSupplier;
 import com.github.manolo8.darkbot.config.ConfigManager;
 import com.github.manolo8.darkbot.config.types.Editor;
@@ -22,4 +21,7 @@ public class ProfileChangerConfig {
 
     @Option("NPC Counter Condition")
     public NpcCounterCondition npcExtraCondition = new NpcCounterCondition();
+
+    @Option("NPC Counter Condition 2")
+    public NpcCounterCondition npcExtraCondition2 = new NpcCounterCondition();
 }

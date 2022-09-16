@@ -20,6 +20,7 @@ import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.game.items.SelectableItem.Formation;
 import eu.darkbot.api.game.items.SelectableItem.Laser;
+import eu.darkbot.api.game.items.SelectableItem.Rocket;
 import eu.darkbot.api.game.other.Location;
 import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
@@ -200,7 +201,7 @@ public class ShipAttacker {
         return defaultAmmo;
     }
 
-    private SelectableItem getBestRocket() {
+    private Rocket getBestRocket() {
         return rocketSupplier.get();
     }
 
@@ -212,7 +213,7 @@ public class ShipAttacker {
         if (System.currentTimeMillis() < rocketTime) {
             return;
         }
-        SelectableItem rocket = getBestRocket();
+        Rocket rocket = getBestRocket();
 
         if (rocket != null && !heroapi.getRocket().getId().equals(rocket.getId())
                 && useSelectableReadyWhenReady(rocket)) {
@@ -221,15 +222,7 @@ public class ShipAttacker {
     }
 
     public void useHability() {
-        if (System.currentTimeMillis() - keyDelay < 1000) {
-            return;
-        }
-        SelectableItem ability = abilitySupplier.get();
-
-        if (ability != null
-                && useSelectableReadyWhenReady(ability)) {
-            keyDelay = System.currentTimeMillis();
-        }
+        useSelectableReadyWhenReady(abilitySupplier.get());
     }
 
     public void vsMove() {
@@ -270,7 +263,7 @@ public class ShipAttacker {
     }
 
     public boolean useSelectableReadyWhenReady(SelectableItem selectableItem) {
-        if (System.currentTimeMillis() - keyDelay < 1000)
+        if (System.currentTimeMillis() - keyDelay < 500)
             return false;
         if (selectableItem == null)
             return false;
@@ -289,6 +282,17 @@ public class ShipAttacker {
         if (group.hasGroup()) {
             for (GroupMember member : group.getMembers()) {
                 if (!member.isDead() && member.getId() == id && member.isAttacked()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean inGroup(int id) {
+        if (group.hasGroup()) {
+            for (GroupMember member : group.getMembers()) {
+                if (member.getId() == id) {
                     return true;
                 }
             }
@@ -358,7 +362,8 @@ public class ShipAttacker {
             return allShips.stream()
                     .filter(s -> (s.getEntityInfo().isEnemy() && !s.getEffects().toString().contains("290")
                             && s.getLocationInfo().distanceTo(heroapi) <= maxDistance)
-                            && !SharedFunctions.isPet(s.getEntityInfo().getUsername()))
+                            && !SharedFunctions.isPet(s.getEntityInfo().getUsername())
+                            && !inGroup(s.getId()))
                     .sorted(Comparator.comparingDouble(s -> s.getLocationInfo().distanceTo(heroapi))).findAny()
                     .orElse(null);
         }

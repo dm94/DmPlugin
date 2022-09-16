@@ -46,14 +46,14 @@ public class FormationSupplier implements PrioritizedSupplier<Formation> {
             }
 
             if (shoulFocusDamage(target)) {
-                if (items.getItem(Formation.DRILL, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
-                    return Formation.DRILL;
-                }
                 if (items.getItem(Formation.PINCER, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                     return Formation.PINCER;
                 }
                 if (items.getItem(Formation.STAR, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                     return Formation.STAR;
+                }
+                if (items.getItem(Formation.DRILL, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+                    return Formation.DRILL;
                 }
                 if (items.getItem(Formation.DOUBLE_ARROW, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                     return Formation.DOUBLE_ARROW;
@@ -76,7 +76,7 @@ public class FormationSupplier implements PrioritizedSupplier<Formation> {
     private boolean shoulFocusSpeed(Lockable target) {
         double distance = heroapi.getLocationInfo().getCurrent().distanceTo(target.getLocationInfo());
         double speed = target instanceof Movable ? ((Movable) target).getSpeed() : 0;
-        return distance > 800 && speed > heroapi.getSpeed();
+        return distance > 800 && speed >= heroapi.getSpeed();
     }
 
     private boolean shoulUseDiamond() {

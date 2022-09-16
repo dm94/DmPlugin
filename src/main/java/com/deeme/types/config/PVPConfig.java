@@ -9,6 +9,9 @@ public class PVPConfig {
     @Option(value = "Movement", description = "The ship will move")
     public boolean move = true;
 
+    @Option(value = "Recharge shields", description = "Recharge the shield for both Attack and Run configurations")
+    public boolean rechargeShields = true;
+
     @Option(value = "Enable collector", description = "It will use the collector module when it is not doing anything.")
     public boolean collectorActive = false;
 

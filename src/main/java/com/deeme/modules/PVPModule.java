@@ -70,6 +70,9 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     private double lastDistanceTarget = 1000;
     protected CollectorModule collectorModule;
 
+    private boolean isConfigAttackFull = false;
+    private boolean isCongigRunFull = false;
+
     public PVPModule(PluginAPI api) {
         this(api, api.requireAPI(HeroAPI.class),
                 api.requireAPI(AuthAPI.class),
@@ -143,49 +146,67 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     public void onTickModule() {
         pet.setEnabled(true);
         if (!pvpConfig.move || safety.tick()) {
-            if (getTarget()) {
-                lastTimeAttack = System.currentTimeMillis();
-                if (pvpConfig.changeConfig) {
-                    setConfigToUse();
-                }
-
-                shipAttacker.tryLockAndAttack();
-
-                if (pvpConfig.useBestRocket) {
-                    shipAttacker.changeRocket();
-                }
-
-                if (target != null && target.isValid() && heroapi.getLocationInfo().distanceTo(target) < 575) {
-                    shipAttacker.useKeyWithConditions(pvpConfig.ability, null);
-                }
-
-                if (pvpConfig.useAbility) {
-                    shipAttacker.useHability();
-                }
-
-                shipAttacker.useKeyWithConditions(pvpConfig.ISH, Special.ISH_01);
-                shipAttacker.useKeyWithConditions(pvpConfig.SMB, Special.SMB_01);
-                shipAttacker.useKeyWithConditions(pvpConfig.PEM, Special.EMP_01);
-
-                shipAttacker.tryAttackOrFix();
-
-                if (pvpConfig.move) {
-                    shipAttacker.vsMove();
-                }
-            } else {
-                attackConfigLost = false;
-                target = null;
-                shipAttacker.resetDefenseData();
-                if (pvpConfig.autoCloak.autoCloakShip && !heroapi.isInvisible()
-                        && lastTimeAttack < (System.currentTimeMillis()
-                                - (pvpConfig.autoCloak.secondsOfWaiting * 1000))) {
-                    shipAttacker.useSelectableReadyWhenReady(Cpu.CL04K);
-                }
-                if (pvpConfig.move) {
+            if (!pvpConfig.move || checkMap()) {
+                if (getTarget()) {
+                    isCongigRunFull = false;
+                    isConfigAttackFull = false;
+                    lastTimeAttack = System.currentTimeMillis();
                     if (pvpConfig.changeConfig) {
-                        heroapi.setRoamMode();
+                        setConfigToUse();
                     }
-                    if (checkMap()) {
+
+                    shipAttacker.tryLockAndAttack();
+
+                    if (pvpConfig.useBestRocket) {
+                        shipAttacker.changeRocket();
+                    }
+
+                    if (target != null && target.isValid() && heroapi.getLocationInfo().distanceTo(target) < 575) {
+                        shipAttacker.useKeyWithConditions(pvpConfig.ability, null);
+                    }
+
+                    if (pvpConfig.useAbility) {
+                        shipAttacker.useHability();
+                    }
+
+                    shipAttacker.useKeyWithConditions(pvpConfig.ISH, Special.ISH_01);
+                    shipAttacker.useKeyWithConditions(pvpConfig.SMB, Special.SMB_01);
+                    shipAttacker.useKeyWithConditions(pvpConfig.PEM, Special.EMP_01);
+
+                    shipAttacker.tryAttackOrFix();
+
+                    if (pvpConfig.move) {
+                        shipAttacker.vsMove();
+                    }
+                } else {
+                    attackConfigLost = false;
+                    target = null;
+                    shipAttacker.resetDefenseData();
+                    if (pvpConfig.autoCloak.autoCloakShip && !heroapi.isInvisible()
+                            && lastTimeAttack < (System.currentTimeMillis()
+                                    - (pvpConfig.autoCloak.secondsOfWaiting * 1000))) {
+                        shipAttacker.useSelectableReadyWhenReady(Cpu.CL04K);
+                    }
+                    if (pvpConfig.rechargeShields) {
+                        if (!isConfigAttackFull) {
+                            shipAttacker.setMode(configOffensive.getValue(), pvpConfig.useBestFormation);
+                            if (heroapi.getHealth().getMaxShield() > 10000
+                                    && heroapi.getHealth().shieldPercent() > 0.9) {
+                                isConfigAttackFull = true;
+                            }
+                        } else if (!isCongigRunFull) {
+                            shipAttacker.setMode(configRun.getValue(), pvpConfig.useBestFormation);
+                            if (heroapi.getHealth().getMaxShield() > 10000
+                                    && heroapi.getHealth().shieldPercent() > 0.9) {
+                                isCongigRunFull = true;
+                            }
+                        }
+                    }
+                    if (pvpConfig.move) {
+                        if ((pvpConfig.rechargeShields && isConfigAttackFull && isCongigRunFull)
+                                || (!pvpConfig.rechargeShields && pvpConfig.changeConfig)) {
+                            heroapi.setRoamMode();
+                        }
                         if (pvpConfig.collectorActive) {
                             collectorModule.onTickModule();
                         } else if (!movement.isMoving() || movement.isOutOfMap()) {

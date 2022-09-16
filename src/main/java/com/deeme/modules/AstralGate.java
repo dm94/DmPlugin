@@ -21,6 +21,7 @@ import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.enums.EntityEffect;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
+import eu.darkbot.api.game.items.SelectableItem.Rocket;
 import eu.darkbot.api.game.other.GameMap;
 import eu.darkbot.api.game.other.Gui;
 import eu.darkbot.api.game.other.Locatable;
@@ -463,7 +464,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         if (System.currentTimeMillis() < rocketTime) {
             return;
         }
-        SelectableItem rocket = getBestRocket();
+        Rocket rocket = getBestRocket();
 
         if (rocket != null && !heroapi.getRocket().getId().equals(rocket.getId())
                 && useSelectableReadyWhenReady(rocket)) {
@@ -489,7 +490,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
     }
 
-    private SelectableItem getBestRocket() {
+    private Rocket getBestRocket() {
         return rocketSupplier.get();
     }
 

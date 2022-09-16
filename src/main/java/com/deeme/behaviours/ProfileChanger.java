@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
-import com.deeme.types.config.ProfileChangerConfig;
+import com.deeme.types.config.ProfileChanger.ProfileChangerConfig;
 import com.github.manolo8.darkbot.Main;
 
 import eu.darkbot.api.PluginAPI;
@@ -66,9 +66,12 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     public void onTickBehavior() {
         checkNPC();
         if (config.condition == null || config.condition.get(api).allows()) {
-            if (!config.npcExtraCondition.active || (config.npcExtraCondition.active
-                    && config.npcExtraCondition.npcCounter >= config.npcExtraCondition.npcsToKill)) {
+            if ((!config.npcExtraCondition.active || (config.npcExtraCondition.active
+                    && config.npcExtraCondition.npcCounter >= config.npcExtraCondition.npcsToKill)) &&
+                    (!config.npcExtraCondition2.active || (config.npcExtraCondition2.active
+                            && config.npcExtraCondition2.npcCounter >= config.npcExtraCondition2.npcsToKill))) {
                 config.npcExtraCondition.npcCounter = 0;
+                config.npcExtraCondition2.npcCounter = 0;
                 main.setConfig(config.BOT_PROFILE);
             }
         }
@@ -82,6 +85,9 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
                 String name = target.getEntityInfo().getUsername();
                 if (name != null && name.toLowerCase().contains(config.npcExtraCondition.npcName.toLowerCase())) {
                     config.npcExtraCondition.npcCounter++;
+                }
+                if (name != null && name.toLowerCase().contains(config.npcExtraCondition2.npcName.toLowerCase())) {
+                    config.npcExtraCondition2.npcCounter++;
                 }
             }
         }

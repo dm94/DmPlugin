@@ -193,6 +193,7 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
             if (heroapi.getMap() != null && heroapi.getMap().getId() == this.ACTIVE_MAP.getId()) {
                 this.currentStatus = State.LOOT_PALADIUM;
                 if (tradeGui != null && tradeGui.isVisible()) {
+                    oreApi.showTrade(false, null);
                     tradeGui.setVisible(false);
                 }
                 pet.setEnabled(true);

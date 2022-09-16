@@ -1,19 +1,14 @@
 package com.deeme.types;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
 import eu.darkbot.api.extensions.selectors.PrioritizedSupplier;
-import eu.darkbot.api.game.items.ItemCategory;
 import eu.darkbot.api.game.items.ItemFlag;
-import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.game.items.SelectableItem.Rocket;
 import eu.darkbot.api.game.other.Lockable;
 import eu.darkbot.api.game.other.Movable;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
 
-public class RocketSupplier implements PrioritizedSupplier<SelectableItem> {
+public class RocketSupplier implements PrioritizedSupplier<Rocket> {
     private final HeroAPI heroapi;
     private final HeroItemsAPI items;
     private final Double hpMin;
@@ -21,16 +16,13 @@ public class RocketSupplier implements PrioritizedSupplier<SelectableItem> {
     private boolean stopEnemy = false;
     private boolean usePLD = false;
 
-    List<String> damageOrder = Arrays.asList(Rocket.PLT_3030.getId(), Rocket.PLT_2021.getId(), Rocket.PLT_2026.getId(),
-            Rocket.R_310.getId());
-
     public RocketSupplier(HeroAPI heroapi, HeroItemsAPI items, double hpMin) {
         this.heroapi = heroapi;
         this.items = items;
         this.hpMin = hpMin;
     }
 
-    public SelectableItem get() {
+    public Rocket get() {
         Lockable target = heroapi.getLocalTarget();
         if (target != null && target.isValid()) {
             if (shoulFocusSpeed(target)) {
@@ -46,13 +38,16 @@ public class RocketSupplier implements PrioritizedSupplier<SelectableItem> {
                 return Rocket.PLD_8;
             }
         }
-        try {
-            return items.getItems(ItemCategory.ROCKETS).stream()
-                    .filter(item -> item.isUsable() && item.isAvailable())
-                    .sorted(Comparator.comparing(i -> damageOrder.indexOf(i.getId()))).findFirst().orElse(null);
-        } catch (Exception e) {
-            return null;
+        if (items.getItem(Rocket.PLT_3030, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+            return Rocket.PLT_3030;
+        } else if (items.getItem(Rocket.PLT_2021, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+            return Rocket.PLT_2021;
+        } else if (items.getItem(Rocket.PLT_2026, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+            return Rocket.PLT_2026;
+        } else if (items.getItem(Rocket.R_310, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+            return Rocket.R_310;
         }
+        return null;
     }
 
     private boolean shoulFocusSpeed(Lockable target) {
@@ -64,8 +59,8 @@ public class RocketSupplier implements PrioritizedSupplier<SelectableItem> {
     }
 
     private boolean shoulUsePLD(Lockable target) {
-        return target instanceof Movable ? ((Movable) target).isAiming(heroapi) && heroapi.getHealth().hpPercent() < 0.5
-                : false;
+        return target instanceof Movable && ((Movable) target).isAiming(heroapi)
+                && heroapi.getHealth().hpPercent() < 0.5;
     }
 
     @Override
