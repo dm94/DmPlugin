@@ -79,7 +79,7 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
         if (heroapi.getMap() != null && heroapi.getMap().isGG()) {
             return;
         }
-        if (botApi.getModule().getClass() != DefenseModule.class
+        if (botApi.getModule() != null && botApi.getModule().getClass() != DefenseModule.class
                 && !(botApi.getModule().getClass() == PVPModule.class && heroapi.isAttacking())
                 && !(botApi.getModule().getClass() == SentinelModule.class && heroapi.isAttacking())) {
             if (isUnderAttack()) {

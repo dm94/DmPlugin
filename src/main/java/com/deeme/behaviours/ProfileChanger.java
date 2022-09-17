@@ -30,8 +30,6 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
 
     public boolean stopBot = false;
 
-    public int lastNPCID = 0;
-
     public ProfileChanger(Main main, PluginAPI api) {
         this(main, api, api.requireAPI(AuthAPI.class),
                 api.requireAPI(BotAPI.class),
@@ -80,15 +78,16 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     private void checkNPC() {
         Lockable target = hero.getLocalTarget();
         if (target != null && target.isValid() && target.isOwned()) {
-            if (target.getId() != lastNPCID) {
-                lastNPCID = target.getId();
-                String name = target.getEntityInfo().getUsername();
-                if (name != null && name.toLowerCase().contains(config.npcExtraCondition.npcName.toLowerCase())) {
-                    config.npcExtraCondition.npcCounter++;
-                }
-                if (name != null && name.toLowerCase().contains(config.npcExtraCondition2.npcName.toLowerCase())) {
-                    config.npcExtraCondition2.npcCounter++;
-                }
+            String name = target.getEntityInfo().getUsername();
+            if (name != null && name.toLowerCase().contains(config.npcExtraCondition.npcName.toLowerCase())
+                    && target.getId() != config.npcExtraCondition.lastNPCId) {
+                config.npcExtraCondition.lastNPCId = target.getId();
+                config.npcExtraCondition.npcCounter++;
+            }
+            if (name != null && name.toLowerCase().contains(config.npcExtraCondition2.npcName.toLowerCase())
+                    && target.getId() != config.npcExtraCondition2.lastNPCId) {
+                config.npcExtraCondition2.lastNPCId = target.getId();
+                config.npcExtraCondition2.npcCounter++;
             }
         }
     }

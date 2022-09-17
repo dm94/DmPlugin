@@ -7,6 +7,8 @@ import com.github.manolo8.darkbot.config.types.Num;
 @Option("NPC Counter Condition")
 public class NpcCounterCondition {
 
+    public transient int lastNPCId = 0;
+
     @Option("Active condition")
     public boolean active = false;
 

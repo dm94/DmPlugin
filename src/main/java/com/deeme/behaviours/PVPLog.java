@@ -76,6 +76,7 @@ public class PVPLog implements Behavior {
 
     private String lastEffects = "";
     private String lastEnemyEffects = "";
+    private int lastNPCID = 0;
 
     // Batle Data
     private boolean battleStart = false;
@@ -167,6 +168,10 @@ public class PVPLog implements Behavior {
         }
 
         if (hero.getLocalTarget() != null) {
+            if (lastNPCID != hero.getLocalTarget().getId()) {
+                lastNPCID = hero.getLocalTarget().getId();
+                System.out.println("Target ID: " + lastNPCID);
+            }
             String effectsEnemyNow = hero.getLocalTarget().getEffects().toString();
             if (!lastEnemyEffects.equals(effectsEnemyNow)) {
                 lastEnemyEffects = effectsEnemyNow;
