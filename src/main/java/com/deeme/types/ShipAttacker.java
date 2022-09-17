@@ -177,12 +177,12 @@ public class ShipAttacker {
         }
     }
 
-    private Character getAttackKey() {
-        return getAttackKey(ammoKey.getValue());
-    }
-
     protected Laser getBestLaserAmmo() {
         return laserSupplier.get();
+    }
+
+    private Character getAttackKey() {
+        return getAttackKey(ammoKey.getValue());
     }
 
     private Character getAttackKey(Character defaultAmmo) {

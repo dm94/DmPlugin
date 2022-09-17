@@ -517,6 +517,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                 this.bot.setModule(api.requireInstance(MapModule.class)).setTarget(map);
             }
         } catch (MapNotFoundException e) {
+            System.out.println("Map not found" + e.getMessage());
         }
     }
 }

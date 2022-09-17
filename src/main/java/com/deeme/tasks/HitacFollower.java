@@ -178,6 +178,7 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
             int map = star.getByName(mapName).getId();
             api.requireAPI(ConfigAPI.class).requireConfig("general.working_map").setValue(map);
         } catch (MapNotFoundException e) {
+            System.out.println("Map not found" + e.getMessage());
         }
     }
 }

@@ -143,7 +143,6 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
         if (configPa.goPortalChange) {
             return canRefresh();
         }
-        ;
         return !heroapi.isAttacking() && !SharedFunctions.hasAttacker(heroapi, main);
     }
 
