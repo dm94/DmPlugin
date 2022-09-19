@@ -193,11 +193,15 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
                             if (heroapi.getHealth().getMaxShield() > 10000
                                     && heroapi.getHealth().shieldPercent() > 0.9) {
                                 isConfigAttackFull = true;
+                            } else if (heroapi.getHealth().getShield() >= heroapi.getHealth().getMaxShield()) {
+                                isConfigAttackFull = true;
                             }
                         } else if (!isCongigRunFull) {
                             shipAttacker.setMode(configRun.getValue(), pvpConfig.useBestFormation);
                             if (heroapi.getHealth().getMaxShield() > 10000
                                     && heroapi.getHealth().shieldPercent() > 0.9) {
+                                isCongigRunFull = true;
+                            } else if (heroapi.getHealth().getShield() >= heroapi.getHealth().getMaxShield()) {
                                 isCongigRunFull = true;
                             }
                         }
@@ -228,7 +232,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     }
 
     private boolean getTarget() {
-        if ((target != null && target.isValid()
+        if ((target != null && target.isValid() && !shipAttacker.inGroup(target.getId())
                 && target.getLocationInfo().distanceTo(heroapi) < pvpConfig.rangeForAttackedEnemy)
                 || isUnderAttack()) {
             return true;

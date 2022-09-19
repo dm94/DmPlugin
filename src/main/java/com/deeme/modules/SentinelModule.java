@@ -250,7 +250,8 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                         GameMap map = getWorkingMap();
                         if (!portals.isEmpty() && map != starSystem.getCurrentMap()) {
                             currentStatus = State.TRAVELING_TO_WORKING_MAP;
-                            this.bot.setModule(api.requireInstance(MapModule.class)).setTarget(map);
+                            this.bot.setModule(new MapModule(api, true))
+                                    .setTarget(map);
                         } else if (sConfig.collectorActive) {
                             collectorModule.onTickModule();
                         }
