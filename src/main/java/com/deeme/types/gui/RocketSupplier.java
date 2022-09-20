@@ -1,6 +1,7 @@
 package com.deeme.types.gui;
 
-import eu.darkbot.api.game.items.SelectableItem.Laser;
+import eu.darkbot.api.game.items.SelectableItem;
+import eu.darkbot.api.game.items.SelectableItem.Rocket;
 import eu.darkbot.api.managers.HeroItemsAPI;
 
 import java.util.ArrayList;
@@ -8,7 +9,7 @@ import java.util.List;
 
 import com.github.manolo8.darkbot.config.types.suppliers.OptionList;
 
-public class AmmoSupplier extends OptionList<String> {
+public class RocketSupplier extends OptionList<String> {
 
     protected HeroItemsAPI items;
 
@@ -25,9 +26,9 @@ public class AmmoSupplier extends OptionList<String> {
     @Override
     public List<String> getOptions() {
         ArrayList<String> allItemsIds = new ArrayList<>();
-        Laser[] selectableItemList = Laser.values();
-        for (Laser item : selectableItemList) {
-            allItemsIds.add(item.getId());
+        Rocket[] selectableItemList = SelectableItem.Rocket.values();
+        for (Rocket rocket : selectableItemList) {
+            allItemsIds.add(rocket.getId());
         }
         return allItemsIds;
     }

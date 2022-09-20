@@ -1,4 +1,4 @@
-package com.deeme.types;
+package com.deeme.types.suppliers;
 
 import com.github.manolo8.darkbot.config.Config.Loot.Sab;
 

@@ -86,9 +86,6 @@ public class DefenseModule extends TemporalModule {
                 shipAttacker.tryLockAndAttack();
 
                 shipAttacker.useKeyWithConditions(defenseConfig.ability, null);
-                if (defenseConfig.useBestRocket) {
-                    shipAttacker.changeRocket();
-                }
 
                 if (defenseConfig.useAbility) {
                     shipAttacker.useHability();

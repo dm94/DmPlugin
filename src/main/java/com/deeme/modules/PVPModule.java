@@ -157,10 +157,6 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
 
                     shipAttacker.tryLockAndAttack();
 
-                    if (pvpConfig.useBestRocket) {
-                        shipAttacker.changeRocket();
-                    }
-
                     if (target != null && target.isValid() && heroapi.getLocationInfo().distanceTo(target) < 575) {
                         shipAttacker.useKeyWithConditions(pvpConfig.ability, null);
                     }

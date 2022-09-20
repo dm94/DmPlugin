@@ -1,4 +1,4 @@
-package com.deeme.types;
+package com.deeme.types.suppliers;
 
 import java.util.Arrays;
 import java.util.Comparator;

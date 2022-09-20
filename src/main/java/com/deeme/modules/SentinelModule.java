@@ -276,7 +276,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
             }
         }
 
-        if (target != null && !target.isValid()) {
+        if (target != null && (!target.isValid() || target.getId() == heroapi.getId())) {
             target = null;
         }
 

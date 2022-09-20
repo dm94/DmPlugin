@@ -245,7 +245,7 @@ public class PVPLog implements Behavior {
         lastEnemyData = enemyData;
     }
 
-    private Map getOurSpecialItems() {
+    private Map<String, Object> getOurSpecialItems() {
         Map<String, Object> ourItems = new HashMap<>();
 
         List<Item> usableItems = items.getItems(ItemCategory.SPECIAL_ITEMS).stream().filter(Item::isUsable)
@@ -253,7 +253,7 @@ public class PVPLog implements Behavior {
         for (Item item : usableItems) {
             try {
                 if (item.lastUseTime() != 0) {
-                    ourItems.put(item.getId(), item.getItemTimer());
+                    ourItems.put(item.getId(), item.getTimer());
                 }
             } catch (Exception e) {
                 System.out.println(e.getMessage());

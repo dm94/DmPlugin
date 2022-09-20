@@ -1,12 +1,12 @@
 package com.deeme.modules;
 
-import com.deeme.types.AmmoSupplier;
 import com.deeme.types.AstralPortalSupplier;
 import com.deeme.types.AstralShip;
-import com.deeme.types.RocketSupplier;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 import com.deeme.types.config.AstralConfig;
+import com.deeme.types.suppliers.AmmoSupplier;
+import com.deeme.types.suppliers.RocketSupplier;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;

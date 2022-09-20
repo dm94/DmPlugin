@@ -1,4 +1,4 @@
-package com.deeme.types;
+package com.deeme.types.suppliers;
 
 import eu.darkbot.api.extensions.selectors.PrioritizedSupplier;
 import eu.darkbot.api.game.items.ItemFlag;
@@ -102,6 +102,8 @@ public class FormationSupplier implements PrioritizedSupplier<Formation> {
         return focusSpeed ? Priority.HIGHEST
                 : focusPenetration ? Priority.HIGH
                         : useCrab ? Priority.MODERATE
-                                : useDiamond ? Priority.MODERATE : focusPenetration ? Priority.LOW : Priority.LOWEST;
+                                : useDiamond ? Priority.MODERATE
+                                        : focusPenetration ? Priority.LOW
+                                                : focusDamage ? Priority.LOW : Priority.LOWEST;
     }
 }

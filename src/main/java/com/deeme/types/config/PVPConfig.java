@@ -21,9 +21,6 @@ public class PVPConfig {
     @Option(value = "Use the run configuration", description = "Will use the run setting if enemies flee")
     public boolean useRunConfig = true;
 
-    @Option(value = "Auto choose the best rocket", description = "Automatically switches missiles")
-    public boolean useBestRocket = true;
-
     @Option(value = "Auto choose the best formation", description = "Automatically switches formations")
     public boolean useBestFormation = true;
 

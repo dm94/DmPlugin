@@ -1,4 +1,4 @@
-package com.deeme.types;
+package com.deeme.types.suppliers;
 
 import eu.darkbot.api.extensions.selectors.PrioritizedSupplier;
 import eu.darkbot.api.game.items.ItemFlag;

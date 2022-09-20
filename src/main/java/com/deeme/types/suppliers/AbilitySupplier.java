@@ -1,6 +1,8 @@
-package com.deeme.types;
+package com.deeme.types.suppliers;
 
 import java.util.Collection;
+
+import com.deeme.types.SharedFunctions;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.extensions.selectors.PrioritizedSupplier;

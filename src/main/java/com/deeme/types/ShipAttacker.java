@@ -2,6 +2,9 @@ package com.deeme.types;
 
 import com.deeme.types.config.Defense;
 import com.deeme.types.config.ExtraKeyConditions;
+import com.deeme.types.suppliers.AbilitySupplier;
+import com.deeme.types.suppliers.DefenseLaserSupplier;
+import com.deeme.types.suppliers.FormationSupplier;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.Config.Loot.Sab;
 import com.github.manolo8.darkbot.core.api.DarkBoatAdapter;
@@ -20,7 +23,6 @@ import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.game.items.SelectableItem.Formation;
 import eu.darkbot.api.game.items.SelectableItem.Laser;
-import eu.darkbot.api.game.items.SelectableItem.Rocket;
 import eu.darkbot.api.game.other.Location;
 import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
@@ -48,7 +50,6 @@ public class ShipAttacker {
     protected final Collection<? extends Portal> allPortals;
     private DefenseLaserSupplier laserSupplier;
     private FormationSupplier formationSupplier;
-    private RocketSupplier rocketSupplier;
     private AbilitySupplier abilitySupplier;
 
     public Ship target;
@@ -65,7 +66,6 @@ public class ShipAttacker {
     protected long isAttacking;
     protected int fixedTimes;
     protected Character lastShot;
-    protected long rocketTime;
 
     public ShipAttacker(Main main) {
         this(main.pluginAPI.getAPI(PluginAPI.class), main.config.LOOT.SAB, main.config.LOOT.RSB.ENABLED);
@@ -88,7 +88,6 @@ public class ShipAttacker {
         this.repairHpRange = configAPI.requireConfig("general.safety.repair_hp_range");
         this.ammoKey = configAPI.requireConfig("loot.ammo_key");
 
-        this.rocketSupplier = new RocketSupplier(heroapi, items, repairHpRange.getValue().getMin());
         this.abilitySupplier = new AbilitySupplier(api);
     }
 
@@ -201,24 +200,8 @@ public class ShipAttacker {
         return defaultAmmo;
     }
 
-    private Rocket getBestRocket() {
-        return rocketSupplier.get();
-    }
-
     public Formation getBestFormation() {
         return formationSupplier.get();
-    }
-
-    public void changeRocket() {
-        if (System.currentTimeMillis() < rocketTime) {
-            return;
-        }
-        Rocket rocket = getBestRocket();
-
-        if (rocket != null && !heroapi.getRocket().getId().equals(rocket.getId())
-                && useSelectableReadyWhenReady(rocket)) {
-            rocketTime = System.currentTimeMillis() + 2000;
-        }
     }
 
     public void useHability() {

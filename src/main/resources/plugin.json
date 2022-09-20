@@ -1,7 +1,7 @@
 {
   "name": "DmPlugin",
   "author": "Dm94Dani",
-  "version": "1.5.12 beta 23",
+  "version": "1.5.12 beta 24",
   "minVersion": "1.13.17 beta 109 alpha 15",
   "supportedVersion": "1.13.17 beta 109 alpha 16",
   "features": [
@@ -22,7 +22,8 @@
     "com.deeme.behaviours.CustomEvents",
     "com.deeme.behaviours.StopButton",
     "com.deeme.behaviours.ProfileChanger",
-    "com.deeme.behaviours.AmbulanceMode"
+    "com.deeme.behaviours.AmbulanceMode",
+    "com.deeme.behaviours.bestrocket.AutoBestRocket"
   ],
   "donation": "https://www.paypal.com/donate/?business=JR2XWPSKLWN76&amount=5&no_recurring=0&currency_code=EUR",
   "discord": "https://discord.gg/GPRTRRZJPw",
