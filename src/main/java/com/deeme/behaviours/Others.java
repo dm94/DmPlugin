@@ -11,7 +11,10 @@ import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.game.items.ItemFlag;
+import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.managers.BotAPI;
+import eu.darkbot.api.managers.HeroItemsAPI;
 import eu.darkbot.api.managers.StatsAPI;
 import eu.darkbot.api.utils.Inject;
 
@@ -24,20 +27,23 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
     protected final PluginAPI api;
     protected final StatsAPI stats;
     protected final BotAPI bot;
+    protected final HeroItemsAPI items;
 
     public Others(Main main, PluginAPI api) throws UnsupportedOperationException, Exception {
         this(main, api,
                 api.requireAPI(BotAPI.class),
-                api.requireAPI(StatsAPI.class));
+                api.requireAPI(StatsAPI.class),
+                api.requireAPI(HeroItemsAPI.class));
     }
 
     @Inject
-    public Others(Main main, PluginAPI api, BotAPI bot, StatsAPI stats) throws Exception {
+    public Others(Main main, PluginAPI api, BotAPI bot, StatsAPI stats, HeroItemsAPI heroItems) throws Exception {
         Utils.showDonateDialog();
         this.main = main;
         this.api = api;
         this.bot = bot;
         this.stats = stats;
+        this.items = heroItems;
     }
 
     @Override
@@ -63,6 +69,19 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
                 Main.API.handleRefresh();
             }
         }
+
+        if (lcConfig.autoBuyLcb10 && this.stats.getTotalCredits() >= 100000
+                && this.items.getItem(SelectableItem.Laser.LCB_10, ItemFlag.USABLE).get()
+                        .getQuantity() <= 1000
+                && this.items.getItem(SelectableItem.AutoBuy.LCB_10, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+            items.useItem(SelectableItem.AutoBuy.LCB_10);
+        }
+        if (lcConfig.autoBuyPlt2026 && this.stats.getTotalCredits() >= 50000
+                && this.items.getItem(SelectableItem.Rocket.PLT_2026, ItemFlag.USABLE).get()
+                        .getQuantity() <= 100
+                && this.items.getItem(SelectableItem.AutoBuy.PLT_2026, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+            items.useItem(SelectableItem.AutoBuy.PLT_2026);
+        }
     }
 
     public static class LCConfig {
@@ -76,6 +95,12 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
         @Option(value = "Reload if memory is exceeded ", description = "0 = Disabled. Reload if memory is exceeded")
         @Num(max = 6000, step = 100)
         public int maxMemory = 0;
+
+        @Option(value = "Auto Buy LCB-10", description = "Automatically buys LCB-10 if it has less than 1000")
+        public boolean autoBuyLcb10 = false;
+
+        @Option(value = "Auto Buy PLT-2026", description = "Automatically buys LCB-10 if it has less than 100")
+        public boolean autoBuyPlt2026 = false;
     }
 
     private boolean inPortal() {
