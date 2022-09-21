@@ -130,12 +130,13 @@ public class DefenseModule extends TemporalModule {
     private boolean isUnderAttack() {
         if (shipAttacker.getTarget() != null && shipAttacker.getTarget().isValid()
                 && shipAttacker.getTarget().getEntityInfo().isEnemy()
-                && shipAttacker.getTarget().getLocationInfo().distanceTo(heroapi) < 1500) {
+                && (!defenseConfig.ignoreEnemies
+                        || shipAttacker.getTarget().getLocationInfo().distanceTo(heroapi) < 1500)) {
             return true;
         }
 
         if (target != null && target.isValid()
-                && target.getLocationInfo().distanceTo(heroapi) < 1500) {
+                && (!defenseConfig.ignoreEnemies || target.getLocationInfo().distanceTo(heroapi) < 1500)) {
             shipAttacker.setTarget((Ship) target);
             return true;
         }
@@ -178,6 +179,12 @@ public class DefenseModule extends TemporalModule {
             shipAttacker.goToMemberAttacked();
         }
         shipAttacker.resetDefenseData();
+
+        if (shipAttacker.getTarget() != null && shipAttacker.getTarget().isValid()
+                && (!defenseConfig.ignoreEnemies
+                        || shipAttacker.getTarget().getLocationInfo().distanceTo(heroapi) < 1500)) {
+            shipAttacker.setTarget(null);
+        }
 
         return shipAttacker.getTarget() != null;
     }

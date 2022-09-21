@@ -183,6 +183,14 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
             pet.setEnabled(true);
             if (shipAround()) {
                 lastMap = heroapi.getMap() != null ? heroapi.getMap().getId() : null;
+                if (sConfig.aggressiveFollow
+                        && heroapi.distanceTo(sentinel.getLocationInfo().getCurrent()) > sConfig.rangeToLider) {
+                    if (sConfig.goToMasterDestination && sentinel.getDestination().isPresent()) {
+                        movement.moveTo(sentinel.getDestination().get());
+                    } else {
+                        movement.moveTo(sentinel.getLocationInfo().getCurrent());
+                    }
+                }
                 if (isAttacking()) {
                     currentStatus = State.HELPING_MASTER;
                     lastTimeAttack = System.currentTimeMillis();

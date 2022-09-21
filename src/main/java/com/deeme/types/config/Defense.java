@@ -40,6 +40,9 @@ public class Defense {
     @Option(value = "Auto use the best ability", description = "Beta - Can use almost all abilities")
     public boolean useAbility = false;
 
+    @Option(value = "Ignore fleeing enemies", description = "Ignore enemies further away from 1500")
+    public boolean ignoreEnemies = false;
+
     @Option("Ammo")
     public Character ammoKey;
 

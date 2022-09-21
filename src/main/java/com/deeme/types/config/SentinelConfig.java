@@ -43,6 +43,9 @@ public class SentinelConfig {
     @Option(value = "Move to the location the master is going to", description = "It will go to the master's destination and not to where the master is.")
     public boolean goToMasterDestination = false;
 
+    @Option(value = "Aggressive follow up", description = "Always respect the following range to the leader. This will make the bot less human")
+    public boolean aggressiveFollow = false;
+
     public @Option(value = "Auto Attack", description = "Will attack even when the master is not attacking") AutoAttack autoAttack = new AutoAttack();
 
     public @Option(value = "Auto Cloak", description = "It will automatically camouflage") AutoCloak autoCloak = new AutoCloak();
