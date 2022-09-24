@@ -16,6 +16,7 @@ import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.entities.Player;
 import eu.darkbot.api.game.entities.Ship;
+import eu.darkbot.api.game.group.GroupMember;
 import eu.darkbot.api.game.items.SelectableItem.Special;
 import eu.darkbot.api.game.other.EntityInfo.Diplomacy;
 import eu.darkbot.api.managers.BotAPI;
@@ -97,26 +98,7 @@ public class DefenseModule extends TemporalModule {
                 shipAttacker.useKeyWithConditions(defenseConfig.PEM, Special.EMP_01);
                 shipAttacker.useKeyWithConditions(defenseConfig.otherKey, null);
                 shipAttacker.tryAttackOrFix();
-                switch (defenseConfig.newMovementMode) {
-                    case 0:
-                        safetyFinder.tick();
-                        break;
-                    case 1:
-                        shipAttacker.vsMove();
-                        break;
-                    case 2:
-                        if (!movement.isMoving() || movement.isOutOfMap()) {
-                            movement.moveRandom();
-                        }
-                        break;
-                    case 3:
-                        if (heroapi.getHealth().hpPercent() <= repairHpRange.getValue().getMin()) {
-                            safetyFinder.tick();
-                        } else {
-                            shipAttacker.vsMove();
-                        }
-                        break;
-                }
+                movementLogic();
             } else {
                 target = null;
                 super.goBack();
@@ -214,6 +196,45 @@ public class DefenseModule extends TemporalModule {
                     }
                     break;
             }
+        }
+    }
+
+    private void movementLogic() {
+        switch (defenseConfig.newMovementMode) {
+            case 0:
+                safetyFinder.tick();
+                break;
+            case 1:
+                shipAttacker.vsMove();
+                break;
+            case 2:
+                if (!movement.isMoving() || movement.isOutOfMap()) {
+                    movement.moveRandom();
+                }
+                break;
+            case 3:
+                if (heroapi.getHealth().hpPercent() <= repairHpRange.getValue().getMin()) {
+                    safetyFinder.tick();
+                } else {
+                    shipAttacker.vsMove();
+                }
+                break;
+            case 4:
+                if (heroapi.getHealth().hpPercent() <= repairHpRange.getValue().getMin()) {
+                    safetyFinder.tick();
+                } else {
+                    GroupMember groupMember = shipAttacker.getClosestMember();
+                    if (groupMember != null) {
+                        if (groupMember.getLocation().distanceTo(heroapi) < 1000) {
+                            shipAttacker.vsMove();
+                        } else {
+                            movement.moveTo(groupMember.getLocation());
+                        }
+                    } else {
+                        shipAttacker.vsMove();
+                    }
+                }
+                break;
         }
     }
 

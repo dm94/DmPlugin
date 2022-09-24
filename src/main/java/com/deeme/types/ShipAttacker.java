@@ -305,6 +305,16 @@ public class ShipAttacker {
         return null;
     }
 
+    public GroupMember getClosestMember() {
+        if (group.hasGroup()) {
+            return group.getMembers().stream()
+                    .filter(member -> !member.isDead() && member.getMapId() == heroapi.getMap().getId())
+                    .min(Comparator.<GroupMember>comparingDouble(m -> m.getLocation().distanceTo(heroapi)))
+                    .orElse(null);
+        }
+        return null;
+    }
+
     public void setMode(ShipMode config) {
         if (defense != null) {
             setMode(config, defense.useBestFormation);
