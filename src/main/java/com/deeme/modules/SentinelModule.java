@@ -165,8 +165,8 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
     @Override
     public String getStatus() {
         return safety.state() != SafetyFinder.Escaping.NONE ? safety.status()
-                : currentStatus.message + " | " + (isNpc ? "NPC" : "Other") + " | " + attacker.getStatus()
-                        + " | " + shipAttacker.getStatus();
+                : currentStatus.message + " | " + (isNpc ? "NPC" : "Player") + " | "
+                        + (isNpc ? attacker.getStatus() : shipAttacker.getStatus());
     }
 
     @Override
@@ -183,14 +183,6 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
             pet.setEnabled(true);
             if (shipAround()) {
                 lastMap = heroapi.getMap() != null ? heroapi.getMap().getId() : null;
-                if (sConfig.aggressiveFollow
-                        && heroapi.distanceTo(sentinel.getLocationInfo().getCurrent()) > sConfig.rangeToLider) {
-                    if (sConfig.goToMasterDestination && sentinel.getDestination().isPresent()) {
-                        movement.moveTo(sentinel.getDestination().get());
-                    } else {
-                        movement.moveTo(sentinel.getLocationInfo().getCurrent());
-                    }
-                }
                 if (isAttacking()) {
                     currentStatus = State.HELPING_MASTER;
                     lastTimeAttack = System.currentTimeMillis();
@@ -202,6 +194,14 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                     }
                     if (sConfig.useAbility) {
                         shipAttacker.useHability();
+                    }
+                    if (sConfig.aggressiveFollow
+                            && heroapi.distanceTo(sentinel.getLocationInfo().getCurrent()) > sConfig.rangeToLider) {
+                        if (sConfig.goToMasterDestination && sentinel.getDestination().isPresent()) {
+                            movement.moveTo(sentinel.getDestination().get());
+                        } else {
+                            movement.moveTo(sentinel.getLocationInfo().getCurrent());
+                        }
                     }
                 } else if (sentinel.isValid()) {
                     currentStatus = State.FOLLOWING_MASTER;
