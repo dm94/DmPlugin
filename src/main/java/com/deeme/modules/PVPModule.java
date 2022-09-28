@@ -161,10 +161,6 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
                         shipAttacker.useKeyWithConditions(pvpConfig.ability, null);
                     }
 
-                    if (pvpConfig.useAbility) {
-                        shipAttacker.useHability();
-                    }
-
                     shipAttacker.useKeyWithConditions(pvpConfig.ISH, Special.ISH_01);
                     shipAttacker.useKeyWithConditions(pvpConfig.SMB, Special.SMB_01);
                     shipAttacker.useKeyWithConditions(pvpConfig.PEM, Special.EMP_01);
@@ -185,7 +181,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
                     }
                     if (pvpConfig.rechargeShields) {
                         if (!isConfigAttackFull) {
-                            shipAttacker.setMode(configOffensive.getValue(), pvpConfig.useBestFormation);
+                            heroapi.setMode(configOffensive.getValue());
                             if (heroapi.getHealth().getMaxShield() > 10000
                                     && heroapi.getHealth().shieldPercent() > 0.9) {
                                 isConfigAttackFull = true;
@@ -193,7 +189,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
                                 isConfigAttackFull = true;
                             }
                         } else if (!isCongigRunFull) {
-                            shipAttacker.setMode(configRun.getValue(), pvpConfig.useBestFormation);
+                            heroapi.setMode(configRun.getValue());
                             if (heroapi.getHealth().getMaxShield() > 10000
                                     && heroapi.getHealth().shieldPercent() > 0.9) {
                                 isCongigRunFull = true;
@@ -244,17 +240,17 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     private void setConfigToUse() {
         if (attackConfigLost || heroapi.getHealth().shieldPercent() < 0.1 && heroapi.getHealth().hpPercent() < 0.3) {
             attackConfigLost = true;
-            shipAttacker.setMode(configRun.getValue(), pvpConfig.useBestFormation);
+            heroapi.setMode(configRun.getValue());
         } else if (pvpConfig.useRunConfig && target != null) {
             double distance = heroapi.getLocationInfo().distanceTo(target);
             if (distance > 400 && distance > lastDistanceTarget && target.getSpeed() > heroapi.getSpeed()) {
-                shipAttacker.setMode(configRun.getValue(), pvpConfig.useBestFormation);
+                heroapi.setMode(configRun.getValue());
                 lastDistanceTarget = distance;
             } else {
-                shipAttacker.setMode(configOffensive.getValue(), pvpConfig.useBestFormation);
+                heroapi.setMode(configOffensive.getValue());
             }
         } else {
-            shipAttacker.setMode(configOffensive.getValue(), pvpConfig.useBestFormation);
+            heroapi.setMode(configOffensive.getValue());
         }
     }
 

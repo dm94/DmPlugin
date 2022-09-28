@@ -192,9 +192,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                         shipAttacker.tryAttackOrFix();
                         shipAttacker.vsMove();
                     }
-                    if (sConfig.useAbility) {
-                        shipAttacker.useHability();
-                    }
+
                     if (sConfig.aggressiveFollow
                             && heroapi.distanceTo(sentinel.getLocationInfo().getCurrent()) > sConfig.rangeToLider) {
                         if (sConfig.goToMasterDestination && sentinel.getDestination().isPresent()) {
@@ -405,11 +403,11 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                 if (sentinelFormation != null) {
                     shipAttacker.setMode(config, sentinelFormation);
                 } else {
-                    shipAttacker.setMode(config, sConfig.useBestFormation);
+                    heroapi.setMode(config);
                 }
             }
         } else {
-            shipAttacker.setMode(config, sConfig.useBestFormation);
+            heroapi.setMode(config);
         }
     }
 

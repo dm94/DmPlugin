@@ -1,39 +1,93 @@
-package com.deeme.types.suppliers;
+package com.deeme.behaviours.bestability;
 
+import java.util.Arrays;
 import java.util.Collection;
 
+import com.deeme.modules.temporal.AmbulanceModule;
 import com.deeme.types.SharedFunctions;
+import com.deeme.types.VerifierChecker;
+import com.deeme.types.backpage.Utils;
+import com.github.manolo8.darkbot.extensions.util.Version;
 
 import eu.darkbot.api.PluginAPI;
-import eu.darkbot.api.extensions.selectors.PrioritizedSupplier;
+import eu.darkbot.api.config.ConfigSetting;
+import eu.darkbot.api.extensions.Behavior;
+import eu.darkbot.api.extensions.Configurable;
+import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.game.entities.Entity;
+import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.entities.Ship;
 import eu.darkbot.api.game.group.GroupMember;
 import eu.darkbot.api.game.items.ItemFlag;
+import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.game.items.SelectableItem.Ability;
 import eu.darkbot.api.game.other.Lockable;
 import eu.darkbot.api.game.other.Movable;
+import eu.darkbot.api.managers.AuthAPI;
+import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.GroupAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
+import eu.darkbot.api.utils.Inject;
+import eu.darkbot.shared.utils.SafetyFinder;
+import eu.darkbot.shared.utils.SafetyFinder.Escaping;
 
-public class AbilitySupplier implements PrioritizedSupplier<Ability> {
-    protected HeroItemsAPI items;
-    protected HeroAPI heroapi;
-    protected GroupAPI group;
+@Feature(name = "Auto Best Ability", description = "Auto use the best ability. Can use almost all abilities")
+public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig> {
+
     protected final PluginAPI api;
+    protected final BotAPI bot;
+    protected final HeroAPI heroapi;
+    protected final GroupAPI group;
+    protected final HeroItemsAPI items;
+    protected final SafetyFinder safety;
+    private BestAbilityConfig config;
 
-    private boolean focusShield, focusHealth, focusSpeed, focusEvade, focusHelpTank = false;
+    private Collection<? extends Ship> allShips;
 
-    public AbilitySupplier(PluginAPI api) {
-        this.api = api;
-        this.heroapi = api.getAPI(HeroAPI.class);
-        this.group = api.getAPI(GroupAPI.class);
-        this.items = api.getAPI(HeroItemsAPI.class);
+    public AutoBestAbility(PluginAPI api) {
+        this(api, api.requireAPI(AuthAPI.class),
+                api.requireAPI(BotAPI.class), api.requireAPI(HeroItemsAPI.class));
     }
 
-    public Ability get() {
+    @Inject
+    public AutoBestAbility(PluginAPI api, AuthAPI auth, BotAPI bot, HeroItemsAPI items) {
+        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
+            throw new SecurityException();
+        VerifierChecker.checkAuthenticity(auth);
+
+        Utils.showDonateDialog();
+
+        this.api = api;
+        this.bot = bot;
+        this.items = items;
+        this.heroapi = api.getAPI(HeroAPI.class);
+        this.group = api.getAPI(GroupAPI.class);
+        this.safety = api.requireInstance(SafetyFinder.class);
+
+        EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
+        this.allShips = entities.getShips();
+    }
+
+    @Override
+    public void setConfig(ConfigSetting<BestAbilityConfig> arg0) {
+        this.config = arg0.getValue();
+    }
+
+    @Override
+    public void onTickBehavior() {
+        Entity target = heroapi.getLocalTarget();
+        if (target != null && target.isValid()) {
+            if (config.npcEnabled || !(target instanceof Npc)) {
+                useSelectableReadyWhenReady(getBestAbility());
+            }
+        } else if (safety.state() == Escaping.ENEMY) {
+            useSelectableReadyWhenReady(getBestAbility());
+        }
+    }
+
+    private Ability getBestAbility() {
         if (shoulFocusHealth()) {
             if (items.getItem(Ability.AEGIS_REPAIR_POD, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                 return Ability.AEGIS_REPAIR_POD;
@@ -47,9 +101,11 @@ public class AbilitySupplier implements PrioritizedSupplier<Ability> {
             if (items.getItem(Ability.SOLACE, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                 return Ability.SOLACE;
             }
-            if (items.getItem(Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS, ItemFlag.USABLE, ItemFlag.READY)
-                    .isPresent()) {
-                return Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS;
+            if (bot.getVersion().compareTo(new Version("1.13.17 beta 109 alpha 15")) > 1) {
+                if (items.getItem(Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS, ItemFlag.USABLE, ItemFlag.READY)
+                        .isPresent()) {
+                    return Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS;
+                }
             }
         }
 
@@ -169,18 +225,6 @@ public class AbilitySupplier implements PrioritizedSupplier<Ability> {
         return null;
     }
 
-    @Override
-    public Priority getPriority() {
-        focusSpeed = shoulFocusSpeed();
-        focusHealth = shoulFocusHealth();
-        focusShield = shoulFocusShield();
-        focusEvade = shoulFocusEvade();
-        focusHelpTank = shouldFocusHelpTank();
-        return focusHealth || focusShield ? Priority.HIGHEST
-                : focusSpeed ? Priority.HIGH
-                        : focusEvade || focusHelpTank ? Priority.MODERATE : Priority.LOWEST;
-    }
-
     private boolean shoulFocusDamage() {
         Lockable target = heroapi.getLocalTarget();
         if (target != null && target.isValid()) {
@@ -194,6 +238,9 @@ public class AbilitySupplier implements PrioritizedSupplier<Ability> {
     }
 
     private boolean shoulFocusSpeed() {
+        if (safety.state() == Escaping.ENEMY) {
+            return true;
+        }
         Lockable target = heroapi.getLocalTarget();
         if (target != null && target.isValid()) {
             double distance = heroapi.getLocationInfo().getCurrent().distanceTo(target.getLocationInfo());
@@ -204,7 +251,11 @@ public class AbilitySupplier implements PrioritizedSupplier<Ability> {
     }
 
     private boolean shoulFocusHealth() {
-        if (heroapi.getHealth().hpPercent() < 0.5) {
+        if (bot.getModule() != null && bot.getModule().getClass() == AmbulanceModule.class) {
+            return false;
+        }
+        if (heroapi.getHealth().hpPercent() < 0.5 && heroapi.getEffects() != null
+                && !heroapi.getEffects().toString().contains("76")) {
             return true;
         }
         if (group.hasGroup()) {
@@ -226,7 +277,7 @@ public class AbilitySupplier implements PrioritizedSupplier<Ability> {
 
         if (group.hasGroup()) {
             for (GroupMember member : group.getMembers()) {
-                if (!member.isDead() && member.isAttacked() && member.getLocation().distanceTo(heroapi) < 500) {
+                if (!member.isDead() && member.isAttacked() && member.getLocation().distanceTo(heroapi) < 1000) {
                     return true;
                 }
             }
@@ -253,9 +304,22 @@ public class AbilitySupplier implements PrioritizedSupplier<Ability> {
     }
 
     private boolean shoulFocusEvade() {
-        EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
-        Collection<? extends Ship> allShips = entities.getShips();
+        if (allShips == null || allShips.isEmpty()) {
+            return false;
+        }
         Entity target = SharedFunctions.getAttacker(heroapi, allShips, heroapi);
         return target != null;
+    }
+
+    private boolean useSelectableReadyWhenReady(SelectableItem selectableItem) {
+        if (selectableItem == null) {
+            return false;
+        }
+
+        if (items.useItem(selectableItem, 500, ItemFlag.USABLE, ItemFlag.READY).isSuccessful()) {
+            return true;
+        }
+
+        return false;
     }
 }

@@ -2,9 +2,7 @@ package com.deeme.types;
 
 import com.deeme.types.config.Defense;
 import com.deeme.types.config.ExtraKeyConditions;
-import com.deeme.types.suppliers.AbilitySupplier;
 import com.deeme.types.suppliers.DefenseLaserSupplier;
-import com.deeme.types.suppliers.FormationSupplier;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.Config.Loot.Sab;
 import com.github.manolo8.darkbot.core.api.DarkBoatAdapter;
@@ -49,8 +47,6 @@ public class ShipAttacker {
     protected final Collection<? extends Player> allShips;
     protected final Collection<? extends Portal> allPortals;
     private DefenseLaserSupplier laserSupplier;
-    private FormationSupplier formationSupplier;
-    private AbilitySupplier abilitySupplier;
 
     public Ship target;
 
@@ -83,12 +79,9 @@ public class ShipAttacker {
         this.rnd = new Random();
         this.items = api.getAPI(HeroItemsAPI.class);
         this.laserSupplier = new DefenseLaserSupplier(api, heroapi, items, sab, rsbEnabled);
-        this.formationSupplier = new FormationSupplier(heroapi, items);
 
         this.repairHpRange = configAPI.requireConfig("general.safety.repair_hp_range");
         this.ammoKey = configAPI.requireConfig("loot.ammo_key");
-
-        this.abilitySupplier = new AbilitySupplier(api);
     }
 
     public ShipAttacker(PluginAPI api, Defense defense) {
@@ -200,14 +193,6 @@ public class ShipAttacker {
         return defaultAmmo;
     }
 
-    public Formation getBestFormation() {
-        return formationSupplier.get();
-    }
-
-    public void useHability() {
-        useSelectableReadyWhenReady(abilitySupplier.get());
-    }
-
     public void vsMove() {
         if (target != null) {
             double distance = heroapi.getLocationInfo().distanceTo(target);
@@ -313,27 +298,6 @@ public class ShipAttacker {
                     .orElse(null);
         }
         return null;
-    }
-
-    public void setMode(ShipMode config) {
-        if (defense != null) {
-            setMode(config, defense.useBestFormation);
-        } else {
-            setMode(config, true);
-        }
-    }
-
-    public void setMode(ShipMode config, boolean useBestFormation) {
-        if (useBestFormation) {
-            Formation formation = getBestFormation();
-            if (formation != null) {
-                setMode(config, formation);
-            } else {
-                heroapi.setMode(config);
-            }
-        } else {
-            heroapi.setMode(config);
-        }
     }
 
     public void setMode(ShipMode config, Formation formation) {

@@ -7,6 +7,7 @@ import com.deeme.modules.temporal.AmbulanceModule;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 import com.deeme.types.config.AmbulanceConfig;
+import com.github.manolo8.darkbot.extensions.util.Version;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -135,9 +136,11 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
             if (items.getItem(Ability.SOLACE, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                 return Ability.SOLACE;
             }
-            if (items.getItem(Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS, ItemFlag.USABLE, ItemFlag.READY)
-                    .isPresent()) {
-                return Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS;
+            if (botApi.getVersion().compareTo(new Version("1.13.17 beta 109 alpha 15")) > 1) {
+                if (items.getItem(Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS, ItemFlag.USABLE, ItemFlag.READY)
+                        .isPresent()) {
+                    return Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS;
+                }
             }
         }
         return null;

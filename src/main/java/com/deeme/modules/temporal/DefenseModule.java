@@ -88,10 +88,6 @@ public class DefenseModule extends TemporalModule {
 
                 shipAttacker.useKeyWithConditions(defenseConfig.ability, null);
 
-                if (defenseConfig.useAbility) {
-                    shipAttacker.useHability();
-                }
-
                 shipAttacker.useKeyWithConditions(defenseConfig.ability, null);
                 shipAttacker.useKeyWithConditions(defenseConfig.ISH, Special.ISH_01);
                 shipAttacker.useKeyWithConditions(defenseConfig.SMB, Special.SMB_01);
@@ -178,21 +174,21 @@ public class DefenseModule extends TemporalModule {
         }
 
         if (attackConfigLost && defenseConfig.useSecondConfig) {
-            shipAttacker.setMode(defenseConfig.secondConfig);
+            heroapi.setMode(defenseConfig.secondConfig);
         } else {
             switch (defenseConfig.newMovementMode) {
                 case 0:
-                    shipAttacker.setMode(configRun.getValue(), defenseConfig.useBestFormation);
+                    heroapi.setMode(configRun.getValue());
                     break;
                 case 1:
                 case 2:
-                    shipAttacker.setMode(configOffensive.getValue(), defenseConfig.useBestFormation);
+                    heroapi.setMode(configOffensive.getValue());
                     break;
                 case 3:
                     if (heroapi.getHealth().hpPercent() <= repairHpRange.getValue().getMin()) {
-                        shipAttacker.setMode(configRun.getValue(), defenseConfig.useBestFormation);
+                        heroapi.setMode(configRun.getValue());
                     } else {
-                        shipAttacker.setMode(configOffensive.getValue(), defenseConfig.useBestFormation);
+                        heroapi.setMode(configOffensive.getValue());
                     }
                     break;
             }

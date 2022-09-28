@@ -1,8 +1,8 @@
 {
   "name": "DmPlugin",
   "author": "Dm94Dani",
-  "version": "1.6.2",
-  "minVersion": "1.13.17 beta 109 alpha 15",
+  "version": "1.7.0",
+  "minVersion": "1.13.17 beta 108",
   "supportedVersion": "1.13.17 beta 109 alpha 16",
   "features": [
     "com.deeme.modules.PallladiumHangar",
@@ -23,7 +23,9 @@
     "com.deeme.behaviours.StopButton",
     "com.deeme.behaviours.ProfileChanger",
     "com.deeme.behaviours.AmbulanceMode",
-    "com.deeme.behaviours.bestrocket.AutoBestRocket"
+    "com.deeme.behaviours.bestrocket.AutoBestRocket",
+    "com.deeme.behaviours.bestability.AutoBestAbility",
+    "com.deeme.behaviours.bestformation.AutoBestFormation"
   ],
   "donation": "https://www.paypal.com/donate/?business=JR2XWPSKLWN76&amount=5&no_recurring=0&currency_code=EUR",
   "discord": "https://discord.gg/GPRTRRZJPw",

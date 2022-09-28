@@ -21,12 +21,6 @@ public class PVPConfig {
     @Option(value = "Use the run configuration", description = "Will use the run setting if enemies flee")
     public boolean useRunConfig = true;
 
-    @Option(value = "Auto choose the best formation", description = "Automatically switches formations")
-    public boolean useBestFormation = true;
-
-    @Option(value = "Auto use the best ability", description = "Beta - Can use almost all abilities")
-    public boolean useAbility = false;
-
     @Option(value = "Maximum range for enemies", description = "Enemies above this range will not be attacked")
     @Num(min = 0, max = 1000, step = 50)
     public int rangeForEnemies = 500;

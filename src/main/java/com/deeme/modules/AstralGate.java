@@ -195,10 +195,10 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                         || heroapi.getHealth().shieldPercent() < 0.2;
                 if (findTarget()) {
                     this.currentStatus = State.DO;
-                    if (astralGuiSelection.isVisible()) {
+                    if (astralGuiSelection != null && astralGuiSelection.isVisible()) {
                         astralGuiSelection.setVisible(false);
                     }
-                    if (astralGui.isVisible()) {
+                    if (astralGui != null && astralGui.isVisible()) {
                         astralGui.setVisible(false);
                     }
                     waitingSign = false;
@@ -208,11 +208,11 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                 } else {
                     if (npcs.size() < 1) {
                         waitingSign = true;
-                        if (!movement.isMoving() && !astralGui.isVisible()) {
+                        if (!movement.isMoving() && (astralGui == null || !astralGui.isVisible())) {
                             movement.moveRandom();
                         }
 
-                        if (astralConfig.autoChoosePortal || astralConfig.autoChooseItem) {
+                        if (astralGui != null && (astralConfig.autoChoosePortal || astralConfig.autoChooseItem)) {
                             if (!astralGui.isVisible()) {
                                 chooseClickDelay = System.currentTimeMillis() + 10000;
                             }

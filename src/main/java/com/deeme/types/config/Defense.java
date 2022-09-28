@@ -21,27 +21,21 @@ public class Defense {
     public boolean helpGroup = true;
 
     @Option(value = "Go to Group Members", description = "If any member is attacked on your map it goes to the member.")
-    public boolean goToGroup = false;
+    public boolean goToGroup = true;
 
     @Option(value = "Help everyone", description = "Help all those who are not enemies")
     public boolean helpEveryone = true;
 
     @Option(value = "Help to Attack", description = "Help to attack")
-    public boolean helpAttack = false;
+    public boolean helpAttack = true;
 
     @Option(value = "Movement Mode", description = "Choose how to move in defense mode")
     @Editor(JListField.class)
     @Options(MovementMode.class)
     public int newMovementMode = 3;
 
-    @Option(value = "Auto choose the best formation", description = "Automatically switches formations")
-    public boolean useBestFormation = false;
-
-    @Option(value = "Auto use the best ability", description = "Beta - Can use almost all abilities")
-    public boolean useAbility = false;
-
     @Option(value = "Ignore fleeing enemies", description = "Ignore enemies further away from 1500")
-    public boolean ignoreEnemies = false;
+    public boolean ignoreEnemies = true;
 
     @Option("Ammo")
     public Character ammoKey;

@@ -40,9 +40,6 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
     protected final ConfigSetting<PercentRange> repairHpRange;
     private BestRocketConfig config;
 
-    public boolean stopBot = false;
-    public boolean closeBot = false;
-
     public AutoBestRocket(PluginAPI api) {
         this(api, api.requireAPI(AuthAPI.class),
                 api.requireAPI(BotAPI.class), api.requireAPI(HeroItemsAPI.class));
@@ -84,7 +81,7 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
     }
 
     private void changeRocket(SelectableItem rocket) {
-        if (rocket != null && !heroapi.getRocket().getId().equals(rocket.getId())) {
+        if (rocket != null && heroapi.getRocket() != null && !heroapi.getRocket().getId().equals(rocket.getId())) {
             items.useItem(rocket, 500, ItemFlag.USABLE, ItemFlag.READY);
         }
     }
