@@ -93,18 +93,17 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
             return Formation.DIAMOND;
         }
 
-        if (shoulFocusDamage()) {
-            Lockable target = heroapi.getLocalTarget();
-            if (target != null && target.isValid()) {
-                if (target instanceof Npc) {
-                    if (items.getItem(Formation.BAT, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
-                        return Formation.BAT;
-                    }
-                    if (items.getItem(Formation.BARRAGE, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
-                        return Formation.BARRAGE;
-                    }
+        Lockable target = heroapi.getLocalTarget();
+        if (target != null && target.isValid()) {
+            if (target instanceof Npc) {
+                if (items.getItem(Formation.BAT, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+                    return Formation.BAT;
+                }
+                if (items.getItem(Formation.BARRAGE, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+                    return Formation.BARRAGE;
                 }
             }
+
             if (items.getItem(Formation.PINCER, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                 return Formation.PINCER;
             }
@@ -120,14 +119,6 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
         }
 
         return null;
-    }
-
-    private boolean shoulFocusDamage() {
-        Lockable target = heroapi.getLocalTarget();
-        if (target != null && target.isValid()) {
-            return target.getHealth() != null && target.getHealth().shieldPercent() < 0.3;
-        }
-        return false;
     }
 
     private boolean shoulFocusPenetration() {

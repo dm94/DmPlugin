@@ -2,6 +2,7 @@ package com.deeme.modules;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import com.deeme.modules.temporal.HangarSwitcher;
 import com.deeme.types.SharedFunctions;
@@ -11,6 +12,9 @@ import com.deeme.types.config.PalladiumConfig;
 import com.deeme.types.gui.ShipSupplier;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.backpage.hangar.Hangar;
+import com.github.manolo8.darkbot.core.entities.BasePoint;
+import com.github.manolo8.darkbot.core.objects.OreTradeGui;
+import com.github.manolo8.darkbot.extensions.util.Version;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -59,6 +63,9 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
     private PalladiumConfig configPa;
     protected LootCollectorModule lootModule;
     private State currentStatus;
+
+    private OreTradeGui oreTradeOld;
+    private List<BasePoint> basesOld;
 
     private long sellClick;
     private long aditionalWaitingTime = 0;
@@ -109,6 +116,9 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
 
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
         this.bases = entities.getStations();
+
+        this.oreTradeOld = main.guiManager.oreTrade;
+        this.basesOld = main.mapManager.entities.basePoints;
 
         StarSystemAPI starSystem = api.getAPI(StarSystemAPI.class);
         try {
@@ -221,6 +231,14 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
     }
 
     private void sell() {
+        if (botApi.getVersion().compareTo(new Version("1.13.17 beta 109 alpha 13")) > 1) {
+            sellNew();
+        } else {
+            sellOld();
+        }
+    }
+
+    private void sellNew() {
         pet.setEnabled(false);
         if (heroapi.getMap() != SELL_MAP) {
             this.main.setModule(api.requireInstance(MapModule.class)).setTarget(this.SELL_MAP);
@@ -241,6 +259,25 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
                         }
                     });
         }
+    }
+
+    private void sellOld() {
+        pet.setEnabled(false);
+        if (heroapi.getMap() != SELL_MAP)
+            this.main.setModule(api.requireInstance(MapModule.class)).setTarget(this.SELL_MAP);
+        else
+            basesOld.stream().filter(b -> b.getLocationInfo().isInitialized()).findFirst().ifPresent(base -> {
+                if (heroapi.distanceTo(base.getLocationInfo().getCurrent()) > 200) {
+                    double angle = base.getLocationInfo().getCurrent().angleTo(heroapi.getLocationInfo().getCurrent())
+                            + Math.random() * 0.2 - 0.1;
+                    movement.moveTo(
+                            Location.of(base.getLocationInfo().getCurrent(), angle, 100 + (100 * Math.random())));
+                } else if (!heroapi.isMoving() && oreTradeOld.showTrade(true, base)
+                        && System.currentTimeMillis() - 60_000 > sellClick) {
+                    oreTradeOld.sellOre(OreTradeGui.Ore.PALLADIUM);
+                    sellClick = System.currentTimeMillis();
+                }
+            });
     }
 
     public void updateHangarActive() {
