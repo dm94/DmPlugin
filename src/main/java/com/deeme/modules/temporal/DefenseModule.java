@@ -182,8 +182,10 @@ public class DefenseModule extends TemporalModule {
                     break;
                 case 1:
                 case 2:
+                case 5:
                     heroapi.setMode(configOffensive.getValue());
                     break;
+                case 4:
                 case 3:
                     if (heroapi.getHealth().hpPercent() <= repairHpRange.getValue().getMin()) {
                         heroapi.setMode(configRun.getValue());
@@ -229,6 +231,18 @@ public class DefenseModule extends TemporalModule {
                     } else {
                         shipAttacker.vsMove();
                     }
+                }
+                break;
+            case 5:
+                GroupMember groupMember = shipAttacker.getClosestMember();
+                if (groupMember != null) {
+                    if (groupMember.getLocation().distanceTo(heroapi) < 1000) {
+                        shipAttacker.vsMove();
+                    } else {
+                        movement.moveTo(groupMember.getLocation());
+                    }
+                } else {
+                    shipAttacker.vsMove();
                 }
                 break;
         }

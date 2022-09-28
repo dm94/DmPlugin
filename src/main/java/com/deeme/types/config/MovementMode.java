@@ -7,7 +7,8 @@ import java.util.List;
 
 public class MovementMode extends OptionList<Integer> {
     private static final List<String> MOVEMENT_MODE = Arrays
-            .asList(new String[] { "Safety Logic", "VS Move", "Random Move", "VS + Safety", "Group + VS + Safety" });
+            .asList(new String[] { "Safety Logic", "VS Move", "Random Move", "VS + Safety", "Group + VS + Safety",
+                    "Group + VS" });
 
     public Integer getValue(String text) {
         return MOVEMENT_MODE.indexOf(text);

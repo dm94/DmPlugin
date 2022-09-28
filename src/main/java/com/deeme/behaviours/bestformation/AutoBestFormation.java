@@ -12,14 +12,11 @@ import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.items.ItemFlag;
-import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.game.items.SelectableItem.Formation;
 import eu.darkbot.api.game.items.SelectableItem.Laser;
 import eu.darkbot.api.game.other.Lockable;
 import eu.darkbot.api.game.other.Movable;
 import eu.darkbot.api.managers.AuthAPI;
-import eu.darkbot.api.managers.BotAPI;
-import eu.darkbot.api.managers.GroupAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
 import eu.darkbot.api.utils.Inject;
@@ -72,10 +69,12 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     }
 
     private Formation getBestFormation() {
-        if (shoulFocusSpeed()) {
-            if (items.getItem(Formation.WHEEL, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
-                return Formation.WHEEL;
-            }
+        if (config.useVeteran && shoulUseVeteran()
+                && items.getItem(Formation.VETERAN, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+            return Formation.VETERAN;
+        }
+        if (shoulFocusSpeed() && items.getItem(Formation.WHEEL, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+            return Formation.WHEEL;
         }
         if (shoulFocusPenetration()) {
             if (items.getItem(Formation.MOTH, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
@@ -95,7 +94,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
         }
 
         if (shoulFocusDamage()) {
-            Entity target = heroapi.getLocalTarget();
+            Lockable target = heroapi.getLocalTarget();
             if (target != null && target.isValid()) {
                 if (target instanceof Npc) {
                     if (items.getItem(Formation.BAT, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
@@ -164,6 +163,14 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     private boolean shoulUseCrab() {
         return (heroapi.getLaser() != null && heroapi.getLaser() == Laser.SAB_50)
                 || (heroapi.getHealth().hpPercent() < 0.2 && heroapi.getHealth().getShield() > 30000);
+    }
+
+    private boolean shoulUseVeteran() {
+        Lockable target = heroapi.getLocalTarget();
+        if (target != null && target.isValid() && target instanceof Npc) {
+            return target.getHealth() != null && target.getHealth().hpPercent() <= 0.15;
+        }
+        return false;
     }
 
     private boolean useSelectableReadyWhenReady(Formation formation) {
