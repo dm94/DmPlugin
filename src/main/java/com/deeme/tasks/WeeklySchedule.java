@@ -252,7 +252,6 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
         try {
             nextCheckCurrentHangar = System.currentTimeMillis() + 30000;
             this.main.backpage.hangarManager.updateHangarList();
-            this.main.backpage.hangarManager.updateCurrentHangar();
             activeHangar = this.main.backpage.hangarManager.getHangarList().getData().getRet().getHangars().stream()
                     .filter(Hangar::isActive)
                     .map(Hangar::getHangarId)

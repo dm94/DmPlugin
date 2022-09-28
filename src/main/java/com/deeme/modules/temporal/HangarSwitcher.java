@@ -182,7 +182,6 @@ public class HangarSwitcher extends TemporalModule {
         this.currentStatus = State.LOADING_HANGARS;
         try {
             hangarManager.updateHangarList();
-            hangarManager.updateCurrentHangar();
             activeHangar = hangarManager.getHangarList().getData().getRet().getHangars().stream()
                     .filter(Hangar::isActive)
                     .map(Hangar::getHangarId)

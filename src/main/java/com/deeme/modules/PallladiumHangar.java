@@ -74,8 +74,7 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
         HANGAR_PALA_OTHER_MAP("Hangar paladium - To 5-3"),
         SWITCHING_PALA_HANGAR("Switching to the palladium hangar"),
         LOADING_HANGARS("Waiting - Loading hangars"),
-        SEARCHING_PORTALS("Looking for a portal to change hangar"),
-        WAITING_HANGARS("Waiting - For change hangars");
+        SEARCHING_PORTALS("Looking for a portal to change hangar");
 
         private final String message;
 
@@ -247,7 +246,6 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
     public void updateHangarActive() {
         try {
             this.main.backpage.hangarManager.updateHangarList();
-            this.main.backpage.hangarManager.updateCurrentHangar();
             activeHangar = this.main.backpage.hangarManager.getHangarList().getData().getRet().getHangars().stream()
                     .filter(Hangar::isActive)
                     .map(Hangar::getHangarId)
