@@ -29,7 +29,7 @@ import eu.darkbot.api.managers.HeroItemsAPI;
 import eu.darkbot.api.managers.MovementAPI;
 import eu.darkbot.api.utils.Inject;
 
-@Feature(name = "Auto Best Rocket", description = "Automatically switches missiles. Will use all available missiles")
+@Feature(name = "Auto Best Rocket", description = "Automatically switches rockets. Will use all available rockets")
 public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> {
 
     protected final PluginAPI api;
@@ -81,8 +81,12 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
     }
 
     private void changeRocket(SelectableItem rocket) {
-        if (rocket != null && heroapi.getRocket() != null && !heroapi.getRocket().getId().equals(rocket.getId())) {
-            items.useItem(rocket, 500, ItemFlag.USABLE, ItemFlag.READY);
+        try {
+            if (rocket != null && heroapi.getRocket() != null && !heroapi.getRocket().getId().equals(rocket.getId())) {
+                items.useItem(rocket, 500, ItemFlag.USABLE, ItemFlag.READY);
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
         }
     }
 
@@ -92,8 +96,7 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
             if (shoulFocusSpeed(target)) {
                 if (items.getItem(Rocket.R_IC3, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                     return Rocket.R_IC3;
-                }
-                if (items.getItem(Rocket.DCR_250, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+                } else if (items.getItem(Rocket.DCR_250, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                     return Rocket.DCR_250;
                 }
             }

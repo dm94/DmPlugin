@@ -1,11 +1,13 @@
 package com.deeme.behaviours.bestformation;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
+import eu.darkbot.api.config.types.NpcFlag;
 import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
@@ -32,6 +34,8 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     protected final SafetyFinder safety;
     private BestFormationConfig config;
 
+    private ArrayList<Formation> availableFormations = new ArrayList<Formation>();
+
     public AutoBestFormation(PluginAPI api) {
         this(api, api.requireAPI(AuthAPI.class), api.requireAPI(HeroItemsAPI.class));
     }
@@ -48,7 +52,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
         this.items = items;
         this.heroapi = api.getAPI(HeroAPI.class);
         this.safety = api.requireInstance(SafetyFinder.class);
-
+        this.availableFormations = new ArrayList<Formation>();
     }
 
     @Override
@@ -69,52 +73,48 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     }
 
     private Formation getBestFormation() {
-        if (config.useVeteran && shoulUseVeteran()
-                && items.getItem(Formation.VETERAN, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+        if (shoulUseVeteran()) {
             return Formation.VETERAN;
         }
-        if (shoulFocusSpeed() && items.getItem(Formation.WHEEL, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+        if (hasFormation(Formation.WHEEL) && shoulFocusSpeed()) {
             return Formation.WHEEL;
         }
         if (shoulFocusPenetration()) {
-            if (items.getItem(Formation.MOTH, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+            if (hasFormation(Formation.MOTH)) {
                 return Formation.MOTH;
-            }
-            if (items.getItem(Formation.DOUBLE_ARROW, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+            } else if (hasFormation(Formation.DOUBLE_ARROW)) {
                 return Formation.DOUBLE_ARROW;
             }
         }
 
-        if (shoulUseCrab() && items.getItem(Formation.CRAB, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+        if (shoulUseCrab()) {
             return Formation.CRAB;
         }
 
-        if (shoulUseDiamond() && items.getItem(Formation.DIAMOND, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+        if (shoulUseDiamond()) {
             return Formation.DIAMOND;
         }
 
         Lockable target = heroapi.getLocalTarget();
         if (target != null && target.isValid()) {
             if (target instanceof Npc) {
-                if (items.getItem(Formation.BAT, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+                if (shoulUseBat()) {
                     return Formation.BAT;
-                }
-                if (items.getItem(Formation.BARRAGE, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+                } else if (hasFormation(Formation.BARRAGE)) {
                     return Formation.BARRAGE;
                 }
-            }
-
-            if (items.getItem(Formation.PINCER, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+            } else if (hasFormation(Formation.PINCER)) {
                 return Formation.PINCER;
-            }
-            if (items.getItem(Formation.STAR, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+            } else if (hasFormation(Formation.STAR)) {
                 return Formation.STAR;
-            }
-            if (items.getItem(Formation.DRILL, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+            } else if (hasFormation(Formation.DRILL) && !shoulFocusSpeed()
+                    && !hasTag(NpcFlag.AGGRESSIVE_FOLLOW)) {
                 return Formation.DRILL;
-            }
-            if (items.getItem(Formation.DOUBLE_ARROW, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+            } else if (hasFormation(Formation.DOUBLE_ARROW)) {
                 return Formation.DOUBLE_ARROW;
+            } else if (hasFormation(Formation.CHEVRON)
+                    && (heroapi.getHealth().hpPercent() < 0.8 || heroapi.isInFormation(Formation.CHEVRON))) {
+                return Formation.CHEVRON;
             }
         }
 
@@ -147,21 +147,41 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     }
 
     private boolean shoulUseDiamond() {
-        return heroapi.getHealth().hpPercent() < 0.7 && heroapi.getHealth().shieldPercent() < 0.1
+        return hasFormation(Formation.DIAMOND)
+                && (heroapi.getHealth().hpPercent() < 0.7 || heroapi.isInFormation(Formation.DIAMOND))
+                && heroapi.getHealth().shieldPercent() < 0.1
                 && heroapi.getHealth().getMaxShield() > 50000;
     }
 
     private boolean shoulUseCrab() {
-        return (heroapi.getLaser() != null && heroapi.getLaser() == Laser.SAB_50)
-                || (heroapi.getHealth().hpPercent() < 0.2 && heroapi.getHealth().getShield() > 30000);
+        if (!hasFormation(Formation.CRAB)
+                || hasTag(NpcFlag.AGGRESSIVE_FOLLOW)) {
+            return false;
+        }
+
+        try {
+            return (heroapi.getLaser() != null && heroapi.getLaser() == Laser.SAB_50)
+                    || (heroapi.getHealth().hpPercent() < 0.2 && heroapi.getHealth().getShield() > 30000);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return false;
     }
 
     private boolean shoulUseVeteran() {
-        Lockable target = heroapi.getLocalTarget();
-        if (target != null && target.isValid() && target instanceof Npc) {
-            return target.getHealth() != null && target.getHealth().hpPercent() <= 0.15;
+        if (config.useVeteran
+                && hasFormation(Formation.VETERAN)) {
+            Lockable target = heroapi.getLocalTarget();
+            if (target != null && target.isValid() && target instanceof Npc) {
+                return target.getHealth() != null && target.getHealth().hpPercent() <= 0.15;
+            }
         }
         return false;
+    }
+
+    private boolean shoulUseBat() {
+        return hasFormation(Formation.BAT)
+                && !hasTag(NpcFlag.AGGRESSIVE_FOLLOW);
     }
 
     private boolean useSelectableReadyWhenReady(Formation formation) {
@@ -171,6 +191,23 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
 
         if (!heroapi.isInFormation(formation)
                 && items.useItem(formation, 500, ItemFlag.USABLE, ItemFlag.READY).isSuccessful()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean hasTag(NpcFlag tag) {
+        Lockable target = heroapi.getLocalTarget();
+        return (target != null && target.isValid() && target instanceof Npc
+                && ((Npc) target).getInfo().hasExtraFlag(tag));
+    }
+
+    private boolean hasFormation(Formation formation) {
+        if (availableFormations.contains(formation)) {
+            return true;
+        } else if (items.getItem(formation, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+            availableFormations.add(formation);
             return true;
         }
 
