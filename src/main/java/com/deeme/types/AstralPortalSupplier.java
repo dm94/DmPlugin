@@ -16,7 +16,10 @@ public class AstralPortalSupplier implements PrioritizedSupplier<Portal> {
     protected Collection<? extends Portal> portals;
     protected AstralShip astralShip;
 
-    private boolean focusHealth, focusDamage, focusAmmo, focusGenerators, focusModules = false;
+    private boolean focusDamage = false;
+    private boolean focusAmmo = false;
+    private boolean focusGenerators = false;
+    private boolean focusModules = false;
 
     /*
      * 1 - Base
@@ -45,22 +48,27 @@ public class AstralPortalSupplier implements PrioritizedSupplier<Portal> {
     }
 
     public Portal get() {
-        getPriority();
         Portal target = null;
-        if (focusHealth) {
+        if (heroapi.getHealth().hpPercent() < 0.9) {
             target = portals.stream().filter(portal -> portal.getTypeId() == 99).findFirst().orElse(null);
         }
-        if (focusAmmo && target == null) {
+        if (needFocusAmmo() && target == null) {
+            this.focusAmmo = true;
             target = portals.stream().filter(portal -> portal.getTypeId() == 91).findFirst().orElse(null);
         }
-        if (focusModules && target == null) {
-            target = portals.stream().filter(portal -> portal.getTypeId() == 89).findFirst().orElse(null);
-        }
-        if (focusGenerators && target == null) {
-            target = portals.stream().filter(portal -> portal.getTypeId() == 95).findFirst().orElse(null);
-        }
-        if (focusDamage && target == null) {
-            target = portals.stream().filter(portal -> portal.getTypeId() == 87).findFirst().orElse(null);
+        if (astralShip != null) {
+            if (astralShip.getMaxModules() > astralShip.getModules() && target == null) {
+                this.focusModules = true;
+                target = portals.stream().filter(portal -> portal.getTypeId() == 89).findFirst().orElse(null);
+            }
+            if (astralShip.getMaxGenerators() > astralShip.getGenerators() && target == null) {
+                this.focusGenerators = true;
+                target = portals.stream().filter(portal -> portal.getTypeId() == 95).findFirst().orElse(null);
+            }
+            if (astralShip.getMaxWeapons() > astralShip.getWeapons() && target == null) {
+                this.focusDamage = true;
+                target = portals.stream().filter(portal -> portal.getTypeId() == 87).findFirst().orElse(null);
+            }
         }
 
         if (target == null) {
@@ -87,21 +95,6 @@ public class AstralPortalSupplier implements PrioritizedSupplier<Portal> {
         }
 
         return target;
-    }
-
-    @Override
-    public Priority getPriority() {
-        this.focusHealth = heroapi.getHealth().hpPercent() < 0.9;
-        this.focusAmmo = needFocusAmmo();
-        if (astralShip != null) {
-            this.focusModules = astralShip.getMaxModules() > astralShip.getModules();
-            this.focusDamage = astralShip.getMaxWeapons() > astralShip.getWeapons();
-            this.focusGenerators = astralShip.getMaxGenerators() > astralShip.getGenerators();
-        }
-
-        return focusHealth ? Priority.HIGHEST
-                : focusAmmo ? Priority.HIGH
-                        : focusModules ? Priority.MODERATE : focusDamage ? Priority.LOW : Priority.LOWEST;
     }
 
     private boolean needFocusAmmo() {

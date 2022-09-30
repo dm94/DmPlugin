@@ -96,6 +96,7 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
 
     @Override
     public void onTickTask() {
+        // Anything to do here
     }
 
     @EventHandler

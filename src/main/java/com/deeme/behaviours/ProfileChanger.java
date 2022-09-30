@@ -63,16 +63,17 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     @Override
     public void onTickBehavior() {
         checkNPC();
-        if (config.condition == null || config.condition.get(api).allows()) {
-            if ((!config.npcExtraCondition.active || (config.npcExtraCondition.active
-                    && config.npcExtraCondition.npcCounter >= config.npcExtraCondition.npcsToKill)) &&
-                    (!config.npcExtraCondition2.active || (config.npcExtraCondition2.active
-                            && config.npcExtraCondition2.npcCounter >= config.npcExtraCondition2.npcsToKill))) {
-                config.npcExtraCondition.npcCounter = 0;
-                config.npcExtraCondition2.npcCounter = 0;
-                main.setConfig(config.BOT_PROFILE);
-            }
+        if ((config.condition == null || config.condition.get(api).allows())
+                && (!config.npcExtraCondition.active || (config.npcExtraCondition.active
+                        && config.npcExtraCondition.npcCounter >= config.npcExtraCondition.npcsToKill))
+                &&
+                (!config.npcExtraCondition2.active || (config.npcExtraCondition2.active
+                        && config.npcExtraCondition2.npcCounter >= config.npcExtraCondition2.npcsToKill))) {
+            config.npcExtraCondition.npcCounter = 0;
+            config.npcExtraCondition2.npcCounter = 0;
+            main.setConfig(config.BOT_PROFILE);
         }
+
     }
 
     private void checkNPC() {

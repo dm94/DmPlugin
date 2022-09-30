@@ -111,16 +111,16 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
     public void onLogMessage(GameLogAPI.LogMessageEvent message) {
         if (followerConfig.enable && extensionsAPI.getFeatureInfo(this.getClass()).isEnabled()) {
             String msg = message.getMessage();
-            if (!msg.isEmpty() && msg.contains("Hitac")) {
-                if ((followerConfig.goToPVP && msg.contains("PvP")) || !msg.contains("PvP")) {
-                    Matcher matcher = pattern.matcher(msg);
-                    if (matcher.find()) {
-                        lastHitacMap = matcher.group(0);
-                        if (!hasHitac()) {
-                            changeMap(matcher.group(0));
-                        }
+            if ((!msg.isEmpty() && msg.contains("Hitac")
+                    && ((followerConfig.goToPVP && msg.contains("PvP")) || !msg.contains("PvP")))) {
+                Matcher matcher = pattern.matcher(msg);
+                if (matcher.find()) {
+                    lastHitacMap = matcher.group(0);
+                    if (!hasHitac()) {
+                        changeMap(matcher.group(0));
                     }
                 }
+
             }
         }
     }
@@ -156,6 +156,8 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
             case "4-3":
                 nextMap = "4-2";
                 break;
+            default:
+                nextMap = null;
         }
         if (nextMap != null) {
             changeMap(nextMap);

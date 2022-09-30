@@ -55,8 +55,8 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
     protected final MovementAPI movement;
     protected final StatsAPI stats;
     protected final PetAPI pet;
-    private GameMap SELL_MAP;
-    private GameMap ACTIVE_MAP;
+    private GameMap sellMap;
+    private GameMap activeMap;
     private Collection<? extends Station> bases;
     private Gui tradeGui;
 
@@ -122,14 +122,14 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
 
         StarSystemAPI starSystem = api.getAPI(StarSystemAPI.class);
         try {
-            this.SELL_MAP = starSystem.getByName("5-2");
+            this.sellMap = starSystem.getByName("5-2");
         } catch (MapNotFoundException e) {
-            this.SELL_MAP = main.starManager.byName("5-2");
+            this.sellMap = main.starManager.byName("5-2");
         }
         try {
-            this.ACTIVE_MAP = starSystem.getByName("5-3");
+            this.activeMap = starSystem.getByName("5-3");
         } catch (MapNotFoundException e) {
-            this.ACTIVE_MAP = main.starManager.byName("5-3");
+            this.activeMap = main.starManager.byName("5-3");
         }
 
         this.lootModule = new LootCollectorModule(api);
@@ -198,7 +198,7 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
                 currentStatus = State.SEARCHING_PORTALS;
             }
         } else if (activeHangar.equals(configPa.collectHangar)) {
-            if (heroapi.getMap() != null && heroapi.getMap().getId() == this.ACTIVE_MAP.getId()) {
+            if (heroapi.getMap() != null && heroapi.getMap().getId() == this.activeMap.getId()) {
                 this.currentStatus = State.LOOT_PALADIUM;
                 if (tradeGui != null && tradeGui.isVisible()) {
                     oreApi.showTrade(false, null);
@@ -215,7 +215,7 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
                     if (tradeGui != null && tradeGui.isVisible()) {
                         tradeGui.setVisible(false);
                     }
-                    this.main.setModule(api.requireInstance(MapModule.class)).setTarget(this.ACTIVE_MAP);
+                    this.main.setModule(api.requireInstance(MapModule.class)).setTarget(this.activeMap);
                 }
             }
         } else if (configPa.collectHangar != null
@@ -240,8 +240,8 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
 
     private void sellNew() {
         pet.setEnabled(false);
-        if (heroapi.getMap() != SELL_MAP) {
-            this.main.setModule(api.requireInstance(MapModule.class)).setTarget(this.SELL_MAP);
+        if (heroapi.getMap() != sellMap) {
+            this.main.setModule(api.requireInstance(MapModule.class)).setTarget(this.sellMap);
         } else {
             bases.stream().filter(b -> b instanceof Refinery && b.getLocationInfo().isInitialized())
                     .findFirst().map(Refinery.class::cast).ifPresent(base -> {
@@ -263,8 +263,8 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
 
     private void sellOld() {
         pet.setEnabled(false);
-        if (heroapi.getMap() != SELL_MAP)
-            this.main.setModule(api.requireInstance(MapModule.class)).setTarget(this.SELL_MAP);
+        if (heroapi.getMap() != sellMap)
+            this.main.setModule(api.requireInstance(MapModule.class)).setTarget(this.sellMap);
         else
             basesOld.stream().filter(b -> b.getLocationInfo().isInitialized()).findFirst().ifPresent(base -> {
                 if (heroapi.distanceTo(base.getLocationInfo().getCurrent()) > 200) {

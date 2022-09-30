@@ -248,7 +248,8 @@ public class Discord implements Task, Configurable<Discord.DiscordConfig>, Instr
 
         if (discordConfig.sendSidLink) {
             best += ",{";
-            String sid = main.statsManager.sid, instance = main.statsManager.instance;
+            String sid = main.statsManager.sid;
+            String instance = main.statsManager.instance;
             if (sid == null || sid.isEmpty() || instance == null || instance.isEmpty())
                 return;
             String url = instance + "?dosid=" + sid;

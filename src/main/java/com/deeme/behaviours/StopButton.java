@@ -33,8 +33,8 @@ public class StopButton implements Behavior, ExtraMenus {
     protected Collection<? extends Portal> portals;
     private final Gui lostConnectionGUI;
 
-    public boolean stopBot = false;
-    public boolean closeBot = false;
+    private boolean stopBot = false;
+    private boolean closeBot = false;
 
     public StopButton(PluginAPI api) {
         this(api, api.requireAPI(AuthAPI.class),

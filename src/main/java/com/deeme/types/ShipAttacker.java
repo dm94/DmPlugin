@@ -48,7 +48,7 @@ public class ShipAttacker {
     protected final Collection<? extends Portal> allPortals;
     private DefenseLaserSupplier laserSupplier;
 
-    public Ship target;
+    private Ship target;
 
     protected long laserTime;
     protected long fixTimes;
@@ -130,7 +130,6 @@ public class ShipAttacker {
         }
         if (heroapi.isAttacking(target)) {
             tryAttackOrFix();
-            return;
         } else {
             tryLockTarget();
         }
@@ -144,7 +143,7 @@ public class ShipAttacker {
         if (!firstAttack) {
             firstAttack = true;
             sendAttack(1500, 5000, true);
-        } else if (lastShot != getAttackKey()) {
+        } else if (!lastShot.equals(getAttackKey())) {
             sendAttack(250, 5000, true);
         } else if (!heroapi.isAttacking(target) || !heroapi.isAiming(target)) {
             sendAttack(1500, 5000, false);
@@ -161,7 +160,8 @@ public class ShipAttacker {
         laserTime = System.currentTimeMillis() + minWait;
         isAttacking = Math.max(isAttacking, laserTime + bugTime);
         if (normal) {
-            API.keyboardClick(lastShot = getAttackKey());
+            lastShot = getAttackKey();
+            API.keyboardClick(lastShot);
         } else if (API instanceof DarkBoatAdapter) {
             heroapi.triggerLaserAttack();
         } else if (target != null && target.isValid()) {

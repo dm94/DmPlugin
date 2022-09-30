@@ -193,6 +193,8 @@ public class DefenseModule extends TemporalModule {
                         heroapi.setMode(configOffensive.getValue());
                     }
                     break;
+                default:
+                    heroapi.setMode(configRun.getValue());
             }
         }
     }
@@ -208,13 +210,6 @@ public class DefenseModule extends TemporalModule {
             case 2:
                 if (!movement.isMoving() || movement.isOutOfMap()) {
                     movement.moveRandom();
-                }
-                break;
-            case 3:
-                if (heroapi.getHealth().hpPercent() <= repairHpRange.getValue().getMin()) {
-                    safetyFinder.tick();
-                } else {
-                    shipAttacker.vsMove();
                 }
                 break;
             case 4:
@@ -241,6 +236,14 @@ public class DefenseModule extends TemporalModule {
                     } else {
                         movement.moveTo(groupMember.getLocation());
                     }
+                } else {
+                    shipAttacker.vsMove();
+                }
+                break;
+            case 3:
+            default:
+                if (heroapi.getHealth().hpPercent() <= repairHpRange.getValue().getMin()) {
+                    safetyFinder.tick();
                 } else {
                     shipAttacker.vsMove();
                 }

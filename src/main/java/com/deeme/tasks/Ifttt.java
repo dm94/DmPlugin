@@ -19,7 +19,7 @@ import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.List;
 
-@Feature(name = "Ifttt", description = "Used to send statistics to ifttt")
+@Feature(name = "Ifttt (Deprecated)", description = "Used to send statistics to ifttt")
 public class Ifttt implements Task, Configurable<Ifttt.IftttConfig>, InstructionProvider {
 
     private IftttConfig iftttConfig;
@@ -114,7 +114,6 @@ public class Ifttt implements Task, Configurable<Ifttt.IftttConfig>, Instruction
     }
 
     private String getSelectValue(String type) {
-
         switch (type) {
             case "totalUridium":
                 return formatter.format(statsManager.getTotalUridium());
@@ -155,9 +154,9 @@ public class Ifttt implements Task, Configurable<Ifttt.IftttConfig>, Instruction
                 return formatter.format(statsManager.getEarnedExperience());
             case "sessionHonor":
                 return formatter.format(statsManager.getEarnedHonor());
+            default:
+                return "";
         }
-
-        return "";
     }
 
     public static class ValueTypes extends OptionList<String> {

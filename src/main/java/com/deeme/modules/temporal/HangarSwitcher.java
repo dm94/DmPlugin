@@ -20,13 +20,13 @@ public class HangarSwitcher extends TemporalModule {
     protected final BotAPI bot;
     protected final BackpageAPI backpageAPI;
 
-    public final Gui lostConnectionGUI;
+    protected final Gui lostConnectionGUI;
 
-    public Integer activeHangar = null;
-    public Integer hangarToChage = null;
+    private Integer activeHangar = null;
+    private Integer hangarToChage = null;
     private final Main main;
     private final HangarManager hangarManager;
-    public final LogoutGui logout;
+    private final LogoutGui logout;
     private State currentStatus;
 
     private long waitinUntil = 0;
@@ -110,14 +110,12 @@ public class HangarSwitcher extends TemporalModule {
             }
             if (activeHangar == null) {
                 updateHangarActive();
-                return;
             } else if (!activeHangar.equals(hangarToChage)) {
                 if (!heroapi.isMoving()) {
                     if (isDisconnect()) {
                         if (!backpageAPI.isInstanceValid()) {
                             this.currentStatus = State.SID_KO;
                             waitinUntil = System.currentTimeMillis() + 60000;
-                            return;
                         } else {
                             if (hangarChanged) {
                                 waitinUntil = System.currentTimeMillis() + 10000;

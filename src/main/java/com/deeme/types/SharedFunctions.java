@@ -16,6 +16,10 @@ import java.util.Map;
 
 public class SharedFunctions {
 
+    private SharedFunctions() {
+        throw new IllegalStateException("Utility class");
+    }
+
     public static Ship getAttacker(Ship assaulted, Main main) {
         HeroAPI hero = main.pluginAPI.getAPI(HeroAPI.class);
         EntitiesAPI entities = main.pluginAPI.getAPI(EntitiesAPI.class);
@@ -23,7 +27,7 @@ public class SharedFunctions {
     }
 
     public static Ship getAttacker(Ship assaulted, Collection<? extends Ship> allShips, HeroAPI hero) {
-        if (allShips == null || allShips.size() <= 0) {
+        if (allShips == null || allShips.isEmpty()) {
             return null;
         }
 
@@ -47,8 +51,8 @@ public class SharedFunctions {
     public static boolean isNpc(ConfigAPI config, String name) {
         ConfigSetting<Map<String, NpcInfo>> configSetting = config.requireConfig("loot.npc_infos");
         if (configSetting.getValue() != null) {
-            Map<String, NpcInfo> NPC_INFOS = configSetting.getValue();
-            NpcInfo info = NPC_INFOS.get(name);
+            Map<String, NpcInfo> npcInfos = configSetting.getValue();
+            NpcInfo info = npcInfos.get(name);
             if (info != null) {
                 return true;
             }

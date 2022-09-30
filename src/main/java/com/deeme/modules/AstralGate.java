@@ -164,7 +164,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
     @Override
     public boolean canRefresh() {
-        return waitingSign && npcs.size() < 1 && !heroapi.getMap().isGG();
+        return waitingSign && npcs.isEmpty() && !heroapi.getMap().isGG();
     }
 
     @Override
@@ -206,7 +206,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                     npcMove();
                     changeAmmo();
                 } else {
-                    if (npcs.size() < 1) {
+                    if (npcs.isEmpty()) {
                         waitingSign = true;
                         if (!movement.isMoving() && (astralGui == null || !astralGui.isVisible())) {
                             movement.moveRandom();
@@ -422,8 +422,8 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
             distance = minRad + Math.random() * (radius - minRad - 10);
             angleDiff = (Math.random() * 0.1) - 0.05;
         } else {
-            double maxRadFix = radius / 2,
-                    radiusFix = (int) Math.max(Math.min(radius - distance, maxRadFix), -maxRadFix);
+            double maxRadFix = radius / 2;
+            double radiusFix = (int) Math.max(Math.min(radius - distance, maxRadFix), -maxRadFix);
             distance = (radius += radiusFix);
             angleDiff = Math.max((heroapi.getSpeed() * 0.625) + (Math.max(200, speed) * 0.625)
                     - heroapi.distanceTo(Location.of(targetLoc, angle, radius)), 0) / radius;
@@ -439,8 +439,10 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     }
 
     protected Location getBestDir(Locatable targetLoc, double angle, double angleDiff, double distance) {
-        int maxCircleIterationsValue = this.maxCircleIterations.getValue(), iteration = 1;
-        double forwardScore = 0, backScore = 0;
+        int maxCircleIterationsValue = this.maxCircleIterations.getValue();
+        int iteration = 1;
+        double forwardScore = 0;
+        double backScore = 0;
         do {
             forwardScore += score(Locatable.of(targetLoc, angle + (angleDiff * iteration), distance));
             backScore += score(Locatable.of(targetLoc, angle - (angleDiff * iteration), distance));

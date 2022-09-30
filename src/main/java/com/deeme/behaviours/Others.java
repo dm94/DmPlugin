@@ -56,18 +56,16 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
         if (lcConfig.maxDeathsKO > 0 && main.backpage.sidStatus().contains("KO")) {
             main.config.GENERAL.SAFETY.MAX_DEATHS = lcConfig.maxDeathsKO;
         }
-        if (lcConfig.reloadIfCrash && stats.getPing() > 10000 && inPortal()) {
-            if (nextRefresh <= System.currentTimeMillis()) {
-                nextRefresh = System.currentTimeMillis() + 120000;
-                Main.API.handleRefresh();
-            }
+        if (lcConfig.reloadIfCrash && stats.getPing() > 10000 && inPortal()
+                && nextRefresh <= System.currentTimeMillis()) {
+            nextRefresh = System.currentTimeMillis() + 120000;
+            Main.API.handleRefresh();
         }
 
-        if (lcConfig.maxMemory > 0 && Main.API.getMemoryUsage() >= lcConfig.maxMemory && bot.getModule().canRefresh()) {
-            if (nextRefresh <= System.currentTimeMillis()) {
-                nextRefresh = System.currentTimeMillis() + 120000;
-                Main.API.handleRefresh();
-            }
+        if (lcConfig.maxMemory > 0 && Main.API.getMemoryUsage() >= lcConfig.maxMemory && bot.getModule().canRefresh()
+                && nextRefresh <= System.currentTimeMillis()) {
+            nextRefresh = System.currentTimeMillis() + 120000;
+            Main.API.handleRefresh();
         }
 
         if (lcConfig.autoBuyLcb10 && this.stats.getTotalCredits() >= 100000

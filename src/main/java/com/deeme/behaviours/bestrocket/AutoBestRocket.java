@@ -99,13 +99,11 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
                 } else if (items.getItem(Rocket.DCR_250, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                     return Rocket.DCR_250;
                 }
-            }
-
-            if (shoulUsePLD(target) && items.getItem(Rocket.PLD_8, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+            } else if (shoulUsePLD(target)
+                    && items.getItem(Rocket.PLD_8, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                 return Rocket.PLD_8;
             }
-        }
-        if (items.getItem(Rocket.PLT_3030, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+        } else if (items.getItem(Rocket.PLT_3030, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
             return Rocket.PLT_3030;
         } else if (items.getItem(Rocket.PLT_2021, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
             return Rocket.PLT_2021;

@@ -45,7 +45,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
     private boolean changingHangar = false;
     private boolean stopBot = false;
     private Gui lostConnectionGUI;
-    Profile profileToUse = null;
+    private Profile profileToUse = null;
     private Integer activeHangar = null;
     private long disconectTime = 0;
     private long nextCheckCurrentHangar = 0;
@@ -64,8 +64,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
     }
 
     public JComponent beforeConfig() {
-        JLabel hourNow = new JLabel("Last Check: " + lastCheck);
-        return hourNow;
+        return new JLabel("Last Check: " + lastCheck);
     }
 
     @Inject
@@ -214,10 +213,9 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
     }
 
     private void setProfile() {
-        if (extensionsAPI.getFeatureInfo(this.getClass()).isEnabled()) {
-            if (profileToUse != null && heroapi.getMap() != null && !heroapi.getMap().isGG()) {
-                main.setConfig(profileToUse.BOT_PROFILE);
-            }
+        if (extensionsAPI.getFeatureInfo(this.getClass()).isEnabled() && profileToUse != null
+                && heroapi.getMap() != null && !heroapi.getMap().isGG()) {
+            main.setConfig(profileToUse.BOT_PROFILE);
         }
     }
 

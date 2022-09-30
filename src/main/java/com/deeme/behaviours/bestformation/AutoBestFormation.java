@@ -75,23 +75,17 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     private Formation getBestFormation() {
         if (shoulUseVeteran()) {
             return Formation.VETERAN;
-        }
-        if (hasFormation(Formation.WHEEL) && shoulFocusSpeed()) {
+        } else if (hasFormation(Formation.WHEEL) && shoulFocusSpeed()) {
             return Formation.WHEEL;
-        }
-        if (shoulFocusPenetration()) {
+        } else if (shoulFocusPenetration()) {
             if (hasFormation(Formation.MOTH)) {
                 return Formation.MOTH;
             } else if (hasFormation(Formation.DOUBLE_ARROW)) {
                 return Formation.DOUBLE_ARROW;
             }
-        }
-
-        if (shoulUseCrab()) {
+        } else if (shoulUseCrab()) {
             return Formation.CRAB;
-        }
-
-        if (shoulUseDiamond()) {
+        } else if (shoulUseDiamond()) {
             return Formation.DIAMOND;
         }
 
