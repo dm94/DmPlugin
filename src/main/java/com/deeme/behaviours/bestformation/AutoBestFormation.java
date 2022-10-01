@@ -93,7 +93,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
             return Formation.DIAMOND;
         }
 
-        Lockable target = heroapi.getLocalTarget();
+        Entity target = heroapi.getLocalTarget();
         if (target != null && target.isValid()) {
             if (target instanceof Npc) {
                 if (shoulUseBat()) {
@@ -101,10 +101,10 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
                 } else if (hasFormation(Formation.BARRAGE)) {
                     return Formation.BARRAGE;
                 }
-            }
-            if (hasFormation(Formation.PINCER)) {
+            } else if (hasFormation(Formation.PINCER)) {
                 return Formation.PINCER;
             }
+
             if (hasFormation(Formation.STAR)) {
                 return Formation.STAR;
             } else if (hasFormation(Formation.DRILL) && !shoulFocusSpeed()
@@ -140,7 +140,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
         if (target != null && target.isValid()) {
             double distance = heroapi.getLocationInfo().getCurrent().distanceTo(target.getLocationInfo());
             double speed = target instanceof Movable ? ((Movable) target).getSpeed() : 0;
-            return distance > 800 && speed >= heroapi.getSpeed();
+            return distance > 900 && speed >= heroapi.getSpeed();
         }
 
         return false;
@@ -160,8 +160,11 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
         }
 
         try {
-            return (heroapi.getLaser() != null && heroapi.getLaser() == Laser.SAB_50)
-                    || (heroapi.getHealth().hpPercent() < 0.2 && heroapi.getHealth().getShield() > 30000);
+            if ((heroapi.getLaser() != null && heroapi.getLaser() == Laser.SAB_50)
+                    || (heroapi.getHealth() != null && heroapi.getHealth().hpPercent() < 0.2
+                            && heroapi.getHealth().getShield() > 300000)) {
+                return true;
+            }
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -185,16 +188,8 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     }
 
     private boolean useSelectableReadyWhenReady(Formation formation) {
-        if (formation == null) {
-            return false;
-        }
-
-        if (!heroapi.isInFormation(formation)
-                && items.useItem(formation, 500, ItemFlag.USABLE, ItemFlag.READY).isSuccessful()) {
-            return true;
-        }
-
-        return false;
+        return (formation != null && !heroapi.isInFormation(formation)
+                && items.useItem(formation, 1000, ItemFlag.USABLE, ItemFlag.READY).isSuccessful());
     }
 
     private boolean hasTag(NpcFlag tag) {
@@ -206,7 +201,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     private boolean hasFormation(Formation formation) {
         if (availableFormations.contains(formation)) {
             return true;
-        } else if (items.getItem(formation, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+        } else if (items.getItem(formation, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE).isPresent()) {
             availableFormations.add(formation);
             return true;
         }
