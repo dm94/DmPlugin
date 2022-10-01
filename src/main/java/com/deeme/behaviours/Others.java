@@ -71,13 +71,17 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
         if (lcConfig.autoBuyLcb10 && this.stats.getTotalCredits() >= 100000
                 && this.items.getItem(SelectableItem.Laser.LCB_10, ItemFlag.USABLE).get()
                         .getQuantity() <= 1000
-                && this.items.getItem(SelectableItem.AutoBuy.LCB_10, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+                && this.items
+                        .getItem(SelectableItem.AutoBuy.LCB_10, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE)
+                        .isPresent()) {
             items.useItem(SelectableItem.AutoBuy.LCB_10);
         }
         if (lcConfig.autoBuyPlt2026 && this.stats.getTotalCredits() >= 50000
                 && this.items.getItem(SelectableItem.Rocket.PLT_2026, ItemFlag.USABLE).get()
                         .getQuantity() <= 100
-                && this.items.getItem(SelectableItem.AutoBuy.PLT_2026, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+                && this.items
+                        .getItem(SelectableItem.AutoBuy.PLT_2026, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE)
+                        .isPresent()) {
             items.useItem(SelectableItem.AutoBuy.PLT_2026);
         }
     }

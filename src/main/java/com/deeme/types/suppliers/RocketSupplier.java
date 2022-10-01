@@ -26,25 +26,31 @@ public class RocketSupplier implements PrioritizedSupplier<Rocket> {
         Lockable target = heroapi.getLocalTarget();
         if (target != null && target.isValid()) {
             if (shoulFocusSpeed(target)) {
-                if (items.getItem(Rocket.R_IC3, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+                if (items.getItem(Rocket.R_IC3, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.POSITIVE_QUANTITY)
+                        .isPresent()) {
                     return Rocket.R_IC3;
                 }
-                if (items.getItem(Rocket.DCR_250, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+                if (items.getItem(Rocket.DCR_250, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.POSITIVE_QUANTITY)
+                        .isPresent()) {
                     return Rocket.DCR_250;
                 }
             }
 
-            if (shoulUsePLD(target) && items.getItem(Rocket.PLD_8, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+            if (shoulUsePLD(target) && items
+                    .getItem(Rocket.PLD_8, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.POSITIVE_QUANTITY).isPresent()) {
                 return Rocket.PLD_8;
             }
         }
-        if (items.getItem(Rocket.PLT_3030, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+        if (items.getItem(Rocket.PLT_3030, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.POSITIVE_QUANTITY).isPresent()) {
             return Rocket.PLT_3030;
-        } else if (items.getItem(Rocket.PLT_2021, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+        } else if (items.getItem(Rocket.PLT_2021, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.POSITIVE_QUANTITY)
+                .isPresent()) {
             return Rocket.PLT_2021;
-        } else if (items.getItem(Rocket.PLT_2026, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+        } else if (items.getItem(Rocket.PLT_2026, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.POSITIVE_QUANTITY)
+                .isPresent()) {
             return Rocket.PLT_2026;
-        } else if (items.getItem(Rocket.R_310, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+        } else if (items.getItem(Rocket.R_310, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.POSITIVE_QUANTITY)
+                .isPresent()) {
             return Rocket.R_310;
         }
         return null;

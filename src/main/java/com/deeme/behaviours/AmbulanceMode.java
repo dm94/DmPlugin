@@ -133,11 +133,12 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
                 return Ability.AEGIS_REPAIR_POD;
             }
         } else if (config.shipType == 2) {
-            if (items.getItem(Ability.SOLACE, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+            if (items.getItem(Ability.SOLACE, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE).isPresent()) {
                 return Ability.SOLACE;
             }
-            if (botApi.getVersion().compareTo(new Version("1.13.17 beta 109 alpha 15")) > 1
-                    && items.getItem(Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS, ItemFlag.USABLE, ItemFlag.READY)
+            if (botApi.getVersion().compareTo(new Version("1.13.17 beta 109 alpha 14")) > 1
+                    && items.getItem(Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS, ItemFlag.USABLE, ItemFlag.READY,
+                            ItemFlag.AVAILABLE)
                             .isPresent()) {
                 return Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS;
 

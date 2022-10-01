@@ -236,9 +236,7 @@ public class ShipAttacker {
         if (selectableItem == null)
             return false;
 
-        boolean isReady = items.getItem(selectableItem, ItemFlag.USABLE, ItemFlag.READY).isPresent();
-
-        if (isReady && items.useItem(selectableItem).isSuccessful()) {
+        if (items.useItem(selectableItem, ItemFlag.USABLE, ItemFlag.READY).isSuccessful()) {
             keyDelay = System.currentTimeMillis();
             return true;
         }

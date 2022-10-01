@@ -94,24 +94,24 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
         Lockable target = heroapi.getLocalTarget();
         if (target != null && target.isValid()) {
             if (shoulFocusSpeed(target)) {
-                if (items.getItem(Rocket.R_IC3, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+                if (isAvailable(Rocket.R_IC3)) {
                     return Rocket.R_IC3;
-                } else if (items.getItem(Rocket.DCR_250, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+                } else if (isAvailable(Rocket.DCR_250)) {
                     return Rocket.DCR_250;
                 }
             }
             if (shoulUsePLD(target)
-                    && items.getItem(Rocket.PLD_8, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+                    && isAvailable(Rocket.PLD_8)) {
                 return Rocket.PLD_8;
             }
         }
-        if (items.getItem(Rocket.PLT_3030, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+        if (isAvailable(Rocket.PLT_3030)) {
             return Rocket.PLT_3030;
-        } else if (items.getItem(Rocket.PLT_2021, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+        } else if (isAvailable(Rocket.PLT_2021)) {
             return Rocket.PLT_2021;
-        } else if (items.getItem(Rocket.PLT_2026, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+        } else if (isAvailable(Rocket.PLT_2026)) {
             return Rocket.PLT_2026;
-        } else if (items.getItem(Rocket.R_310, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
+        } else if (isAvailable(Rocket.R_310)) {
             return Rocket.R_310;
         }
         return null;
@@ -145,6 +145,12 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
             }
         }
         return null;
+    }
+
+    private boolean isAvailable(Rocket rocket) {
+        return rocket != null
+                && items.getItem(rocket, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE,
+                        ItemFlag.POSITIVE_QUANTITY).isPresent();
     }
 
 }

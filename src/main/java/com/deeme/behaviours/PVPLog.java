@@ -249,6 +249,7 @@ public class PVPLog implements Behavior {
         Map<String, Object> ourItems = new HashMap<>();
 
         List<Item> usableItems = items.getItems(ItemCategory.SPECIAL_ITEMS).stream().filter(Item::isUsable)
+                .filter(Item::isAvailable)
                 .collect(Collectors.toList());
         for (Item item : usableItems) {
             try {

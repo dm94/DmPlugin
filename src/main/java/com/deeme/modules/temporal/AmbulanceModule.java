@@ -167,9 +167,7 @@ public class AmbulanceModule extends TemporalModule {
             abilityUsed = false;
         }
 
-        boolean isReady = items.getItem(abilityToUse, ItemFlag.USABLE, ItemFlag.READY).isPresent();
-
-        if (isReady) {
+        if (items.getItem(abilityToUse, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
             if (items.useItem(abilityToUse).isSuccessful()) {
                 keyDelay = System.currentTimeMillis();
                 abilityUsed = true;

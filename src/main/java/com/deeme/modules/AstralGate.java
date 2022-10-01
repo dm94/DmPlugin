@@ -502,9 +502,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         if (selectableItem == null)
             return false;
 
-        boolean isReady = items.getItem(selectableItem, ItemFlag.USABLE, ItemFlag.READY).isPresent();
-
-        if (isReady && items.useItem(selectableItem).isSuccessful()) {
+        if (items.useItem(selectableItem, ItemFlag.USABLE, ItemFlag.READY).isSuccessful()) {
             clickDelay = System.currentTimeMillis();
             return true;
         }
