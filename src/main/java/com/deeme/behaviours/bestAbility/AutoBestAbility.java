@@ -102,10 +102,12 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
                     return Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS;
                 }
             }
-        } else if (shoulFocusShield()
+        }
+        if (shoulFocusShield()
                 && items.getItem(Ability.AEGIS_SHIELD_REPAIR, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
             return Ability.AEGIS_SHIELD_REPAIR;
-        } else if (shoulFocusSpeed()) {
+        }
+        if (shoulFocusSpeed()) {
             if (items.getItem(Ability.CITADEL_TRAVEL, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                 return Ability.CITADEL_TRAVEL;
             } else if (items.getItem(Ability.LIGHTNING, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
@@ -121,7 +123,8 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
             } else if (items.getItem(Ability.ZEPHYR_MMT, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                 return Ability.ZEPHYR_MMT;
             }
-        } else if (shoulFocusEvade()) {
+        }
+        if (shoulFocusEvade()) {
             if (items.getItem(Ability.SPEARHEAD_ULTIMATE_CLOAK, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                 return Ability.SPEARHEAD_ULTIMATE_CLOAK;
             } else if (items.getItem(Ability.BERSERKER_RVG, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
@@ -131,13 +134,15 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
             } else if (items.getItem(Ability.DISRUPTOR_DDOL, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                 return Ability.DISRUPTOR_DDOL;
             }
-        } else if (shouldFocusHelpTank()) {
+        }
+        if (shouldFocusHelpTank()) {
             if (items.getItem(Ability.CITADEL_DRAW_FIRE, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                 return Ability.CITADEL_DRAW_FIRE;
             } else if (items.getItem(Ability.CITADEL_PROTECTION, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                 return Ability.CITADEL_PROTECTION;
             }
-        } else if (shoulFocusEvade()) {
+        }
+        if (shoulFocusEvade()) {
             if (items.getItem(Ability.CITADEL_PLUS_PRISMATIC_ENDURANCE, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                 return Ability.CITADEL_PLUS_PRISMATIC_ENDURANCE;
             } else if (items.getItem(Ability.CITADEL_FORTIFY, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
@@ -153,7 +158,8 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
             } else if (items.getItem(Ability.ORCUS_ASSIMILATE, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                 return Ability.ORCUS_ASSIMILATE;
             }
-        } else if (shoulFocusDamage()) {
+        }
+        if (shoulFocusDamage()) {
             if (items.getItem(Ability.SPEARHEAD_TARGET_MARKER, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
                 return Ability.SPEARHEAD_TARGET_MARKER;
             } else if (items.getItem(Ability.DIMINISHER, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {

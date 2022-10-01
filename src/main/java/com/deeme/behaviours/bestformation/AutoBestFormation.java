@@ -77,13 +77,17 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
             return Formation.VETERAN;
         } else if (hasFormation(Formation.WHEEL) && shoulFocusSpeed()) {
             return Formation.WHEEL;
-        } else if (shoulFocusPenetration()) {
+        }
+
+        if (shoulFocusPenetration()) {
             if (hasFormation(Formation.MOTH)) {
                 return Formation.MOTH;
             } else if (hasFormation(Formation.DOUBLE_ARROW)) {
                 return Formation.DOUBLE_ARROW;
             }
-        } else if (shoulUseCrab()) {
+        }
+
+        if (shoulUseCrab()) {
             return Formation.CRAB;
         } else if (shoulUseDiamond()) {
             return Formation.DIAMOND;
@@ -97,9 +101,11 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
                 } else if (hasFormation(Formation.BARRAGE)) {
                     return Formation.BARRAGE;
                 }
-            } else if (hasFormation(Formation.PINCER)) {
+            }
+            if (hasFormation(Formation.PINCER)) {
                 return Formation.PINCER;
-            } else if (hasFormation(Formation.STAR)) {
+            }
+            if (hasFormation(Formation.STAR)) {
                 return Formation.STAR;
             } else if (hasFormation(Formation.DRILL) && !shoulFocusSpeed()
                     && !hasTag(NpcFlag.AGGRESSIVE_FOLLOW)) {
