@@ -1,4 +1,4 @@
-package com.deeme.types;
+package com.deeme.modules.astral;
 
 public class AstralShip {
 

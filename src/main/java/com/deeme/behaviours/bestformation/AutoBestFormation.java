@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
+import com.github.manolo8.darkbot.config.NpcExtraFlag;
+import com.github.manolo8.darkbot.core.itf.NpcExtraProvider;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -26,7 +28,7 @@ import eu.darkbot.shared.utils.SafetyFinder;
 import eu.darkbot.shared.utils.SafetyFinder.Escaping;
 
 @Feature(name = "Auto Best Formation", description = "Automatically switches formations")
-public class AutoBestFormation implements Behavior, Configurable<BestFormationConfig> {
+public class AutoBestFormation implements Behavior, Configurable<BestFormationConfig>, NpcExtraProvider {
 
     protected final PluginAPI api;
     protected final HeroAPI heroapi;
@@ -53,6 +55,11 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
         this.heroapi = api.getAPI(HeroAPI.class);
         this.safety = api.requireInstance(SafetyFinder.class);
         this.availableFormations = new ArrayList<Formation>();
+    }
+
+    @Override
+    public NpcExtraFlag[] values() {
+        return ExtraNpcFlags.values();
     }
 
     @Override
@@ -172,8 +179,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     }
 
     private boolean shoulUseVeteran() {
-        if (config.useVeteran
-                && hasFormation(Formation.VETERAN)) {
+        if (hasFormation(Formation.VETERAN) && (config.useVeteran || hasTag(ExtraNpcFlags.USE_VETERAN))) {
             Lockable target = heroapi.getLocalTarget();
             if (target != null && target.isValid() && target instanceof Npc) {
                 return target.getHealth() != null && target.getHealth().hpPercent() <= 0.15;
@@ -192,7 +198,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
                 && items.useItem(formation, 1000, ItemFlag.USABLE, ItemFlag.READY).isSuccessful());
     }
 
-    private boolean hasTag(NpcFlag tag) {
+    private boolean hasTag(Enum<?> tag) {
         Lockable target = heroapi.getLocalTarget();
         return (target != null && target.isValid() && target instanceof Npc
                 && ((Npc) target).getInfo().hasExtraFlag(tag));

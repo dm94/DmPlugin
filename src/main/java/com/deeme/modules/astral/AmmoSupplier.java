@@ -1,4 +1,4 @@
-package com.deeme.types.suppliers;
+package com.deeme.modules.astral;
 
 import java.util.Arrays;
 import java.util.Comparator;

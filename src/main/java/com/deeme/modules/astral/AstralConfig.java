@@ -1,4 +1,4 @@
-package com.deeme.types.config;
+package com.deeme.modules.astral;
 
 import com.github.manolo8.darkbot.config.types.Num;
 import com.github.manolo8.darkbot.config.types.Option;
@@ -12,11 +12,8 @@ public class AstralConfig {
     @Option(value = "Default Ammo")
     public Character ammoKey;
 
-    @Option(value = "Auto choose the best ammo", description = "Remember to add the ignore boxes tag to the npc for this to work")
-    public boolean useBestAmmo = true;
-
-    @Option(value = "Auto choose the best ammo Always", description = "If you enable it, it will always use the best ammo")
-    public boolean useBestAmmoAlways = false;
+    @Option(value = "Auto choose the best ammo", description = "Will always use the best ammo. Disabled will only be used when ticked in the NPC list.")
+    public boolean useBestAmmo = false;
 
     @Option(value = "Auto choose the portal", description = "It will choose the map that he thinks is the most appropriate.")
     public boolean autoChoosePortal = false;

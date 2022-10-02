@@ -1,12 +1,9 @@
-package com.deeme.modules;
+package com.deeme.modules.astral;
 
-import com.deeme.types.AstralPortalSupplier;
-import com.deeme.types.AstralShip;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
-import com.deeme.types.config.AstralConfig;
-import com.deeme.types.suppliers.AmmoSupplier;
-import com.deeme.types.suppliers.RocketSupplier;
+import com.github.manolo8.darkbot.config.NpcExtraFlag;
+import com.github.manolo8.darkbot.core.itf.NpcExtraProvider;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -51,7 +48,7 @@ import java.util.Comparator;
 import java.util.Random;
 
 @Feature(name = "Astral Gate", description = "For the astral gate and another GGs")
-public class AstralGate implements Module, InstructionProvider, Configurable<AstralConfig> {
+public class AstralGate implements Module, InstructionProvider, Configurable<AstralConfig>, NpcExtraProvider {
     protected final PluginAPI api;
     protected final HeroAPI heroapi;
     protected final BotAPI bot;
@@ -163,6 +160,11 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     }
 
     @Override
+    public NpcExtraFlag[] values() {
+        return ExtraNpcFlags.values();
+    }
+
+    @Override
     public boolean canRefresh() {
         return waitingSign && npcs.isEmpty() && !heroapi.getMap().isGG();
     }
@@ -178,8 +180,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     public String instructions() {
         return "You need to manually enter the gate and select the ship. \n" +
                 "Place the quick bar with everything you want to be used. \n" +
-                "The bot will wait until you choose an item and portal. He does not jump through the gates. \n" +
-                "Add the 'Ignore Boxes' tag to the NPC to make the bot choose the best ammo automatically.";
+                "The bot will wait until you choose an item and portal. He does not jump through the gates.";
     }
 
     @Override
@@ -304,13 +305,10 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     }
 
     private boolean changeAmmo() {
-        if (astralConfig.useBestAmmo || astralConfig.useBestAmmoAlways) {
-            boolean bestAmmo = attacker.hasExtraFlag(NpcFlag.IGNORE_BOXES);
-            if (astralConfig.useBestAmmoAlways || bestAmmo) {
-                changeRocket();
-                changeLaser();
-                return true;
-            }
+        if (astralConfig.useBestAmmo || attacker.hasExtraFlag(ExtraNpcFlags.BEST_AMMO)) {
+            changeRocket();
+            changeLaser();
+            return true;
         }
         if (astralConfig.ammoKey == null) {
             astralConfig.ammoKey = ammoKey.getValue();

@@ -6,6 +6,6 @@ public class BestFormationConfig {
     @Option(value = "Enable for NPCs")
     public boolean npcEnabled = true;
 
-    @Option(value = "Use veteran (F-16-VT)", description = "It will change to this formation when NPCs have less than 15% health.")
+    @Option(value = "Always use veteran (F-16-VT)", description = "Will always use the veteran formation. Disabled will only be used when ticked in the NPC list.")
     public boolean useVeteran = true;
 }
