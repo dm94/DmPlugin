@@ -50,6 +50,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
     private long disconectTime = 0;
     private long nextCheckCurrentHangar = 0;
     private String lastCheck = "";
+    private boolean updateHangarList = true;
 
     @Override
     public String instructions() {
@@ -87,6 +88,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
         this.nextCheck = 0;
         this.profileToUse = null;
         this.activeHangar = null;
+        this.updateHangarList = true;
     }
 
     @Override
@@ -102,8 +104,6 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
                 }
             }
         }
-
-        this.weeklyConfig.updateHangarList = true;
     }
 
     @Override
@@ -111,6 +111,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
         if (stopBot || changingHangar) {
             onTickTask();
         }
+        tryUpdateHangarList();
     }
 
     @Override
@@ -224,7 +225,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
     }
 
     private void tryUpdateHangarList() {
-        if (!weeklyConfig.updateHangarList || changingHangar || !main.backpage.isInstanceValid()) {
+        if (!updateHangarList || changingHangar || !main.backpage.isInstanceValid()) {
             return;
         }
 
@@ -232,7 +233,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
             this.main.backpage.hangarManager.updateHangarList();
             if (ShipSupplier.updateOwnedShips(
                     this.main.backpage.hangarManager.getHangarList().getData().getRet().getShipInfos())) {
-                this.weeklyConfig.updateHangarList = false;
+                updateHangarList = false;
             }
         } catch (Exception e) {
             e.printStackTrace();

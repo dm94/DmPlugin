@@ -71,6 +71,7 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
     private long aditionalWaitingTime = 0;
     private State lastStatus;
     private Integer activeHangar = null;
+    private boolean updateHangarList = true;
 
     private enum State {
         WAIT("Waiting"),
@@ -136,6 +137,7 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
         this.currentStatus = State.WAIT;
         this.lastStatus = State.WAIT;
         this.activeHangar = null;
+        this.updateHangarList = true;
     }
 
     @Override
@@ -158,6 +160,11 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
     @Override
     public String getStatus() {
         return currentStatus.message + " | " + lootModule.getStatus();
+    }
+
+    @Override
+    public void onTickStopped() {
+        tryUpdateHangarList();
     }
 
     @Override
@@ -296,10 +303,7 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
     }
 
     private void tryUpdateHangarList() {
-        if (!configPa.updateHangarList) {
-            return;
-        }
-        if (!main.backpage.isInstanceValid()) {
+        if (!updateHangarList || !main.backpage.isInstanceValid()) {
             return;
         }
 
@@ -309,7 +313,7 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
             this.main.backpage.hangarManager.updateHangarList();
             if (ShipSupplier.updateOwnedShips(
                     this.main.backpage.hangarManager.getHangarList().getData().getRet().getShipInfos())) {
-                configPa.updateHangarList = false;
+                updateHangarList = false;
             }
         } catch (Exception e) {
             e.printStackTrace();

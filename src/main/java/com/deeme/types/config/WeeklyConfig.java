@@ -15,9 +15,6 @@ public class WeeklyConfig {
     @Editor(value = JDayChangeTable.class, shared = true)
     public Map<String, Hour> Hours_Changes = new HashMap<>();
 
-    @Option(value = "Update HangarList", description = "Mark it to update the hangar list")
-    public transient boolean updateHangarList = true;
-
     @Option(value = "Change hangar", description = "It'll change to the hangar you've put in each profile. Do not use with other modules that change hangar.")
     public boolean changeHangar = false;
 

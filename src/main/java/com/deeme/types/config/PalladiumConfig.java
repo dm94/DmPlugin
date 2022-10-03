@@ -8,9 +8,6 @@ import com.github.manolo8.darkbot.config.types.Options;
 import com.github.manolo8.darkbot.gui.tree.components.JListField;
 
 public class PalladiumConfig {
-    @Option(value = "Update HangarList", description = "Mark it to update the hangar list")
-    public transient boolean updateHangarList = true;
-
     @Option(value = "Travel to portal before switch", description = "Go to the portal to change the hangar")
     public boolean goPortalChange = true;
 

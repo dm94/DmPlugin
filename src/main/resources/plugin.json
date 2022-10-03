@@ -3,7 +3,7 @@
   "author": "Dm94Dani",
   "version": "1.7.6",
   "minVersion": "1.13.17 beta 108",
-  "supportedVersion": "1.13.17 beta 109 alpha 16",
+  "supportedVersion": "1.13.17 beta 109 alpha 18",
   "features": [
     "com.deeme.modules.PallladiumHangar",
     "com.deeme.modules.SentinelModule",
