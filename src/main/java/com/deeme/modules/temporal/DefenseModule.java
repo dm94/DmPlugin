@@ -202,8 +202,9 @@ public class DefenseModule extends TemporalModule {
     private void movementLogic() {
         switch (defenseConfig.newMovementMode) {
             case 0:
-                safetyFinder.tick();
-                break;
+                if (safetyFinder.tick()) {
+                    break;
+                }
             case 1:
                 shipAttacker.vsMove();
                 break;
@@ -213,9 +214,7 @@ public class DefenseModule extends TemporalModule {
                 }
                 break;
             case 4:
-                if (heroapi.getHealth().hpPercent() <= repairHpRange.getValue().getMin()) {
-                    safetyFinder.tick();
-                } else {
+                if (safetyFinder.tick()) {
                     GroupMember groupMember = shipAttacker.getClosestMember();
                     if (groupMember != null) {
                         if (groupMember.getLocation().distanceTo(heroapi) < 1000) {
@@ -242,9 +241,7 @@ public class DefenseModule extends TemporalModule {
                 break;
             case 3:
             default:
-                if (heroapi.getHealth().hpPercent() <= repairHpRange.getValue().getMin()) {
-                    safetyFinder.tick();
-                } else {
+                if (safetyFinder.tick()) {
                     shipAttacker.vsMove();
                 }
                 break;
