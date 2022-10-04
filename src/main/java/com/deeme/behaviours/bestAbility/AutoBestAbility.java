@@ -124,6 +124,9 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
                 return Ability.MIMESIS_PHASE_OUT;
             } else if (isAvailable(Ability.ZEPHYR_MMT)) {
                 return Ability.ZEPHYR_MMT;
+            } else if (bot.getVersion().compareTo(new Version("1.13.17 beta 109 alpha 16")) > 1
+                    && isAvailable(Ability.PUSAT_PLUS_SPEED_SAP)) {
+                return Ability.PUSAT_PLUS_SPEED_SAP;
             }
         }
         if (shoulFocusEvade()) {
@@ -210,7 +213,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
         if (target != null && target.isValid()) {
             double distance = heroapi.getLocationInfo().getCurrent().distanceTo(target.getLocationInfo());
             double speed = target instanceof Movable ? ((Movable) target).getSpeed() : 0;
-            return distance > 800 && speed > heroapi.getSpeed();
+            return distance > 700 && speed > heroapi.getSpeed();
         }
         return false;
     }
