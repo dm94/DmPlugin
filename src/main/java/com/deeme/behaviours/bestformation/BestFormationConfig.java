@@ -1,11 +1,21 @@
 package com.deeme.behaviours.bestformation;
 
-import com.github.manolo8.darkbot.config.types.Option;
+import java.util.EnumSet;
+import java.util.Set;
 
+import eu.darkbot.api.config.annotations.Configuration;
+import eu.darkbot.api.config.annotations.Dropdown;
+import eu.darkbot.api.config.annotations.Option;
+
+@Configuration("best_formation")
 public class BestFormationConfig {
-    @Option(value = "Enable for NPCs")
+    @Option(value = "general.npc_enabled")
     public boolean npcEnabled = true;
 
-    @Option(value = "Always use veteran (F-16-VT)", description = "Will always use the veteran formation. Disabled will only be used when ticked in the NPC list.")
+    @Option(value = "best_formation.use_veteran")
     public boolean useVeteran = true;
+
+    @Option(value = "best_formation.supported_formations")
+    @Dropdown(multi = true)
+    public transient Set<SupportedFormations> supportedFormations = EnumSet.allOf(SupportedFormations.class);
 }

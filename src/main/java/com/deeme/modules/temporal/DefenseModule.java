@@ -202,7 +202,7 @@ public class DefenseModule extends TemporalModule {
     private void movementLogic() {
         switch (defenseConfig.newMovementMode) {
             case 0:
-                if (safetyFinder.tick()) {
+                if (!safetyFinder.tick()) {
                     break;
                 }
             case 1:

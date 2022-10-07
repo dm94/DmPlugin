@@ -1,9 +1,10 @@
 {
   "name": "DmPlugin",
   "author": "Dm94Dani",
-  "version": "1.7.6",
+  "version": "1.7.7",
   "minVersion": "1.13.17 beta 108",
   "supportedVersion": "1.13.17 beta 109 alpha 18",
+  "basePackage": "com.deeme",
   "features": [
     "com.deeme.modules.PallladiumHangar",
     "com.deeme.modules.SentinelModule",
@@ -29,6 +30,6 @@
   ],
   "donation": "https://www.paypal.com/donate/?business=JR2XWPSKLWN76&amount=5&no_recurring=0&currency_code=EUR",
   "discord": "https://discord.gg/GPRTRRZJPw",
-  "download": "https://github.com/darkbot-reloaded/DmPlugin/releases/download/v1.7.6/DmPlugin.jar",
+  "download": "https://github.com/darkbot-reloaded/DmPlugin/releases/download/v1.7.7/DmPlugin.jar",
   "update": "https://raw.githubusercontent.com/darkbot-reloaded/DmPlugin/master/src/main/resources/plugin.json"
 }
