@@ -136,7 +136,7 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
             if (items.getItem(Ability.SOLACE, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE).isPresent()) {
                 return Ability.SOLACE;
             }
-            if (botApi.getVersion().compareTo(new Version("1.13.17 beta 109 alpha 14")) > 1
+            if (botApi.getVersion().compareTo(new Version("1.13.17 beta 109 alpha 14")) > 0
                     && items.getItem(Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS, ItemFlag.USABLE, ItemFlag.READY,
                             ItemFlag.AVAILABLE)
                             .isPresent()) {

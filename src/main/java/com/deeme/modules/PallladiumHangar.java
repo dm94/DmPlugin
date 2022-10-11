@@ -238,7 +238,7 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
     }
 
     private void sell() {
-        if (botApi.getVersion().compareTo(new Version("1.13.17 beta 109 alpha 13")) > 1) {
+        if (botApi.getVersion().compareTo(new Version("1.13.17 beta 109 alpha 13")) > 0) {
             sellNew();
         } else {
             sellOld();
