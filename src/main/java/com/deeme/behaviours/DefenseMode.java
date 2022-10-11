@@ -99,7 +99,8 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
     }
 
     private boolean isUnderAttack() {
-        if (target != null && target.isValid()) {
+        if (target != null && target.isValid() && (!defenseConfig.ignoreEnemies
+                || target.getLocationInfo().distanceTo(heroapi) < 1500)) {
             return true;
         }
 

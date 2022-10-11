@@ -25,7 +25,7 @@ import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
 import eu.darkbot.api.utils.Inject;
 
-@Feature(name = "Ambulance Mode", description = "Turn your ship into an ambulance")
+@Feature(name = "Ambulance Mode", description = "Turn your ship into an ambulance for the members of your group.")
 public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
 
     protected final PluginAPI api;

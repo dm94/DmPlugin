@@ -100,7 +100,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
                 return Ability.LIBERATOR_PLUS_SELF_REPAIR;
             } else if (isAvailable(Ability.SOLACE)) {
                 return Ability.SOLACE;
-            } else if (bot.getVersion().compareTo(new Version("1.13.17 beta 109 alpha 14")) > 1
+            } else if (bot.getVersion().compareTo(new Version("1.13.17 beta 109 alpha 14")) > 0
                     && isAvailable(Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS)) {
                 return Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS;
             }
@@ -124,7 +124,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
                 return Ability.MIMESIS_PHASE_OUT;
             } else if (isAvailable(Ability.ZEPHYR_MMT)) {
                 return Ability.ZEPHYR_MMT;
-            } else if (bot.getVersion().compareTo(new Version("1.13.17 beta 109 alpha 16")) > 1
+            } else if (bot.getVersion().compareTo(new Version("1.13.17 beta 109 alpha 16")) > 0
                     && isAvailable(Ability.PUSAT_PLUS_SPEED_SAP)) {
                 return Ability.PUSAT_PLUS_SPEED_SAP;
             }

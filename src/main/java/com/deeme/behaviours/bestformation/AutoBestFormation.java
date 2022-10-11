@@ -101,7 +101,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
         }
 
         Entity target = heroapi.getLocalTarget();
-        if (target != null && target.isValid()) {
+        if (target != null && target.isValid() && heroapi.isAttacking()) {
             if (target instanceof Npc) {
                 if (shoulUseBat()) {
                     return Formation.BAT;
@@ -130,7 +130,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
 
     private boolean shoulFocusPenetration() {
         Lockable target = heroapi.getLocalTarget();
-        if (target != null && target.isValid()) {
+        if (target != null && target.isValid() && heroapi.isAttacking()) {
             return target.getHealth() != null && target.getHealth().getShield() > 10000
                     && target.getHealth().shieldPercent() > 0.5
                     && heroapi.getHealth().shieldPercent() < 0.2;

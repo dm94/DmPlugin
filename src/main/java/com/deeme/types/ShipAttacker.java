@@ -6,6 +6,7 @@ import com.deeme.types.suppliers.DefenseLaserSupplier;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.Config.Loot.Sab;
 import com.github.manolo8.darkbot.core.api.DarkBoatAdapter;
+import com.github.manolo8.darkbot.extensions.util.Version;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -22,6 +23,7 @@ import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.game.items.SelectableItem.Formation;
 import eu.darkbot.api.game.items.SelectableItem.Laser;
 import eu.darkbot.api.game.other.Location;
+import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.GroupAPI;
@@ -42,6 +44,7 @@ public class ShipAttacker {
     protected final MovementAPI movement;
     protected final ConfigAPI configAPI;
     protected final GroupAPI group;
+    protected final BotAPI bot;
     protected final ConfigSetting<PercentRange> repairHpRange;
     protected final ConfigSetting<Character> ammoKey;
     protected final Collection<? extends Player> allShips;
@@ -73,6 +76,7 @@ public class ShipAttacker {
         this.movement = api.getAPI(MovementAPI.class);
         this.configAPI = api.getAPI(ConfigAPI.class);
         this.group = api.getAPI(GroupAPI.class);
+        this.bot = api.getAPI(BotAPI.class);
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
         this.allShips = entities.getPlayers();
         this.allPortals = entities.getPortals();
@@ -128,10 +132,19 @@ public class ShipAttacker {
         if (target == null) {
             return;
         }
-        if (heroapi.isAttacking(target)) {
-            tryAttackOrFix();
+        if (bot.getVersion().compareTo(new Version("1.13.17 beta 108")) > 0) {
+            if (heroapi.isAttacking(target)) {
+                tryAttackOrFix();
+            } else {
+                tryLockTarget();
+            }
         } else {
-            tryLockTarget();
+            if (heroapi.getLocalTarget() != target) {
+                tryLockTarget();
+                return;
+            }
+
+            tryAttackOrFix();
         }
     }
 

@@ -158,10 +158,11 @@ public class DefenseModule extends TemporalModule {
         }
         shipAttacker.resetDefenseData();
 
-        if (shipAttacker.getTarget() != null && shipAttacker.getTarget().isValid()
-                && (!defenseConfig.ignoreEnemies
-                        || shipAttacker.getTarget().getLocationInfo().distanceTo(heroapi) < 1500)) {
+        if (shipAttacker.getTarget() != null && (!shipAttacker.getTarget().isValid()
+                || (defenseConfig.ignoreEnemies
+                        && shipAttacker.getTarget().getLocationInfo().distanceTo(heroapi) > 1500))) {
             shipAttacker.setTarget(null);
+            target = null;
         }
 
         return shipAttacker.getTarget() != null;
