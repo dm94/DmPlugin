@@ -1,9 +1,8 @@
 package com.deeme.behaviours;
 
 import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
 
+import com.deeme.types.SharedFunctions;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 import com.deeme.types.config.CustomEventsConfig;
@@ -16,7 +15,6 @@ import eu.darkbot.api.config.types.Condition;
 import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
-import eu.darkbot.api.game.items.ItemCategory;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.managers.AuthAPI;
@@ -68,19 +66,19 @@ public class CustomEvents implements Behavior, Configurable<CustomEventsConfig> 
         useKeyWithConditions(config.otherKey4);
         useKeyWithConditions(config.otherKey5);
         if (config.selectable1.enable) {
-            useKeyWithConditions(config.selectable1.CONDITION, getItemById(config.selectable1.item));
+            useKeyWithConditions(config.selectable1.CONDITION, SharedFunctions.getItemById(config.selectable1.item));
         }
         if (config.selectable2.enable) {
-            useKeyWithConditions(config.selectable2.CONDITION, getItemById(config.selectable2.item));
+            useKeyWithConditions(config.selectable2.CONDITION, SharedFunctions.getItemById(config.selectable2.item));
         }
         if (config.selectable3.enable) {
-            useKeyWithConditions(config.selectable3.CONDITION, getItemById(config.selectable3.item));
+            useKeyWithConditions(config.selectable3.CONDITION, SharedFunctions.getItemById(config.selectable3.item));
         }
         if (config.selectable4.enable) {
-            useKeyWithConditions(config.selectable4.CONDITION, getItemById(config.selectable4.item));
+            useKeyWithConditions(config.selectable4.CONDITION, SharedFunctions.getItemById(config.selectable4.item));
         }
         if (config.selectable5.enable) {
-            useKeyWithConditions(config.selectable5.CONDITION, getItemById(config.selectable5.item));
+            useKeyWithConditions(config.selectable5.CONDITION, SharedFunctions.getItemById(config.selectable5.item));
         }
     }
 
@@ -118,22 +116,6 @@ public class CustomEvents implements Behavior, Configurable<CustomEventsConfig> 
         }
 
         return false;
-    }
-
-    public SelectableItem getItemById(String id) {
-        Iterator<ItemCategory> it = SelectableItem.ALL_ITEMS.keySet().iterator();
-        while (it.hasNext()) {
-            ItemCategory key = it.next();
-            List<SelectableItem> selectableItemList = SelectableItem.ALL_ITEMS.get(key);
-            Iterator<SelectableItem> itItem = selectableItemList.iterator();
-            while (itItem.hasNext()) {
-                SelectableItem next = itItem.next();
-                if (next.getId().equals(id)) {
-                    return next;
-                }
-            }
-        }
-        return null;
     }
 
 }

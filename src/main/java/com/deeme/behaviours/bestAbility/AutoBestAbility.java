@@ -195,14 +195,8 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
 
     private boolean shoulFocusDamage() {
         Lockable target = heroapi.getLocalTarget();
-        if (target != null && target.isValid()) {
-            if (target.getEntityInfo() != null && target.getEntityInfo().isEnemy()
-                    && target.getHealth().hpPercent() > 0.3) {
-                return true;
-            }
-        }
-
-        return false;
+        return (target != null && target.isValid() && target.getEntityInfo() != null && target.getEntityInfo().isEnemy()
+                && target.getHealth().hpPercent() > 0.3);
     }
 
     private boolean shoulFocusSpeed() {

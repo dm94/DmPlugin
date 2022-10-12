@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 
 @Feature(name = "PVPLog", description = "Create a log of the PVP battles")
 public class PVPLog implements Behavior {
-    public final Path BATTLELOG_FOLDER = Paths.get("battlelog");
+    public final Path battleLogFolder = Paths.get("battlelog");
     private Lockable target = null;
 
     protected final PluginAPI api;
@@ -110,8 +110,8 @@ public class PVPLog implements Behavior {
         this.showDev = configApi.requireConfig("bot_settings.other.dev_stuff");
 
         try {
-            if (!Files.exists(BATTLELOG_FOLDER)) {
-                Files.createDirectory(BATTLELOG_FOLDER);
+            if (!Files.exists(battleLogFolder)) {
+                Files.createDirectory(battleLogFolder);
             }
         } catch (IOException e) {
             e.printStackTrace();

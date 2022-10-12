@@ -6,12 +6,16 @@ import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.config.types.NpcInfo;
 import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.entities.Ship;
+import eu.darkbot.api.game.items.ItemCategory;
+import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.HeroAPI;
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 public class SharedFunctions {
@@ -59,6 +63,22 @@ public class SharedFunctions {
         }
 
         return false;
+    }
+
+    public static SelectableItem getItemById(String id) {
+        Iterator<ItemCategory> it = SelectableItem.ALL_ITEMS.keySet().iterator();
+        while (it.hasNext()) {
+            ItemCategory key = it.next();
+            List<SelectableItem> selectableItemList = SelectableItem.ALL_ITEMS.get(key);
+            Iterator<SelectableItem> itItem = selectableItemList.iterator();
+            while (itItem.hasNext()) {
+                SelectableItem next = itItem.next();
+                if (next.getId().equals(id)) {
+                    return next;
+                }
+            }
+        }
+        return null;
     }
 
 }

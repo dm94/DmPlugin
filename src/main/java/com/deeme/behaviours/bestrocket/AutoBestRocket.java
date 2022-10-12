@@ -1,9 +1,8 @@
 package com.deeme.behaviours.bestrocket;
 
 import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
 
+import com.deeme.types.SharedFunctions;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 
@@ -15,7 +14,6 @@ import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.entities.Npc;
-import eu.darkbot.api.game.items.ItemCategory;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.game.items.SelectableItem.Rocket;
@@ -73,7 +71,7 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
         Entity target = heroapi.getLocalTarget();
         if (target != null && target.isValid()) {
             if (target instanceof Npc) {
-                changeRocket(getItemById(config.npcRocket));
+                changeRocket(SharedFunctions.getItemById(config.npcRocket));
             } else {
                 changeRocket(getBestRocketPVP());
             }
@@ -129,22 +127,6 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
     private boolean shoulUsePLD(Lockable target) {
         return target instanceof Movable && ((Movable) target).isAiming(heroapi)
                 && heroapi.getHealth().hpPercent() < 0.5;
-    }
-
-    private SelectableItem getItemById(String id) {
-        Iterator<ItemCategory> it = SelectableItem.ALL_ITEMS.keySet().iterator();
-        while (it.hasNext()) {
-            ItemCategory key = it.next();
-            List<SelectableItem> selectableItemList = SelectableItem.ALL_ITEMS.get(key);
-            Iterator<SelectableItem> itItem = selectableItemList.iterator();
-            while (itItem.hasNext()) {
-                SelectableItem next = itItem.next();
-                if (next.getId().equals(id)) {
-                    return next;
-                }
-            }
-        }
-        return null;
     }
 
     private boolean isAvailable(Rocket rocket) {

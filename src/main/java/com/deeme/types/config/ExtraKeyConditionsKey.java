@@ -1,20 +1,19 @@
 package com.deeme.types.config;
 
-import com.github.manolo8.darkbot.config.types.Option;
-
+import eu.darkbot.api.config.annotations.Option;
 import eu.darkbot.api.config.types.Condition;
 
 public class ExtraKeyConditionsKey {
 
-    @Option("Enable")
+    @Option(value = "general.enabled")
     public boolean enable = false;
 
-    @Option("Key")
+    @Option(value = "general.key")
     public Character Key;
 
-    @Option("Name (Optional)")
+    @Option(value = "general.name")
     public String name = "";
 
-    @Option("Condition")
+    @Option(value = "general.condition")
     public Condition CONDITION;
 }

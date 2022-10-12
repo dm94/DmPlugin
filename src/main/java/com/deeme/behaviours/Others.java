@@ -1,19 +1,24 @@
 package com.deeme.behaviours;
 
+import java.util.Collection;
+
 import com.deeme.types.backpage.Utils;
 import com.github.manolo8.darkbot.Main;
-import com.github.manolo8.darkbot.config.types.Num;
-import com.github.manolo8.darkbot.config.types.Option;
-import com.github.manolo8.darkbot.core.entities.Portal;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
+import eu.darkbot.api.config.annotations.Configuration;
+import eu.darkbot.api.config.annotations.Number;
+import eu.darkbot.api.config.annotations.Option;
 import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.managers.BotAPI;
+import eu.darkbot.api.managers.EntitiesAPI;
+import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
 import eu.darkbot.api.managers.StatsAPI;
 import eu.darkbot.api.utils.Inject;
@@ -28,8 +33,11 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
     protected final StatsAPI stats;
     protected final BotAPI bot;
     protected final HeroItemsAPI items;
+    protected final HeroAPI heroapi;
 
-    public Others(Main main, PluginAPI api) throws UnsupportedOperationException, Exception {
+    private Collection<? extends Portal> portals;
+
+    public Others(Main main, PluginAPI api) {
         this(main, api,
                 api.requireAPI(BotAPI.class),
                 api.requireAPI(StatsAPI.class),
@@ -37,13 +45,16 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
     }
 
     @Inject
-    public Others(Main main, PluginAPI api, BotAPI bot, StatsAPI stats, HeroItemsAPI heroItems) throws Exception {
+    public Others(Main main, PluginAPI api, BotAPI bot, StatsAPI stats, HeroItemsAPI heroItems) {
         Utils.showDonateDialog();
         this.main = main;
         this.api = api;
         this.bot = bot;
         this.stats = stats;
         this.items = heroItems;
+        this.heroapi = api.getAPI(HeroAPI.class);
+        EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
+        this.portals = entities.getPortals();
     }
 
     @Override
@@ -86,33 +97,27 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
         }
     }
 
+    @Configuration("others")
     public static class LCConfig {
-        @Option(value = "Max deaths if KO", description = "Max deaths if status SID is KO. 0 = Disabled")
-        @Num(max = 99, step = 1)
+        @Option(value = "others.max_deaths")
+        @Number(max = 99, step = 1)
         public int maxDeathsKO = 0;
 
-        @Option(value = "Reload if stuck jumping", description = "As the game goes wrong and sometimes gets stuck jumping this makes a reload if it happens")
+        @Option(value = "others.reload")
         public boolean reloadIfCrash = false;
 
-        @Option(value = "Reload if memory is exceeded ", description = "0 = Disabled. Reload if memory is exceeded")
-        @Num(max = 6000, step = 100)
+        @Option(value = "others.max_memory")
+        @Number(max = 6000, step = 100)
         public int maxMemory = 0;
 
-        @Option(value = "Auto Buy LCB-10", description = "Automatically buys LCB-10 if it has less than 1000")
+        @Option(value = "others.auto_buy_lcb10")
         public boolean autoBuyLcb10 = false;
 
-        @Option(value = "Auto Buy PLT-2026", description = "Automatically buys LCB-10 if it has less than 100")
+        @Option(value = "others.auto_buy_plt_2026")
         public boolean autoBuyPlt2026 = false;
     }
 
     private boolean inPortal() {
-
-        for (Portal p : main.mapManager.entities.portals) {
-            if (main.hero.locationInfo.distance(p) < 200) {
-                return true;
-            }
-        }
-
-        return false;
+        return portals.stream().filter(p -> p.distanceTo(heroapi) < 200).findFirst().isPresent();
     }
 }

@@ -28,8 +28,6 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     private ProfileChangerConfig config;
     private Main main;
 
-    public boolean stopBot = false;
-
     public ProfileChanger(Main main, PluginAPI api) {
         this(main, api, api.requireAPI(AuthAPI.class),
                 api.requireAPI(BotAPI.class),

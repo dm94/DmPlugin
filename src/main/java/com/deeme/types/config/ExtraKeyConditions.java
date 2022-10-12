@@ -1,25 +1,24 @@
 package com.deeme.types.config;
 
 import com.github.manolo8.darkbot.config.Config.PercentRange;
-import com.github.manolo8.darkbot.config.types.Option;
 
+import eu.darkbot.api.config.annotations.Configuration;
+import eu.darkbot.api.config.annotations.Option;
 import eu.darkbot.api.config.types.Condition;
 
-@Option("Extra Conditions")
+@Configuration("extra_condition")
 public class ExtraKeyConditions {
 
-    @Option(value = "Enable")
+    @Option(value = "general.enabled")
     public boolean enable = false;
 
-    @Option(value = "Key", description = "Often this is not necessary")
+    @Option(value = "general.key")
     public Character Key;
 
-    @Option(value = "Health", description = "If health between")
     public PercentRange HEALTH_RANGE = new PercentRange(0.5, 0.95);
 
-    @Option(value = "Enemy Health", description = "If the enemy's health is between")
     public PercentRange HEALTH_ENEMY_RANGE = new PercentRange(0.2, 0.4);
 
-    @Option("Condition")
+    @Option(value = "general.condition")
     public Condition CONDITION;
 }
