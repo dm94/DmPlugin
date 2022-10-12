@@ -66,19 +66,19 @@ public class CustomEvents implements Behavior, Configurable<CustomEventsConfig> 
         useKeyWithConditions(config.otherKey4);
         useKeyWithConditions(config.otherKey5);
         if (config.selectable1.enable) {
-            useKeyWithConditions(config.selectable1.CONDITION, SharedFunctions.getItemById(config.selectable1.item));
+            useKeyWithConditions(config.selectable1.condition, SharedFunctions.getItemById(config.selectable1.item));
         }
         if (config.selectable2.enable) {
-            useKeyWithConditions(config.selectable2.CONDITION, SharedFunctions.getItemById(config.selectable2.item));
+            useKeyWithConditions(config.selectable2.condition, SharedFunctions.getItemById(config.selectable2.item));
         }
         if (config.selectable3.enable) {
-            useKeyWithConditions(config.selectable3.CONDITION, SharedFunctions.getItemById(config.selectable3.item));
+            useKeyWithConditions(config.selectable3.condition, SharedFunctions.getItemById(config.selectable3.item));
         }
         if (config.selectable4.enable) {
-            useKeyWithConditions(config.selectable4.CONDITION, SharedFunctions.getItemById(config.selectable4.item));
+            useKeyWithConditions(config.selectable4.condition, SharedFunctions.getItemById(config.selectable4.item));
         }
         if (config.selectable5.enable) {
-            useKeyWithConditions(config.selectable5.CONDITION, SharedFunctions.getItemById(config.selectable5.item));
+            useKeyWithConditions(config.selectable5.condition, SharedFunctions.getItemById(config.selectable5.item));
         }
     }
 
@@ -92,7 +92,7 @@ public class CustomEvents implements Behavior, Configurable<CustomEventsConfig> 
     public boolean useKeyWithConditions(ExtraKeyConditionsKey extra) {
         if (extra.enable) {
             SelectableItem selectableItem = items.getItem(extra.Key);
-            if (selectableItem != null && extra.CONDITION != null && extra.CONDITION.get(api).allows()) {
+            if (selectableItem != null && extra.condition != null && extra.condition.get(api).allows()) {
                 return useSelectableReadyWhenReady(selectableItem);
             }
         }

@@ -13,12 +13,14 @@ public class ExtraKeyConditions {
     public boolean enable = false;
 
     @Option(value = "general.key")
-    public Character Key;
+    public Character key;
 
-    public PercentRange HEALTH_RANGE = new PercentRange(0.5, 0.95);
+    @Option(value = "extra_condition.health_range")
+    public PercentRange healthRange = new PercentRange(0.5, 0.95);
 
-    public PercentRange HEALTH_ENEMY_RANGE = new PercentRange(0.2, 0.4);
+    @Option(value = "extra_condition.health_enemy_range")
+    public PercentRange healthEnemyRange = new PercentRange(0.2, 0.4);
 
     @Option(value = "general.condition")
-    public Condition CONDITION;
+    public Condition condition;
 }

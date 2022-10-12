@@ -17,7 +17,7 @@ public class ExtraKeyConditionsSelectable {
     public String name = "";
 
     @Option(value = "general.condition")
-    public Condition CONDITION;
+    public Condition condition;
 
     @Option(value = "general.item")
     @Editor(JListField.class)

@@ -227,16 +227,16 @@ public class ShipAttacker {
 
     public boolean useKeyWithConditions(ExtraKeyConditions extra, SelectableItem selectableItem) {
         if (extra.enable) {
-            if (selectableItem == null && extra.Key != null) {
-                selectableItem = items.getItem(extra.Key);
+            if (selectableItem == null && extra.key != null) {
+                selectableItem = items.getItem(extra.key);
             }
 
-            if (selectableItem != null && heroapi.getHealth().hpPercent() < extra.HEALTH_RANGE.max
-                    && heroapi.getHealth().hpPercent() > extra.HEALTH_RANGE.min
+            if (selectableItem != null && heroapi.getHealth().hpPercent() < extra.healthRange.max
+                    && heroapi.getHealth().hpPercent() > extra.healthRange.min
                     && heroapi.getLocalTarget() != null
-                    && heroapi.getLocalTarget().getHealth().hpPercent() < extra.HEALTH_ENEMY_RANGE.max
-                    && heroapi.getLocalTarget().getHealth().hpPercent() > extra.HEALTH_ENEMY_RANGE.min
-                    && (extra.CONDITION == null || extra.CONDITION.get(api).allows())) {
+                    && heroapi.getLocalTarget().getHealth().hpPercent() < extra.healthEnemyRange.max
+                    && heroapi.getLocalTarget().getHealth().hpPercent() > extra.healthEnemyRange.min
+                    && (extra.condition == null || extra.condition.get(api).allows())) {
                 return useSelectableReadyWhenReady(selectableItem);
             }
         }

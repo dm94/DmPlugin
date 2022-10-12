@@ -15,5 +15,5 @@ public class ExtraKeyConditionsKey {
     public String name = "";
 
     @Option(value = "general.condition")
-    public Condition CONDITION;
+    public Condition condition;
 }
