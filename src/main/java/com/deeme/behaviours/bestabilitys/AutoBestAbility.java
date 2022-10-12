@@ -1,4 +1,4 @@
-package com.deeme.behaviours.bestability;
+package com.deeme.behaviours.bestabilitys;
 
 import java.util.Arrays;
 import java.util.Collection;
