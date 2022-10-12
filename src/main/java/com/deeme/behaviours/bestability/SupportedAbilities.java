@@ -1,4 +1,4 @@
-package com.deeme.behaviours.bestabilitys;
+package com.deeme.behaviours.bestability;
 
 import eu.darkbot.api.config.annotations.Configuration;
 

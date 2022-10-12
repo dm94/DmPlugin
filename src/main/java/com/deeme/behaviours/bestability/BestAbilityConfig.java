@@ -1,4 +1,4 @@
-package com.deeme.behaviours.bestabilitys;
+package com.deeme.behaviours.bestability;
 
 import java.util.EnumSet;
 import java.util.Set;
