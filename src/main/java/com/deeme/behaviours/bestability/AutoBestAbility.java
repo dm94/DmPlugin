@@ -195,8 +195,8 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
 
     private boolean shoulFocusDamage() {
         Lockable target = heroapi.getLocalTarget();
-        return (target != null && target.isValid() && target.getEntityInfo() != null && target.getEntityInfo().isEnemy()
-                && target.getHealth().hpPercent() > 0.3);
+        return (target != null && target.isValid() && heroapi.isAttacking() && target.getHealth() != null
+                && target.getHealth().getHp() >= this.config.minHealthToUseDamage);
     }
 
     private boolean shoulFocusSpeed() {
@@ -218,12 +218,12 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
         } else if (heroapi.getEffects() != null
                 && heroapi.getEffects().toString().contains("76")) {
             return false;
-        } else if (heroapi.getHealth().hpPercent() <= 0.5) {
+        } else if (heroapi.getHealth().hpPercent() <= this.config.minHealthToUseHealth) {
             return true;
         } else if (group.hasGroup()) {
             for (GroupMember member : group.getMembers()) {
                 if (!member.isDead() && member.isAttacked() && member.isLocked()
-                        && member.getMemberInfo().hpPercent() <= 0.5) {
+                        && member.getMemberInfo().hpPercent() <= this.config.minHealthToUseHealth) {
                     return true;
                 }
             }

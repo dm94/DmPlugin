@@ -15,7 +15,7 @@ import com.github.manolo8.darkbot.utils.Time;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 
-@Feature(name = "Discord", description = "Used to send statistics to discord")
+@Feature(name = "Discord (Obsolete)", description = "Used to send statistics to discord. Obsolete, use LeanPlugin")
 public class Discord implements Task, Configurable<Discord.DiscordConfig>, InstructionProvider {
 
     private DiscordConfig discordConfig;
@@ -32,7 +32,6 @@ public class Discord implements Task, Configurable<Discord.DiscordConfig>, Instr
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
             return;
         VerifierChecker.checkAuthenticity();
-
         Utils.showDonateDialog();
 
         this.main = main;
@@ -41,7 +40,6 @@ public class Discord implements Task, Configurable<Discord.DiscordConfig>, Instr
 
     @Override
     public void tick() {
-
         if (firstTick) {
             firstTick = false;
             sendInfoHelp();
@@ -56,7 +54,6 @@ public class Discord implements Task, Configurable<Discord.DiscordConfig>, Instr
     }
 
     public static class DiscordConfig {
-
         @Option(value = "Message Interval", description = "How often a message is sent in minutes")
         @Num(min = 10, max = 500)
         public int intervalMessage = 10;
@@ -74,7 +71,6 @@ public class Discord implements Task, Configurable<Discord.DiscordConfig>, Instr
 
         @Option(value = "Send Session stats", description = "Send the statistics of this session")
         public boolean sendSessionStats = false;
-
     }
 
     private void sendInfoHelp() {
