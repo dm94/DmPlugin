@@ -2,6 +2,8 @@ package com.deeme.behaviours.bestformation;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 import com.github.manolo8.darkbot.config.NpcExtraFlag;
@@ -21,6 +23,7 @@ import eu.darkbot.api.game.items.SelectableItem.Laser;
 import eu.darkbot.api.game.other.Lockable;
 import eu.darkbot.api.game.other.Movable;
 import eu.darkbot.api.managers.AuthAPI;
+import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
 import eu.darkbot.api.utils.Inject;
@@ -35,6 +38,8 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     protected final HeroItemsAPI items;
     protected final SafetyFinder safety;
     private BestFormationConfig config;
+    private Collection<? extends Npc> allNpcs;
+    private long nextCheck = 0;
 
     private ArrayList<Formation> availableFormations = new ArrayList<Formation>();
 
@@ -55,6 +60,9 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
         this.heroapi = api.getAPI(HeroAPI.class);
         this.safety = api.requireInstance(SafetyFinder.class);
         this.availableFormations = new ArrayList<Formation>();
+
+        EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
+        this.allNpcs = entities.getNpcs();
     }
 
     @Override
@@ -69,12 +77,8 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
 
     @Override
     public void onTickBehavior() {
-        Entity target = heroapi.getLocalTarget();
-        if (target != null && target.isValid()) {
-            if (config.npcEnabled || !(target instanceof Npc)) {
-                useSelectableReadyWhenReady(getBestFormation());
-            }
-        } else if (safety.state() == Escaping.ENEMY) {
+        if (nextCheck < System.currentTimeMillis()) {
+            nextCheck = System.currentTimeMillis() + 5000;
             useSelectableReadyWhenReady(getBestFormation());
         }
     }
@@ -82,7 +86,8 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     private Formation getBestFormation() {
         if (shoulUseVeteran()) {
             return Formation.VETERAN;
-        } else if (hasFormation(Formation.WHEEL) && shoulFocusSpeed()) {
+        }
+        if (hasFormation(Formation.WHEEL) && shoulFocusSpeed()) {
             return Formation.WHEEL;
         }
 
@@ -155,6 +160,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
 
     private boolean shoulUseDiamond() {
         return hasFormation(Formation.DIAMOND)
+                && heroapi.isAttacking()
                 && (heroapi.getHealth().hpPercent() < 0.7 || heroapi.isInFormation(Formation.DIAMOND))
                 && heroapi.getHealth().shieldPercent() < 0.1
                 && heroapi.getHealth().getMaxShield() > 50000;
@@ -167,9 +173,9 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
         }
 
         try {
-            if ((heroapi.getLaser() != null && heroapi.getLaser() == Laser.SAB_50)
+            if (heroapi.isAttacking() && ((heroapi.getLaser() != null && heroapi.getLaser() == Laser.SAB_50)
                     || (heroapi.getHealth() != null && heroapi.getHealth().hpPercent() < 0.2
-                            && heroapi.getHealth().getShield() > 300000)) {
+                            && heroapi.getHealth().getShield() > 300000))) {
                 return true;
             }
         } catch (Exception e) {
@@ -179,11 +185,15 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     }
 
     private boolean shoulUseVeteran() {
-        if (hasFormation(Formation.VETERAN) && (config.useVeteran || hasTag(ExtraNpcFlags.USE_VETERAN))) {
-            Lockable target = heroapi.getLocalTarget();
-            if (target != null && target.isValid() && target instanceof Npc) {
-                return target.getHealth() != null && target.getHealth().hpPercent() <= 0.15;
+        if (hasFormation(Formation.VETERAN)) {
+            if (config.useVeteran || hasTag(ExtraNpcFlags.USE_VETERAN)) {
+                Lockable target = heroapi.getLocalTarget();
+                if (target != null && target.isValid() && target instanceof Npc) {
+                    return target.getHealth() != null
+                            && (target.getHealth().hpPercent() <= 0.15 && target.getHealth().getHp() < 200000);
+                }
             }
+            return heroapi.getMap() != null && heroapi.getMap().isGG() && allNpcs.isEmpty();
         }
         return false;
     }
