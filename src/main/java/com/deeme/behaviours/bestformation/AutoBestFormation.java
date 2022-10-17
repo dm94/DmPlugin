@@ -179,7 +179,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
                 return true;
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.err.println(e.getMessage());
         }
         return false;
     }

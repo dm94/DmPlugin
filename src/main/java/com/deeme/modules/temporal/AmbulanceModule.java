@@ -141,7 +141,7 @@ public class AmbulanceModule extends TemporalModule {
                 super.goBack();
             }
         } catch (Exception e) {
-            System.out.println(e);
+            System.err.println(e);
             super.goBack();
         }
     }

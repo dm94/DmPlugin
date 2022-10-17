@@ -256,8 +256,6 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
                     .map(Hangar::getHangarId)
                     .findFirst()
                     .orElse(null);
-
-            System.out.println("Current hangar: " + activeHangar);
         } catch (Exception ignored) {
             activeHangar = null;
         }

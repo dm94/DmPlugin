@@ -84,22 +84,21 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
                 items.useItem(rocket, 500, ItemFlag.USABLE, ItemFlag.READY);
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.err.println(e.getMessage());
         }
     }
 
     private Rocket getBestRocketPVP() {
         Lockable target = heroapi.getLocalTarget();
         if (target != null && target.isValid()) {
-            if (shoulFocusSpeed(target)) {
+            if (config.useICRorDCR && shoulFocusSpeed(target)) {
                 if (isAvailable(Rocket.R_IC3)) {
                     return Rocket.R_IC3;
                 } else if (isAvailable(Rocket.DCR_250)) {
                     return Rocket.DCR_250;
                 }
             }
-            if (shoulUsePLD(target)
-                    && isAvailable(Rocket.PLD_8)) {
+            if (config.usePLD && isAvailable(Rocket.PLD_8) && shoulUsePLD(target)) {
                 return Rocket.PLD_8;
             }
         }

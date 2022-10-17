@@ -4,14 +4,12 @@ import com.deeme.types.VerifierChecker;
 import com.google.gson.Gson;
 
 import eu.darkbot.api.PluginAPI;
-import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.game.items.Item;
 import eu.darkbot.api.game.items.ItemCategory;
 import eu.darkbot.api.game.other.Lockable;
 import eu.darkbot.api.managers.AuthAPI;
-import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
 import eu.darkbot.api.managers.RepairAPI;
@@ -42,7 +40,6 @@ public class PVPLog implements Behavior {
     protected final HeroAPI hero;
     protected final RepairAPI repair;
     protected final HeroItemsAPI items;
-    protected final ConfigSetting<Boolean> showDev;
 
     private Gson gson;
 
@@ -74,10 +71,6 @@ public class PVPLog implements Behavior {
     private int enemyInitialShield = 0;
     private int enemyInitialHull = 0;
 
-    private String lastEffects = "";
-    private String lastEnemyEffects = "";
-    private int lastNPCID = 0;
-
     // Batle Data
     private boolean battleStart = false;
     ArrayList<Object> battleData = new ArrayList<Object>();
@@ -106,9 +99,6 @@ public class PVPLog implements Behavior {
         this.items = items;
         this.gson = new Gson();
 
-        ConfigAPI configApi = api.getAPI(ConfigAPI.class);
-        this.showDev = configApi.requireConfig("bot_settings.other.dev_stuff");
-
         try {
             if (!Files.exists(battleLogFolder)) {
                 Files.createDirectory(battleLogFolder);
@@ -126,10 +116,6 @@ public class PVPLog implements Behavior {
         try {
             if (stats.getPing() > 1 && hero.getMap() != null) {
                 mapID = hero.getMap().getId();
-
-                if (showDev.getValue()) {
-                    showDebugInfo();
-                }
 
                 if (hero.isAttacking() && hero.getLocalTarget() != null
                         && hero.getLocalTarget().getEntityInfo().isEnemy()
@@ -150,33 +136,6 @@ public class PVPLog implements Behavior {
             }
         } catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void onStoppedBehavior() {
-        if (showDev.getValue()) {
-            showDebugInfo();
-        }
-    }
-
-    private void showDebugInfo() {
-        String effectsNow = hero.getEffects().toString();
-        if (!lastEffects.equals(effectsNow)) {
-            lastEffects = effectsNow;
-            System.out.println("Hero effects | " + hero.getEffects().toString());
-        }
-
-        if (hero.getLocalTarget() != null) {
-            if (lastNPCID != hero.getLocalTarget().getId()) {
-                lastNPCID = hero.getLocalTarget().getId();
-                System.out.println("Target ID: " + lastNPCID);
-            }
-            String effectsEnemyNow = hero.getLocalTarget().getEffects().toString();
-            if (!lastEnemyEffects.equals(effectsEnemyNow)) {
-                lastEnemyEffects = effectsEnemyNow;
-                System.out.println("Target effects | " + effectsEnemyNow);
-            }
         }
     }
 
@@ -257,7 +216,7 @@ public class PVPLog implements Behavior {
                     ourItems.put(item.getId(), item.getTimer());
                 }
             } catch (Exception e) {
-                System.out.println(e.getMessage());
+                System.err.println(e.getMessage());
             }
         }
 

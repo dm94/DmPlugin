@@ -118,6 +118,6 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
     }
 
     private boolean inPortal() {
-        return portals.stream().filter(p -> p.distanceTo(heroapi) < 200).findFirst().isPresent();
+        return portals.stream().anyMatch(p -> p.distanceTo(heroapi) < 200);
     }
 }
