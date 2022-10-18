@@ -1,5 +1,6 @@
 package com.deeme.tasks;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -42,6 +43,8 @@ public class AutoChangeMap implements Task, Configurable<ChangeMapConfig> {
 
     private boolean firstTick = true;
 
+    private ArrayList<String> mapsAlreadyUsed = new ArrayList<>();
+
     public AutoChangeMap(PluginAPI api) {
         this(api, api.requireAPI(HeroAPI.class),
                 api.requireAPI(StatsAPI.class),
@@ -64,6 +67,7 @@ public class AutoChangeMap implements Task, Configurable<ChangeMapConfig> {
         this.stats = stats;
         this.repair = repair;
         this.star = star;
+        this.mapsAlreadyUsed = new ArrayList<>();
         setup();
     }
 
@@ -82,7 +86,8 @@ public class AutoChangeMap implements Task, Configurable<ChangeMapConfig> {
         if ((firstTick || (waitingTimeNextMap != 0 && waitingTimeNextMap <= System.currentTimeMillis()) ||
                 (mapMaxDeaths > 0 && repair.getDeathAmount() >= mapMaxDeaths)
                 || (waitingTimeNextMap == 0 && mapMaxDeaths == 0)) &&
-                (hero.getLocalTarget() == null || hero.getLocalTarget().getHealth().hpPercent() > 90)) {
+                (changeMapConfig.ignoreTargetHealth || hero.getLocalTarget() == null
+                        || hero.getLocalTarget().getHealth().hpPercent() > 90)) {
             firstTick = false;
             goNextMap();
         }
@@ -118,6 +123,11 @@ public class AutoChangeMap implements Task, Configurable<ChangeMapConfig> {
                 avaibleMaps.put(oneMap.getKey(), oneMap.getValue());
             }
         }
+        if (avaibleMaps.size() <= mapsAlreadyUsed.size()) {
+            mapsAlreadyUsed.clear();
+        } else {
+            avaibleMaps.entrySet().removeIf(oneMap -> mapsAlreadyUsed.contains(oneMap.getKey()));
+        }
         int mapChosse = 0;
         if (avaibleMaps.size() > 1) {
             mapChosse = rand.nextInt(avaibleMaps.size());
@@ -127,7 +137,8 @@ public class AutoChangeMap implements Task, Configurable<ChangeMapConfig> {
             if (i == mapChosse) {
                 if (chosseMap.getValue().time > 0) {
                     waitingTimeNextMap = System.currentTimeMillis() +
-                            (chosseMap.getValue().time + rand.nextInt(5)) * 60000L;
+                            (chosseMap.getValue().time + (changeMapConfig.addRandomTime ? rand.nextInt(5) : 0))
+                                    * 60000L;
                 } else {
                     waitingTimeNextMap = 0;
                 }
@@ -144,6 +155,8 @@ public class AutoChangeMap implements Task, Configurable<ChangeMapConfig> {
                 } catch (MapNotFoundException e) {
                     System.out.println("Map not found" + e.getMessage());
                 }
+
+                mapsAlreadyUsed.add(chosseMap.getKey());
 
                 break;
             }

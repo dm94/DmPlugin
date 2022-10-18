@@ -78,7 +78,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     @Override
     public void onTickBehavior() {
         if (nextCheck < System.currentTimeMillis()) {
-            nextCheck = System.currentTimeMillis() + 5000;
+            nextCheck = System.currentTimeMillis() + (config.timeToCheck * 1000);
             useSelectableReadyWhenReady(getBestFormation());
         }
     }
@@ -105,8 +105,8 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
             return Formation.DIAMOND;
         }
 
-        Entity target = heroapi.getLocalTarget();
-        if (target != null && target.isValid() && heroapi.isAttacking()) {
+        if (isAttacking()) {
+            Entity target = heroapi.getLocalTarget();
             if (target instanceof Npc) {
                 if (shoulUseBat()) {
                     return Formation.BAT;
@@ -160,7 +160,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
 
     private boolean shoulUseDiamond() {
         return hasFormation(Formation.DIAMOND)
-                && heroapi.isAttacking()
+                && isAttacking()
                 && (heroapi.getHealth().hpPercent() < 0.7 || heroapi.isInFormation(Formation.DIAMOND))
                 && heroapi.getHealth().shieldPercent() < 0.1
                 && heroapi.getHealth().getMaxShield() > 50000;
@@ -173,7 +173,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
         }
 
         try {
-            if (heroapi.isAttacking() && ((heroapi.getLaser() != null && heroapi.getLaser() == Laser.SAB_50)
+            if (isAttacking() && ((heroapi.getLaser() != null && heroapi.getLaser() == Laser.SAB_50)
                     || (heroapi.getHealth() != null && heroapi.getHealth().hpPercent() < 0.2
                             && heroapi.getHealth().getShield() > 300000))) {
                 return true;
@@ -223,5 +223,10 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
         }
 
         return false;
+    }
+
+    private boolean isAttacking() {
+        Entity target = heroapi.getLocalTarget();
+        return target != null && target.isValid() && heroapi.isAttacking() && target.distanceTo(heroapi) < 1500;
     }
 }
