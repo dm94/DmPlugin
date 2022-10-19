@@ -1,26 +1,30 @@
 package com.deeme.modules.astral;
 
-import com.github.manolo8.darkbot.config.types.Num;
-import com.github.manolo8.darkbot.config.types.Option;
+import eu.darkbot.api.config.annotations.Configuration;
+import eu.darkbot.api.config.annotations.Number;
+import eu.darkbot.api.config.annotations.Option;
 
-@Option(value = "Astral config")
+@Configuration("astral")
 public class AstralConfig {
-    @Option(value = "Minimum radius for npcs")
-    @Num(min = 500, max = 2000, step = 10)
+    @Option(value = "astral.min_radius")
+    @Number(min = 500, max = 2000, step = 10)
     public int radioMin = 560;
 
-    @Option(value = "Default Ammo")
+    @Option(value = "general.default_ammo")
     public Character ammoKey;
 
-    @Option(value = "Always attack the nearest NPC", description = "It may work better than the other logic")
+    @Option(value = "astral.attack_closest")
     public boolean alwaysTheClosestNPC = false;
 
-    @Option(value = "Auto choose the best ammo", description = "Will always use the best ammo. Disabled will only be used when ticked in the NPC list.")
+    @Option(value = "astral.best_ammo")
     public boolean useBestAmmo = false;
 
-    @Option(value = "Auto choose the portal (TEST)", description = "It will choose the map that he thinks is the most appropriate.")
+    @Option(value = "astral.choose_portal")
     public boolean autoChoosePortal = false;
 
-    @Option(value = "Auto choose the item (TEST)", description = "It will choose the items randomly. DON´T USE FOR NOW")
+    @Option(value = "astral.choose_item")
     public boolean autoChooseItem = false;
+
+    @Option(value = "astral.cpu_key")
+    public Character astralCPUKey;
 }

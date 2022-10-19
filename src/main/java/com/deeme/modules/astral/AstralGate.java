@@ -544,8 +544,19 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     private void goToAstral() {
         try {
             GameMap map = starSystem.getByName("GG Astral");
-            if (!portals.isEmpty() && map != starSystem.getCurrentMap()) {
-                this.bot.setModule(api.requireInstance(MapModule.class)).setTarget(map);
+            if (map != null && !portals.isEmpty() && map != starSystem.getCurrentMap()) {
+                if (StarSystemAPI.HOME_MAPS.contains(starSystem.getCurrentMap().getShortName())) {
+                    if (portals.stream().anyMatch(p -> p.getTargetMap().isPresent() && p.getTargetMap().get() == map)) {
+                        this.bot.setModule(api.requireInstance(MapModule.class)).setTarget(map);
+                    } else if (astralConfig.astralCPUKey != null) {
+                        Item item = items.getItem(astralConfig.astralCPUKey);
+                        if (item != null) {
+                            useSelectableReadyWhenReady(item);
+                        }
+                    }
+                } else {
+                    this.bot.setModule(api.requireInstance(MapModule.class)).setTarget(map);
+                }
             }
         } catch (MapNotFoundException e) {
             System.out.println("Map not found" + e.getMessage());
