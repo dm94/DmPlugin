@@ -8,17 +8,17 @@ import com.github.manolo8.darkbot.core.itf.NpcExtraProvider;
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.config.types.NpcFlag;
-import eu.darkbot.api.config.types.PercentRange;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.extensions.Module;
 import eu.darkbot.api.extensions.InstructionProvider;
+import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.enums.EntityEffect;
+import eu.darkbot.api.game.items.Item;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
-import eu.darkbot.api.game.items.SelectableItem.Rocket;
 import eu.darkbot.api.game.other.GameMap;
 import eu.darkbot.api.game.other.Gui;
 import eu.darkbot.api.game.other.Locatable;
@@ -74,6 +74,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     protected long laserTime;
     protected long clickDelay;
     protected long chooseClickDelay = 0;
+    protected long nextCPUCheck = 0;
 
     protected boolean repairShield = false;
     protected boolean waitingSign = false;
@@ -94,6 +95,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         WAIT("Waiting"),
         DO("Attacking"),
         WAITING_SIGN("Waiting for the selector"),
+        WAITING_WAVE("Waiting for the wave"),
         WAITING_HUMAN("Choose an option to continue"),
         WAITING_SHIP("Choose a ship");
 
@@ -145,9 +147,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         this.runConfigInCircle = configApi.requireConfig("loot.run_config_in_circle");
         this.ammoKey = configApi.requireConfig("loot.ammo_key");
 
-        ConfigSetting<PercentRange> repairHpRange = configApi.requireConfig("general.safety.repair_hp_range");
-
-        this.rocketSupplier = new RocketSupplier(heroapi, items, repairHpRange.getValue().getMin());
+        this.rocketSupplier = new RocketSupplier(heroapi, items);
         this.ammoSupplier = new AmmoSupplier(items);
         this.astralPortalSupplier = new AstralPortalSupplier(api, astralShip);
 
@@ -171,9 +171,8 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
     @Override
     public String getStatus() {
-        return "Astral | " + currentStatus.message + " | " + npcs.size() + " | "
-                + (astralConfig.autoChoosePortal && astralShip != null ? astralShip.getStatus() + " | " : "") +
-                attacker.getStatus();
+        return "Astral | " + currentStatus.message + " | " + npcs.size() + " | " + attacker.getStatus()
+                + (astralShip != null ? "\n" + astralShip.getStatus() : "");
     }
 
     @Override
@@ -191,6 +190,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                 astralShip = new AstralShip(heroapi.getShipType());
             }
             if (astralShip.isValid()) {
+                activeAutoRocketCPU();
                 pet.setEnabled(false);
                 repairShield = repairShield && heroapi.getHealth().shieldPercent() < 0.9
                         || heroapi.getHealth().shieldPercent() < 0.2;
@@ -209,17 +209,19 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                 } else {
                     if (npcs.isEmpty()) {
                         waitingSign = true;
-                        if (!movement.isMoving() && (astralGui == null || !astralGui.isVisible())) {
-                            movement.moveRandom();
-                        }
-
+                        goToTheMiddle();
                         if (astralGui != null && (astralConfig.autoChoosePortal || astralConfig.autoChooseItem)) {
                             if (!astralGui.isVisible()) {
                                 chooseClickDelay = System.currentTimeMillis() + 10000;
                             }
                             autoChooseLogic();
+                        } else if (!portals.isEmpty()) {
+                            if (astralGui != null && astralGui.isVisible()) {
+                                this.currentStatus = State.WAITING_HUMAN;
+                                this.bot.setRunning(false);
+                            }
                         } else {
-                            this.currentStatus = State.WAITING_HUMAN;
+                            this.currentStatus = State.WAITING_WAVE;
                         }
                     }
                 }
@@ -230,6 +232,13 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
             }
         } else {
             goToAstral();
+        }
+    }
+
+    @Override
+    public void onTickStopped() {
+        if (heroapi.getMap().getId() == 466 || heroapi.getMap().getId() == 467 || heroapi.getMap().getId() == 468) {
+            countItems();
         }
     }
 
@@ -305,11 +314,20 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     }
 
     private boolean changeAmmo() {
-        if (astralConfig.useBestAmmo || attacker.hasExtraFlag(ExtraNpcFlags.BEST_AMMO)) {
-            changeRocket();
-            changeLaser();
+        if (astralConfig.useBestAmmo || attacker.hasExtraFlag(ExtraNpcFlags.BEST_AMMO) || isSlowerThanTarget()) {
+            changeLaser(true);
+            changeRocket(true);
+            return true;
+        } else {
+            changeRocket(false);
+        }
+
+        Item currentLaser = items.getItem(heroapi.getLaser()).get();
+        if (currentLaser == null || currentLaser.getQuantity() <= 100) {
+            changeLaser(false);
             return true;
         }
+
         if (astralConfig.ammoKey == null) {
             astralConfig.ammoKey = ammoKey.getValue();
         } else if (!ammoKey.getValue().equals(astralConfig.ammoKey)) {
@@ -320,7 +338,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
     private boolean findTarget() {
         if (!npcs.isEmpty()) {
-            if (!allLowLifeOrISH(true)) {
+            if (!astralConfig.alwaysTheClosestNPC && !allLowLifeOrISH(true)) {
                 Npc target = bestNpc();
                 if (target != null) {
                     attacker.setTarget(target);
@@ -460,11 +478,16 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                 .sum();
     }
 
-    public void changeRocket() {
+    public void changeRocket(boolean bestRocket) {
         if (System.currentTimeMillis() < rocketTime) {
             return;
         }
-        Rocket rocket = getBestRocket();
+        SelectableItem rocket = null;
+        if (bestRocket) {
+            rocket = rocketSupplier.get();
+        } else {
+            rocket = rocketSupplier.getReverse();
+        }
 
         if (rocket != null && !heroapi.getRocket().getId().equals(rocket.getId())
                 && useSelectableReadyWhenReady(rocket)) {
@@ -472,11 +495,16 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         }
     }
 
-    public void changeLaser() {
+    public void changeLaser(boolean bestLaser) {
         if (System.currentTimeMillis() < laserTime) {
             return;
         }
-        SelectableItem laser = ammoSupplier.get();
+        SelectableItem laser = null;
+        if (bestLaser) {
+            laser = ammoSupplier.get();
+        } else {
+            laser = ammoSupplier.getReverse();
+        }
 
         if (laser != null && heroapi.getLaser() != null && !heroapi.getLaser().getId().equals(laser.getId())
                 && useSelectableReadyWhenReady(laser)) {
@@ -484,14 +512,8 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
             if (key != null) {
                 ammoKey.setValue(key);
             }
-
             laserTime = System.currentTimeMillis() + 2000;
         }
-
-    }
-
-    private Rocket getBestRocket() {
-        return rocketSupplier.get();
     }
 
     public boolean useSelectableReadyWhenReady(SelectableItem selectableItem) {
@@ -504,7 +526,6 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
             clickDelay = System.currentTimeMillis();
             return true;
         }
-
         return false;
     }
 
@@ -516,6 +537,50 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
             }
         } catch (MapNotFoundException e) {
             System.out.println("Map not found" + e.getMessage());
+        }
+    }
+
+    private boolean isSlowerThanTarget() {
+        Entity target = heroapi.getLocalTarget();
+        if (target != null && target.isValid()) {
+            double speed = target instanceof Movable ? ((Movable) target).getSpeed() : 0;
+            return speed >= heroapi.getSpeed();
+        }
+
+        return false;
+    }
+
+    private void goToTheMiddle() {
+        if (!movement.isMoving() && (astralGui == null || !astralGui.isVisible())) {
+            movement.moveTo(starSystem.getCurrentMapBounds().getWidth() / 2,
+                    starSystem.getCurrentMapBounds().getHeight() / 2);
+        }
+    }
+
+    private void activeAutoRocketCPU() {
+        if (nextCPUCheck < System.currentTimeMillis()
+                && items.useItem(SelectableItem.Cpu.AROL_X, ItemFlag.NOT_SELECTED).isSuccessful()) {
+            nextCPUCheck = System.currentTimeMillis() + 300000;
+        }
+    }
+
+    private void countItems() {
+        if (portals.isEmpty()) {
+            if (lastPortal != 0) {
+                if (lastPortal == 87 || lastPortal == 88) {
+                    astralShip.setWeapons(astralShip.getWeapons() + 1);
+                } else if (lastPortal == 89 || lastPortal == 90) {
+                    astralShip.setGenerators(astralShip.getGenerators() + 1);
+                } else if (lastPortal == 95 || lastPortal == 96) {
+                    astralShip.setModules(astralShip.getModules() + 1);
+                }
+                lastPortal = 0;
+            }
+        } else {
+            Portal portal = portals.stream().filter(p -> p.isJumping()).findFirst().orElse(null);
+            if (portal != null) {
+                lastPortal = portal.getTypeId();
+            }
         }
     }
 }

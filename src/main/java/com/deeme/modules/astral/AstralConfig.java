@@ -12,10 +12,13 @@ public class AstralConfig {
     @Option(value = "Default Ammo")
     public Character ammoKey;
 
+    @Option(value = "Always attack the nearest NPC", description = "It may work better than the other logic")
+    public boolean alwaysTheClosestNPC = false;
+
     @Option(value = "Auto choose the best ammo", description = "Will always use the best ammo. Disabled will only be used when ticked in the NPC list.")
     public boolean useBestAmmo = false;
 
-    @Option(value = "Auto choose the portal", description = "It will choose the map that he thinks is the most appropriate.")
+    @Option(value = "Auto choose the portal (TEST)", description = "It will choose the map that he thinks is the most appropriate.")
     public boolean autoChoosePortal = false;
 
     @Option(value = "Auto choose the item (TEST)", description = "It will choose the items randomly. DON´T USE FOR NOW")

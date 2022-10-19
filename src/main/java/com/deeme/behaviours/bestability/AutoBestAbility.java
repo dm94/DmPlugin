@@ -7,7 +7,6 @@ import com.deeme.modules.temporal.AmbulanceModule;
 import com.deeme.types.SharedFunctions;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
-import com.github.manolo8.darkbot.extensions.util.Version;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -100,14 +99,16 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
                 return Ability.LIBERATOR_PLUS_SELF_REPAIR;
             } else if (isAvailable(Ability.SOLACE)) {
                 return Ability.SOLACE;
-            } else if (bot.getVersion().compareTo(new Version("1.13.17 beta 109 alpha 14")) > 0
-                    && isAvailable(Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS)) {
+            } else if (isAvailable(Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS)) {
                 return Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS;
             }
         }
-        if (shoulFocusShield()
-                && isAvailable(Ability.AEGIS_SHIELD_REPAIR)) {
-            return Ability.AEGIS_SHIELD_REPAIR;
+        if (shoulFocusShield()) {
+            if (isAvailable(Ability.AEGIS_SHIELD_REPAIR)) {
+                return Ability.AEGIS_SHIELD_REPAIR;
+            } else if (isAvailable(Ability.SENTINEL)) {
+                return Ability.SENTINEL;
+            }
         }
         if (shoulFocusSpeed()) {
             if (isAvailable(Ability.CITADEL_TRAVEL)) {
@@ -124,8 +125,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
                 return Ability.MIMESIS_PHASE_OUT;
             } else if (isAvailable(Ability.ZEPHYR_MMT)) {
                 return Ability.ZEPHYR_MMT;
-            } else if (bot.getVersion().compareTo(new Version("1.13.17 beta 109 alpha 16")) > 0
-                    && isAvailable(Ability.PUSAT_PLUS_SPEED_SAP)) {
+            } else if (isAvailable(Ability.PUSAT_PLUS_SPEED_SAP)) {
                 return Ability.PUSAT_PLUS_SPEED_SAP;
             }
         }

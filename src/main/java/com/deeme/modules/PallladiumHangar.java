@@ -14,7 +14,6 @@ import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.backpage.hangar.Hangar;
 import com.github.manolo8.darkbot.core.entities.BasePoint;
 import com.github.manolo8.darkbot.core.objects.OreTradeGui;
-import com.github.manolo8.darkbot.extensions.util.Version;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -238,11 +237,7 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
     }
 
     private void sell() {
-        if (botApi.getVersion().compareTo(new Version("1.13.17 beta 109 alpha 13")) > 0) {
-            sellNew();
-        } else {
-            sellOld();
-        }
+        sellOld();
     }
 
     private void sellNew() {
