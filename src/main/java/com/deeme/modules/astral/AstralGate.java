@@ -17,8 +17,10 @@ import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.enums.EntityEffect;
 import eu.darkbot.api.game.items.Item;
+import eu.darkbot.api.game.items.ItemCategory;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
+import eu.darkbot.api.game.items.SelectableItem.Laser;
 import eu.darkbot.api.game.other.GameMap;
 import eu.darkbot.api.game.other.Gui;
 import eu.darkbot.api.game.other.Locatable;
@@ -171,8 +173,15 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
     @Override
     public String getStatus() {
-        return "Astral | " + currentStatus.message + " | " + npcs.size() + " | " + attacker.getStatus()
-                + (astralShip != null ? "\n" + astralShip.getStatus() : "");
+        return "Astral | " + currentStatus.message + " | " + npcs.size() + " | " + attacker.getStatus();
+    }
+
+    @Override
+    public String getStoppedStatus() {
+        return (astralShip != null ? astralShip.getStatus()
+                : "")
+                + " | Ammo: " + astralPortalSupplier.getAmmoCount() + "\n" + "GUI: "
+                + (astralGui != null && astralGui.isVisible());
     }
 
     @Override
@@ -209,7 +218,6 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                 } else {
                     if (npcs.isEmpty()) {
                         waitingSign = true;
-                        goToTheMiddle();
                         if (astralGui != null && (astralConfig.autoChoosePortal || astralConfig.autoChooseItem)) {
                             if (!astralGui.isVisible()) {
                                 chooseClickDelay = System.currentTimeMillis() + 10000;
@@ -223,6 +231,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                         } else {
                             this.currentStatus = State.WAITING_WAVE;
                         }
+                        goToTheMiddle();
                     }
                 }
             } else {
@@ -322,12 +331,11 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
             changeRocket(false);
         }
 
-        if (heroapi.getLaser() != null) {
-            Item currentLaser = items.getItem(heroapi.getLaser()).get();
-            if (currentLaser == null || currentLaser.getQuantity() <= 100) {
-                changeLaser(false);
-                return true;
-            }
+        Item currentLaser = items.getItems(ItemCategory.LASERS).stream().filter(Item::isSelected).findFirst()
+                .orElse(null);
+        if (currentLaser == null || currentLaser.getQuantity() <= 100) {
+            changeLaser(false);
+            return true;
         }
 
         if (astralConfig.ammoKey == null) {
@@ -507,14 +515,16 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         } else {
             laser = ammoSupplier.getReverse();
         }
-
-        if (laser != null && heroapi.getLaser() != null && !heroapi.getLaser().getId().equals(laser.getId())
-                && useSelectableReadyWhenReady(laser)) {
-            Character key = items.getKeyBind(laser);
-            if (key != null) {
-                ammoKey.setValue(key);
+        if (laser != null) {
+            Laser currentLaser = heroapi.getLaser();
+            if (currentLaser != null && !currentLaser.getId().equals(laser.getId())
+                    && useSelectableReadyWhenReady(laser)) {
+                Character key = items.getKeyBind(laser);
+                if (key != null) {
+                    ammoKey.setValue(key);
+                }
+                laserTime = System.currentTimeMillis() + 2000;
             }
-            laserTime = System.currentTimeMillis() + 2000;
         }
     }
 
@@ -553,7 +563,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     }
 
     private void goToTheMiddle() {
-        if (!movement.isMoving() && (astralGui == null || !astralGui.isVisible())) {
+        if (!movement.isMoving() && astralGui != null && !astralGui.isVisible()) {
             movement.moveTo(starSystem.getCurrentMapBounds().getWidth() / 2,
                     starSystem.getCurrentMapBounds().getHeight() / 2);
         }

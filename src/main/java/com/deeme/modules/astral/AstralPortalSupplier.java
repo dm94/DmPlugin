@@ -21,6 +21,9 @@ public class AstralPortalSupplier implements PrioritizedSupplier<Portal> {
     private boolean focusGenerators = false;
     private boolean focusModules = false;
 
+    private long nextAmmoCheck = 0;
+    private double lastAmmoCount = 0;
+
     /*
      * 1 - Base
      * 87 - Weapon
@@ -52,7 +55,7 @@ public class AstralPortalSupplier implements PrioritizedSupplier<Portal> {
         if (heroapi.getHealth().hpPercent() < 0.9) {
             target = portals.stream().filter(portal -> portal.getTypeId() == 99).findFirst().orElse(null);
         }
-        if (needFocusAmmo() && target == null) {
+        if (getAmmoCount() <= 100000 && target == null) {
             this.focusAmmo = true;
             target = portals.stream().filter(portal -> portal.getTypeId() == 91).findFirst().orElse(null);
         }
@@ -97,7 +100,11 @@ public class AstralPortalSupplier implements PrioritizedSupplier<Portal> {
         return target;
     }
 
-    private boolean needFocusAmmo() {
-        return items.getItems(ItemCategory.LASERS).stream().mapToDouble(ammo -> ammo.getQuantity()).sum() <= 50000;
+    public double getAmmoCount() {
+        if (nextAmmoCheck < System.currentTimeMillis()) {
+            lastAmmoCount = items.getItems(ItemCategory.LASERS).stream().mapToDouble(ammo -> ammo.getQuantity()).sum();
+            nextAmmoCheck = System.currentTimeMillis() + 60000;
+        }
+        return lastAmmoCount;
     }
 }
