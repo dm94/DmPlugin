@@ -1,0 +1,3 @@
+files:
+  - source: /src/main/java/com/deeme/lang/strings_en.properties
+    translation: /src/main/java/com/deeme/lang/strings_%two_letters_code%.properties
