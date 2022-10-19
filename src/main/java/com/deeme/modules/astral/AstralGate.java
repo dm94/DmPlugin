@@ -322,10 +322,12 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
             changeRocket(false);
         }
 
-        Item currentLaser = items.getItem(heroapi.getLaser()).get();
-        if (currentLaser == null || currentLaser.getQuantity() <= 100) {
-            changeLaser(false);
-            return true;
+        if (heroapi.getLaser() != null) {
+            Item currentLaser = items.getItem(heroapi.getLaser()).get();
+            if (currentLaser == null || currentLaser.getQuantity() <= 100) {
+                changeLaser(false);
+                return true;
+            }
         }
 
         if (astralConfig.ammoKey == null) {
@@ -489,7 +491,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
             rocket = rocketSupplier.getReverse();
         }
 
-        if (rocket != null && !heroapi.getRocket().getId().equals(rocket.getId())
+        if (rocket != null && heroapi.getRocket() != null && !heroapi.getRocket().getId().equals(rocket.getId())
                 && useSelectableReadyWhenReady(rocket)) {
             rocketTime = System.currentTimeMillis() + 2000;
         }

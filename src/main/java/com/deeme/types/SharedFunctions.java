@@ -1,6 +1,7 @@
 package com.deeme.types;
 
 import com.github.manolo8.darkbot.Main;
+import com.github.manolo8.darkbot.core.entities.Pet;
 
 import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.config.types.NpcInfo;
@@ -37,7 +38,7 @@ public class SharedFunctions {
 
         return allShips.stream()
                 .filter(s -> (s instanceof Npc || s.getEntityInfo().isEnemy()))
-                .filter(s -> !isPet(s.getEntityInfo().getUsername()))
+                .filter(s -> !(s instanceof Pet))
                 .filter(s -> s.isAttacking(assaulted))
                 .sorted(Comparator.comparingDouble(s -> s.getLocationInfo().distanceTo(hero)))
                 .findFirst().orElse(null);
@@ -46,10 +47,6 @@ public class SharedFunctions {
     public static boolean hasAttacker(Ship assaulted, Main main) {
         Ship ship = getAttacker(assaulted, main);
         return ship != null;
-    }
-
-    public static boolean isPet(String name) {
-        return name.matches(".*?(\\s)(\\[(\\d+)\\])");
     }
 
     public static boolean isNpc(ConfigAPI config, String name) {

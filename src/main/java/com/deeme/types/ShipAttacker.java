@@ -13,6 +13,7 @@ import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.config.types.PercentRange;
 import eu.darkbot.api.config.types.ShipMode;
 import eu.darkbot.api.config.types.ShipMode.ShipModeImpl;
+import eu.darkbot.api.game.entities.Pet;
 import eu.darkbot.api.game.entities.Player;
 import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.entities.Ship;
@@ -331,7 +332,7 @@ public class ShipAttacker {
             return allShips.stream()
                     .filter(s -> (s.getEntityInfo().isEnemy() && !s.getEffects().toString().contains("290")
                             && s.getLocationInfo().distanceTo(heroapi) <= maxDistance)
-                            && !SharedFunctions.isPet(s.getEntityInfo().getUsername())
+                            && !(s instanceof Pet)
                             && !inGroup(s.getId()))
                     .sorted(Comparator.comparingDouble(s -> s.getLocationInfo().distanceTo(heroapi))).findAny()
                     .orElse(null);
