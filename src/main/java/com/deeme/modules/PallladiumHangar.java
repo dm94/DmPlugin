@@ -221,6 +221,9 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
                     if (tradeGui != null && tradeGui.isVisible()) {
                         tradeGui.setVisible(false);
                     }
+                    if (oreTradeOld != null && oreTradeOld.isVisible()) {
+                        oreTradeOld.setVisible(false);
+                    }
                     this.main.setModule(api.requireInstance(MapModule.class)).setTarget(this.activeMap);
                 }
             }
@@ -278,6 +281,7 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
                         && System.currentTimeMillis() - 60_000 > sellClick) {
                     oreTradeOld.sellOre(OreTradeGui.Ore.PALLADIUM);
                     sellClick = System.currentTimeMillis();
+                    oreTradeOld.show(false);
                 }
             });
     }
