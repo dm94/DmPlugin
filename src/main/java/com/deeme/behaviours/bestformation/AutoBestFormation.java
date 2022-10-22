@@ -11,7 +11,6 @@ import com.github.manolo8.darkbot.core.itf.NpcExtraProvider;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
-import eu.darkbot.api.config.types.NpcFlag;
 import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
@@ -91,21 +90,21 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
             return Formation.WHEEL;
         }
 
-        if (shoulFocusPenetration()) {
-            if (hasFormation(Formation.MOTH)) {
-                return Formation.MOTH;
-            } else if (hasFormation(Formation.DOUBLE_ARROW)) {
-                return Formation.DOUBLE_ARROW;
-            }
-        }
-
-        if (shoulUseCrab()) {
-            return Formation.CRAB;
-        } else if (shoulUseDiamond()) {
-            return Formation.DIAMOND;
-        }
-
         if (isAttacking()) {
+            if (shoulFocusPenetration()) {
+                if (hasFormation(Formation.MOTH)) {
+                    return Formation.MOTH;
+                } else if (hasFormation(Formation.DOUBLE_ARROW)) {
+                    return Formation.DOUBLE_ARROW;
+                }
+            }
+
+            if (shoulUseCrab()) {
+                return Formation.CRAB;
+            } else if (shoulUseDiamond()) {
+                return Formation.DIAMOND;
+            }
+
             Entity target = heroapi.getLocalTarget();
             if (target instanceof Npc) {
                 if (shoulUseBat()) {
@@ -120,7 +119,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
             if (hasFormation(Formation.STAR)) {
                 return Formation.STAR;
             } else if (hasFormation(Formation.DRILL) && !shoulFocusSpeed()
-                    && !hasTag(NpcFlag.AGGRESSIVE_FOLLOW)) {
+                    && !isFaster()) {
                 return Formation.DRILL;
             } else if (hasFormation(Formation.DOUBLE_ARROW)) {
                 return Formation.DOUBLE_ARROW;
@@ -135,10 +134,10 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
 
     private boolean shoulFocusPenetration() {
         Lockable target = heroapi.getLocalTarget();
-        if (target != null && target.isValid() && heroapi.isAttacking()) {
-            return target.getHealth() != null && target.getHealth().getShield() > 10000
+        if (target != null && target.isValid()) {
+            return target.getHealth() != null && target.getHealth().getShield() > 100000
                     && target.getHealth().shieldPercent() > 0.5
-                    && heroapi.getHealth().shieldPercent() < 0.2;
+                    && (target.getHealth().hpPercent() < 0.2 || heroapi.getHealth().getMaxShield() < 1000);
         }
         return false;
     }
@@ -160,22 +159,22 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
 
     private boolean shoulUseDiamond() {
         return hasFormation(Formation.DIAMOND)
-                && isAttacking()
-                && (heroapi.getHealth().hpPercent() < 0.7 || heroapi.isInFormation(Formation.DIAMOND))
+                && (heroapi.getHealth().hpPercent() < 0.7
+                        || (heroapi.isInFormation(Formation.DIAMOND) && heroapi.getHealth().hpPercent() > 0.99))
                 && heroapi.getHealth().shieldPercent() < 0.1
                 && heroapi.getHealth().getMaxShield() > 50000;
     }
 
     private boolean shoulUseCrab() {
         if (!hasFormation(Formation.CRAB)
-                || hasTag(NpcFlag.AGGRESSIVE_FOLLOW)) {
+                || isFaster()) {
             return false;
         }
 
         try {
-            if (isAttacking() && ((heroapi.getLaser() != null && heroapi.getLaser() == Laser.SAB_50)
+            if ((heroapi.getLaser() != null && heroapi.getLaser() == Laser.SAB_50)
                     || (heroapi.getHealth() != null && heroapi.getHealth().hpPercent() < 0.2
-                            && heroapi.getHealth().getShield() > 300000))) {
+                            && heroapi.getHealth().getShield() > 300000)) {
                 return true;
             }
         } catch (Exception e) {
@@ -200,7 +199,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
 
     private boolean shoulUseBat() {
         return hasFormation(Formation.BAT)
-                && !hasTag(NpcFlag.AGGRESSIVE_FOLLOW);
+                && !isFaster();
     }
 
     private boolean useSelectableReadyWhenReady(Formation formation) {
@@ -227,6 +226,15 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
 
     private boolean isAttacking() {
         Entity target = heroapi.getLocalTarget();
-        return target != null && target.isValid() && heroapi.isAttacking() && target.distanceTo(heroapi) < 1500;
+        return target != null && target.isValid() && heroapi.isAttacking() && target.distanceTo(heroapi) < 1000;
+    }
+
+    private boolean isFaster() {
+        Lockable target = heroapi.getLocalTarget();
+        if (target != null && target.isValid()) {
+            double speed = target instanceof Movable ? ((Movable) target).getSpeed() : 0;
+            return speed > heroapi.getSpeed();
+        }
+        return false;
     }
 }
