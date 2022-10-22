@@ -168,7 +168,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
     @Override
     public boolean canRefresh() {
-        return waitingSign && npcs.isEmpty() && !heroapi.getMap().isGG();
+        return isHomeMap();
     }
 
     @Override
@@ -217,6 +217,9 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                     changeAmmo();
                 } else {
                     if (npcs.isEmpty()) {
+                        if (waitingSign) {
+                            goToTheMiddle();
+                        }
                         waitingSign = true;
                         if (astralGui != null && (astralConfig.autoChoosePortal || astralConfig.autoChooseItem)) {
                             if (!astralGui.isVisible()) {
@@ -231,7 +234,6 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                         } else {
                             this.currentStatus = State.WAITING_WAVE;
                         }
-                        goToTheMiddle();
                     }
                 }
             } else {
@@ -545,7 +547,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         try {
             GameMap map = starSystem.getByName("GG Astral");
             if (map != null && !portals.isEmpty() && map != starSystem.getCurrentMap()) {
-                if (StarSystemAPI.HOME_MAPS.contains(starSystem.getCurrentMap().getShortName())) {
+                if (isHomeMap()) {
                     if (portals.stream().anyMatch(p -> p.getTargetMap().isPresent() && p.getTargetMap().get() == map)) {
                         this.bot.setModule(api.requireInstance(MapModule.class)).setTarget(map);
                     } else if (astralConfig.astralCPUKey != null) {
@@ -561,6 +563,10 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         } catch (MapNotFoundException e) {
             System.out.println("Map not found" + e.getMessage());
         }
+    }
+
+    private boolean isHomeMap() {
+        return StarSystemAPI.HOME_MAPS.contains(starSystem.getCurrentMap().getShortName());
     }
 
     private boolean isSlowerThanTarget() {
