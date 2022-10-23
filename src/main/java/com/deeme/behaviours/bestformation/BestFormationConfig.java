@@ -20,7 +20,7 @@ public class BestFormationConfig {
     @Number(max = 300, step = 1)
     public int timeToCheck = 5;
 
-    @Option(value = "best_formation.supported_formations")
+    @Option(value = "best_formation.formations_to_use")
     @Dropdown(multi = true)
-    public transient Set<SupportedFormations> supportedFormations = EnumSet.allOf(SupportedFormations.class);
+    public Set<SupportedFormations> formationsToUse = EnumSet.allOf(SupportedFormations.class);
 }

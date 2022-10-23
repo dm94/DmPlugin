@@ -214,11 +214,13 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     }
 
     private boolean hasFormation(Formation formation) {
-        if (availableFormations.contains(formation)) {
-            return true;
-        } else if (items.getItem(formation, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE).isPresent()) {
-            availableFormations.add(formation);
-            return true;
+        if (config.formationsToUse.stream().anyMatch(s -> s.name().equals(formation.name()))) {
+            if (availableFormations.contains(formation)) {
+                return true;
+            } else if (items.getItem(formation, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE).isPresent()) {
+                availableFormations.add(formation);
+                return true;
+            }
         }
 
         return false;
