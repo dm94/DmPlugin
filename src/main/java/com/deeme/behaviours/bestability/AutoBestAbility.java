@@ -207,7 +207,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
         if (target != null && target.isValid()) {
             double distance = heroapi.getLocationInfo().getCurrent().distanceTo(target.getLocationInfo());
             double speed = target instanceof Movable ? ((Movable) target).getSpeed() : 0;
-            return distance > 700 && speed > heroapi.getSpeed();
+            return distance > 600 && speed > heroapi.getSpeed();
         }
         return false;
     }

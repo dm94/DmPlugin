@@ -41,21 +41,23 @@ public class RocketSupplier implements PrioritizedSupplier<SelectableItem> {
             if (shoulUsePLD(target) && isAvailable(Rocket.PLD_8)) {
                 return Rocket.PLD_8;
             }
-        }
 
-        try {
-            return items.getItems(ItemCategory.ROCKETS).stream()
-                    .filter(item -> item.isReady() && item.isUsable() && item.isAvailable() && item.getQuantity() > 100)
-                    .sorted(Comparator.comparing(i -> damageOrder.indexOf(i.getId()))).findFirst().orElse(null);
-        } catch (Exception e) {
-            return null;
+            try {
+                return items.getItems(ItemCategory.ROCKETS).stream()
+                        .filter(item -> item.isReady() && item.isUsable() && item.isAvailable())
+                        .sorted(Comparator.comparing(i -> damageOrder.indexOf(i.getId()))).findFirst().orElse(null);
+            } catch (Exception e) {
+                return null;
+            }
+
         }
+        return null;
     }
 
     public SelectableItem getReverse() {
         try {
             return items.getItems(ItemCategory.ROCKETS).stream()
-                    .filter(item -> item.isReady() && item.isUsable() && item.isAvailable() && item.getQuantity() > 100)
+                    .filter(item -> item.isReady() && item.isUsable() && item.isAvailable())
                     .sorted(Comparator.comparing(i -> damageOrder.indexOf(i.getId()), Comparator.reverseOrder()))
                     .findFirst().orElse(null);
         } catch (Exception e) {
