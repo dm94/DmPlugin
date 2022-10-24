@@ -325,11 +325,12 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     }
 
     private boolean changeAmmo() {
-        if (astralConfig.useBestAmmo || attacker.hasExtraFlag(ExtraNpcFlags.BEST_AMMO) || isSlowerThanTarget()) {
+        if (astralConfig.useBestAmmoLogic == BestAmmoConfig.ALWAYS || attacker.hasExtraFlag(ExtraNpcFlags.BEST_AMMO)
+                || (astralConfig.useBestAmmoLogic == BestAmmoConfig.SPECIAL_LOGIC && isSlowerThanTarget())) {
             changeLaser(true);
             changeRocket(true);
             return true;
-        } else {
+        } else if (astralConfig.useBestAmmoLogic == BestAmmoConfig.SPECIAL_LOGIC) {
             changeRocket(false);
         }
 

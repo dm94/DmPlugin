@@ -7,6 +7,7 @@ import com.deeme.modules.temporal.AmbulanceModule;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 import com.deeme.types.config.AmbulanceConfig;
+import com.deeme.types.config.AvailableShips;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -75,7 +76,7 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
             if (memberToHelp != 0) {
                 Ability ability = getAbility();
                 if (ability != null) {
-                    if (config.shipType == 2) {
+                    if (config.shipType == AvailableShips.SOLACE) {
                         items.useItem(ability);
                     } else if (botApi.getModule().getClass() != AmbulanceModule.class) {
                         botApi.setModule(new AmbulanceModule(api, memberToHelp, ability));
@@ -122,7 +123,7 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
     }
 
     public Ability getAbility() {
-        if (config.shipType == 0 || config.shipType == 1) {
+        if (config.shipType == AvailableShips.AEGIS || config.shipType == AvailableShips.HAMMERCLAW) {
             if (items.getItem(Ability.AEGIS_HP_REPAIR, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE)
                     .isPresent()) {
                 return Ability.AEGIS_HP_REPAIR;
@@ -131,7 +132,7 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
                     .isPresent()) {
                 return Ability.AEGIS_REPAIR_POD;
             }
-        } else if (config.shipType == 2) {
+        } else if (config.shipType == AvailableShips.SOLACE) {
             if (items.getItem(Ability.SOLACE, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE).isPresent()) {
                 return Ability.SOLACE;
             }

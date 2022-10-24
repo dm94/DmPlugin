@@ -1,24 +1,12 @@
 package com.deeme.types.config;
 
-import java.util.Arrays;
-import java.util.List;
+import eu.darkbot.api.config.annotations.Configuration;
 
-import com.github.manolo8.darkbot.config.types.suppliers.OptionList;
+@Configuration("ambulance.ship_type.list")
+public enum AvailableShips {
+    AEGIS, HAMMERCLAW, SOLACE;
 
-public class AvailableShips extends OptionList<Integer> {
-    private final List<String> AVAILABLE_SHIPS = Arrays
-            .asList(new String[] { "Aegis", "Hammerclaw", "Solace" });
-
-    public Integer getValue(String text) {
-        return AVAILABLE_SHIPS.indexOf(text);
+    public long getId() {
+        return ordinal() + 1;
     }
-
-    public String getText(Integer value) {
-        return AVAILABLE_SHIPS.get(value.intValue());
-    }
-
-    public List<String> getOptions() {
-        return AVAILABLE_SHIPS;
-    }
-
 }

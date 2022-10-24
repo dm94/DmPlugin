@@ -1,29 +1,28 @@
 package com.deeme.types.config;
 
-import com.github.manolo8.darkbot.config.types.Editor;
-import com.github.manolo8.darkbot.config.types.Num;
-import com.github.manolo8.darkbot.config.types.Option;
-import com.github.manolo8.darkbot.config.types.Options;
-import com.github.manolo8.darkbot.gui.tree.components.JListField;
-import com.github.manolo8.darkbot.gui.tree.components.JPercentField;
+import eu.darkbot.api.config.annotations.Configuration;
+import eu.darkbot.api.config.annotations.Dropdown;
+import eu.darkbot.api.config.annotations.Number;
+import eu.darkbot.api.config.annotations.Option;
+import eu.darkbot.api.config.annotations.Percentage;
 
+@Configuration("ambulance")
 public class AmbulanceConfig {
-    @Option(value = "Enable")
+    @Option("general.enabled")
     public boolean enable = false;
 
-    @Option(value = "Type of ship", description = "Also works with the plus versions")
-    @Editor(JListField.class)
-    @Options(AvailableShips.class)
-    public int shipType = 0;
+    @Option("ambulance.ship_type")
+    @Dropdown
+    public AvailableShips shipType = AvailableShips.AEGIS;
 
-    @Option(value = "Time to check, seconds", description = "Min time per check")
-    @Num(min = 1, max = 300, step = 1)
+    @Option("general.next_check_time")
+    @Number(min = 1, max = 300, step = 1)
     public int timeToCheck = 20;
 
-    @Option(value = "Max health", description = "It is Only activated if health lower than this")
-    @Editor(JPercentField.class)
+    @Option("ambulance.max_health")
+    @Percentage
     public double healthToRepair = 0.5;
 
-    @Option(value = "Repair Shield")
+    @Option("ambulance.repair_shield")
     public boolean repairShield = true;
 }
