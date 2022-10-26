@@ -16,6 +16,7 @@ import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.entities.Npc;
+import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem.Formation;
 import eu.darkbot.api.game.items.SelectableItem.Laser;
@@ -38,6 +39,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     protected final SafetyFinder safety;
     private BestFormationConfig config;
     private Collection<? extends Npc> allNpcs;
+    private Collection<? extends Portal> allPortals;
     private long nextCheck = 0;
 
     private ArrayList<Formation> availableFormations = new ArrayList<Formation>();
@@ -62,6 +64,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
 
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
         this.allNpcs = entities.getNpcs();
+        this.allPortals = entities.getPortals();
     }
 
     @Override
@@ -192,7 +195,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
                             && (target.getHealth().hpPercent() <= 0.15 && target.getHealth().getHp() < 200000);
                 }
             }
-            return heroapi.getMap() != null && heroapi.getMap().isGG() && allNpcs.isEmpty();
+            return heroapi.getMap() != null && heroapi.getMap().isGG() && allNpcs.isEmpty() && allPortals.isEmpty();
         }
         return false;
     }
