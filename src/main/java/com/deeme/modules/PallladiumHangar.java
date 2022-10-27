@@ -109,7 +109,7 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
         this.backpage = api.getAPI(BackpageAPI.class);
 
         GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
-        tradeGui = gameScreenAPI.getGui("ore_trade");
+        this.tradeGui = gameScreenAPI.getGui("ore_trade");
 
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
         this.bases = entities.getStations();
@@ -202,19 +202,23 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
         } else if (activeHangar.equals(configPa.collectHangar)) {
             if (heroapi.getMap() != null && heroapi.getMap().getId() == this.activeMap.getId()) {
                 this.currentStatus = State.LOOT_PALADIUM;
-                if (oreApi.showTrade(false, null)) {
-                    pet.setEnabled(true);
-                    lootModule.onTickModule();
+                if (tradeGui.isVisible()) {
+                    oreApi.showTrade(false, null);
+                    tradeGui.setVisible(false);
                 }
+                pet.setEnabled(true);
+                lootModule.onTickModule();
             } else {
                 this.currentStatus = State.HANGAR_PALA_OTHER_MAP;
                 heroapi.setRoamMode();
                 if (configPa.sellOnDie && oreApi.getAmount(Ore.PALLADIUM) > 15) {
                     sell();
                 } else {
-                    if (oreApi.showTrade(false, null)) {
-                        this.main.setModule(api.requireInstance(MapModule.class)).setTarget(this.activeMap);
+                    if (tradeGui.isVisible()) {
+                        oreApi.showTrade(false, null);
+                        tradeGui.setVisible(false);
                     }
+                    this.main.setModule(api.requireInstance(MapModule.class)).setTarget(this.activeMap);
                 }
             }
         } else if (configPa.collectHangar != null
@@ -247,6 +251,7 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
                     && System.currentTimeMillis() - 60_000 > sellClick) {
                 oreApi.sellOre(OreAPI.Ore.PALLADIUM);
                 sellClick = System.currentTimeMillis();
+                oreApi.showTrade(false, base);
             }
         }
     }
