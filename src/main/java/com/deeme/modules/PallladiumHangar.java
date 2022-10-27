@@ -2,7 +2,6 @@ package com.deeme.modules;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
 import com.deeme.modules.temporal.HangarSwitcher;
 import com.deeme.types.SharedFunctions;
@@ -12,8 +11,6 @@ import com.deeme.types.config.PalladiumConfig;
 import com.deeme.types.gui.ShipSupplier;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.backpage.hangar.Hangar;
-import com.github.manolo8.darkbot.core.entities.BasePoint;
-import com.github.manolo8.darkbot.core.objects.OreTradeGui;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -21,12 +18,12 @@ import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.extensions.Module;
 import eu.darkbot.api.game.entities.Station;
-import eu.darkbot.api.game.entities.Station.Refinery;
 import eu.darkbot.api.game.other.GameMap;
 import eu.darkbot.api.game.other.Gui;
 import eu.darkbot.api.game.other.Location;
 import eu.darkbot.api.managers.AttackAPI;
 import eu.darkbot.api.managers.AuthAPI;
+import eu.darkbot.api.managers.BackpageAPI;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.GameScreenAPI;
@@ -54,6 +51,7 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
     protected final MovementAPI movement;
     protected final StatsAPI stats;
     protected final PetAPI pet;
+    protected final BackpageAPI backpage;
     private GameMap sellMap;
     private GameMap activeMap;
     private Collection<? extends Station> bases;
@@ -62,9 +60,6 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
     private PalladiumConfig configPa;
     protected LootCollectorModule lootModule;
     private State currentStatus;
-
-    private OreTradeGui oreTradeOld;
-    private List<BasePoint> basesOld;
 
     private long sellClick;
     private long aditionalWaitingTime = 0;
@@ -103,7 +98,7 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
         Utils.showDonateDialog();
 
         this.main = main;
-        this.api = main.pluginAPI.getAPI(PluginAPI.class);
+        this.api = api;
         this.botApi = api.getAPI(BotAPI.class);
         this.heroapi = api.getAPI(HeroAPI.class);
         this.attackApi = api.getAPI(AttackAPI.class);
@@ -111,14 +106,13 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
         this.oreApi = api.getAPI(OreAPI.class);
         this.stats = api.getAPI(StatsAPI.class);
         this.pet = api.getAPI(PetAPI.class);
+        this.backpage = api.getAPI(BackpageAPI.class);
+
         GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
         tradeGui = gameScreenAPI.getGui("ore_trade");
 
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
         this.bases = entities.getStations();
-
-        this.oreTradeOld = main.guiManager.oreTrade;
-        this.basesOld = main.mapManager.entities.basePoints;
 
         StarSystemAPI starSystem = api.getAPI(StarSystemAPI.class);
         try {
@@ -198,6 +192,8 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
                     this.activeHangar = null;
                     botApi.setModule(new HangarSwitcher(main, api, configPa.sellHangar));
                 }
+            } else if (!backpage.isInstanceValid()) {
+                this.main.setModule(api.requireInstance(MapModule.class)).setTarget(this.sellMap);
             } else {
                 pet.setEnabled(true);
                 lootModule.onTickModule();
@@ -206,25 +202,19 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
         } else if (activeHangar.equals(configPa.collectHangar)) {
             if (heroapi.getMap() != null && heroapi.getMap().getId() == this.activeMap.getId()) {
                 this.currentStatus = State.LOOT_PALADIUM;
-                if (tradeGui != null && tradeGui.isVisible()) {
-                    oreApi.showTrade(false, null);
-                    tradeGui.setVisible(false);
+                if (oreApi.showTrade(false, null)) {
+                    pet.setEnabled(true);
+                    lootModule.onTickModule();
                 }
-                pet.setEnabled(true);
-                lootModule.onTickModule();
             } else {
                 this.currentStatus = State.HANGAR_PALA_OTHER_MAP;
                 heroapi.setRoamMode();
                 if (configPa.sellOnDie && oreApi.getAmount(Ore.PALLADIUM) > 15) {
                     sell();
                 } else {
-                    if (tradeGui != null && tradeGui.isVisible()) {
-                        tradeGui.setVisible(false);
+                    if (oreApi.showTrade(false, null)) {
+                        this.main.setModule(api.requireInstance(MapModule.class)).setTarget(this.activeMap);
                     }
-                    if (oreTradeOld != null && oreTradeOld.isVisible()) {
-                        oreTradeOld.setVisible(false);
-                    }
-                    this.main.setModule(api.requireInstance(MapModule.class)).setTarget(this.activeMap);
                 }
             }
         } else if (configPa.collectHangar != null
@@ -240,50 +230,25 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
     }
 
     private void sell() {
-        sellOld();
-    }
-
-    private void sellNew() {
         pet.setEnabled(false);
         if (heroapi.getMap() != sellMap) {
             this.main.setModule(api.requireInstance(MapModule.class)).setTarget(this.sellMap);
         } else {
-            bases.stream().filter(b -> b instanceof Refinery && b.getLocationInfo().isInitialized())
-                    .findFirst().map(Refinery.class::cast).ifPresent(base -> {
-                        if (heroapi.distanceTo(base.getLocationInfo()) > 200) {
-                            double angle = base.angleTo(heroapi) + Math.random() * 0.2 - 0.1;
-                            movement.moveTo(Location.of(base.getLocationInfo().getCurrent(), angle,
-                                    100 + (100 * Math.random())));
-                        } else if (!heroapi.isMoving() && oreApi.showTrade(true, base)
-                                && System.currentTimeMillis() - 60_000 > sellClick) {
-                            oreApi.sellOre(Ore.PALLADIUM);
-                            sellClick = System.currentTimeMillis();
-                            if (oreApi.getAmount(Ore.PALLADIUM) < 15) {
-                                oreApi.showTrade(false, base);
-                            }
-                        }
-                    });
+            Station.Refinery base = bases.stream()
+                    .filter(b -> b instanceof Station.Refinery && b.getLocationInfo().isInitialized())
+                    .map(Station.Refinery.class::cast)
+                    .findFirst().orElse(null);
+            if (base == null)
+                return;
+            if (movement.getDestination().distanceTo(base) > 200) { // Move to base
+                double angle = base.angleTo(heroapi) + Math.random() * 0.2 - 0.1;
+                movement.moveTo(Location.of(base, angle, 100 + (100 * Math.random())));
+            } else if (!heroapi.isMoving() && oreApi.showTrade(true, base)
+                    && System.currentTimeMillis() - 60_000 > sellClick) {
+                oreApi.sellOre(OreAPI.Ore.PALLADIUM);
+                sellClick = System.currentTimeMillis();
+            }
         }
-    }
-
-    private void sellOld() {
-        pet.setEnabled(false);
-        if (heroapi.getMap() != sellMap)
-            this.main.setModule(api.requireInstance(MapModule.class)).setTarget(this.sellMap);
-        else
-            basesOld.stream().filter(b -> b.getLocationInfo().isInitialized()).findFirst().ifPresent(base -> {
-                if (heroapi.distanceTo(base.getLocationInfo().getCurrent()) > 200) {
-                    double angle = base.getLocationInfo().getCurrent().angleTo(heroapi.getLocationInfo().getCurrent())
-                            + Math.random() * 0.2 - 0.1;
-                    movement.moveTo(
-                            Location.of(base.getLocationInfo().getCurrent(), angle, 100 + (100 * Math.random())));
-                } else if (!heroapi.isMoving() && oreTradeOld.showTrade(true, base)
-                        && System.currentTimeMillis() - 60_000 > sellClick) {
-                    oreTradeOld.sellOre(OreTradeGui.Ore.PALLADIUM);
-                    sellClick = System.currentTimeMillis();
-                    oreTradeOld.show(false);
-                }
-            });
     }
 
     public void updateHangarActive() {
@@ -300,7 +265,7 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
     }
 
     private void tryUpdateHangarList() {
-        if (!updateHangarList || !main.backpage.isInstanceValid()) {
+        if (!updateHangarList || !backpage.isInstanceValid()) {
             return;
         }
 

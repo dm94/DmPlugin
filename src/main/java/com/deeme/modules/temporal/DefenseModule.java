@@ -27,6 +27,7 @@ import eu.darkbot.api.managers.MovementAPI;
 import eu.darkbot.api.utils.Inject;
 import eu.darkbot.shared.modules.TemporalModule;
 import eu.darkbot.shared.utils.SafetyFinder;
+import eu.darkbot.shared.utils.SafetyFinder.Escaping;
 
 public class DefenseModule extends TemporalModule {
     protected final PluginAPI api;
@@ -119,6 +120,10 @@ public class DefenseModule extends TemporalModule {
             return true;
         }
 
+        if (safetyFinder.state() != Escaping.ENEMY) {
+            return false;
+        }
+
         Entity newTarget = null;
         if (defenseConfig.respondAttacks) {
             newTarget = SharedFunctions.getAttacker(heroapi, players, heroapi);
@@ -163,6 +168,7 @@ public class DefenseModule extends TemporalModule {
                         && shipAttacker.getTarget().getLocationInfo().distanceTo(heroapi) > 1500))) {
             shipAttacker.setTarget(null);
             target = null;
+            return false;
         }
 
         return shipAttacker.getTarget() != null;
