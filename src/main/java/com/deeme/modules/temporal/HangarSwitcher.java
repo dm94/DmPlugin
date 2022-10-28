@@ -1,5 +1,6 @@
 package com.deeme.modules.temporal;
 
+import com.deeme.types.SharedFunctions;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.backpage.HangarManager;
 import com.github.manolo8.darkbot.backpage.hangar.Hangar;
@@ -141,8 +142,10 @@ public class HangarSwitcher extends TemporalModule {
                                 this.activeHangar = null;
                             }
                         }
-                    } else {
+                    } else if (!heroapi.isAttacking() && !SharedFunctions.hasAttacker(heroapi, main)) {
                         disconnect();
+                    } else {
+                        goBack();
                     }
                 } else {
                     goBack();
