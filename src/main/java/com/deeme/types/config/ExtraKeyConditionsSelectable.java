@@ -8,16 +8,16 @@ import eu.darkbot.api.config.types.Condition;
 
 public class ExtraKeyConditionsSelectable {
 
-    @Option(value = "general.enabled")
+    @Option("general.enabled")
     public boolean enable = false;
 
-    @Option(value = "general.name")
+    @Option("general.name")
     public String name = "";
 
-    @Option(value = "general.condition")
+    @Option("general.condition")
     public Condition condition;
 
-    @Option(value = "general.item")
+    @Option("general.item")
     @Dropdown(options = SelectableItemSupplier.class)
     public String item = "";
 }

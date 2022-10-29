@@ -6,13 +6,13 @@ import eu.darkbot.api.config.annotations.Option;
 
 @Configuration("best_rocket")
 public class BestRocketConfig {
-    @Option(value = "best_rocket.npc_rocket")
+    @Option("best_rocket.npc_rocket")
     @Dropdown(options = RocketSupplier.class)
     public String npcRocket = "";
 
-    @Option(value = "best_rocket.useicr")
+    @Option("best_rocket.useicr")
     public boolean useICRorDCR = true;
 
-    @Option(value = "best_rocket.usepld")
+    @Option("best_rocket.usepld")
     public boolean usePLD = true;
 }

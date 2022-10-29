@@ -99,21 +99,21 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
 
     @Configuration("others")
     public static class LCConfig {
-        @Option(value = "others.max_deaths")
+        @Option("others.max_deaths")
         @Number(max = 99, step = 1)
         public int maxDeathsKO = 0;
 
-        @Option(value = "others.reload")
+        @Option("others.reload")
         public boolean reloadIfCrash = false;
 
-        @Option(value = "others.max_memory")
+        @Option("others.max_memory")
         @Number(max = 6000, step = 100)
         public int maxMemory = 0;
 
-        @Option(value = "others.auto_buy_lcb10")
+        @Option("others.auto_buy_lcb10")
         public boolean autoBuyLcb10 = false;
 
-        @Option(value = "others.auto_buy_plt_2026")
+        @Option("others.auto_buy_plt_2026")
         public boolean autoBuyPlt2026 = false;
     }
 
