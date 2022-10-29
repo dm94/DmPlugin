@@ -1,10 +1,7 @@
 package com.deeme.behaviours.defense;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 
-import com.deeme.types.SharedFunctions;
 import com.deeme.types.ShipAttacker;
 
 import eu.darkbot.api.PluginAPI;
@@ -12,12 +9,10 @@ import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.config.types.PercentRange;
 import eu.darkbot.api.config.types.ShipMode;
 import eu.darkbot.api.game.entities.Entity;
-import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.entities.Player;
 import eu.darkbot.api.game.entities.Ship;
 import eu.darkbot.api.game.group.GroupMember;
 import eu.darkbot.api.game.items.SelectableItem.Special;
-import eu.darkbot.api.game.other.EntityInfo.Diplomacy;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
@@ -116,57 +111,10 @@ public class DefenseModule extends TemporalModule {
             return true;
         }
 
+        shipAttacker.resetDefenseData();
         if (safetyFinder.state() != Escaping.ENEMY) {
             return false;
         }
-
-        Entity newTarget = null;
-        if (defenseConfig.respondAttacks) {
-            newTarget = SharedFunctions.getAttacker(heroapi, players, heroapi);
-            if (newTarget != null && newTarget.isValid()) {
-                shipAttacker.setTarget((Ship) target);
-                return true;
-            }
-        }
-
-        List<Player> ships = players.stream()
-                .filter(s -> (defenseConfig.helpAllies && s.getEntityInfo().getClanDiplomacy() == Diplomacy.ALLIED)
-                        ||
-                        (defenseConfig.helpEveryone && !s.getEntityInfo().isEnemy())
-                        || (defenseConfig.helpGroup && shipAttacker.inGroupAttacked(s.getId())))
-                .collect(Collectors.toList());
-
-        if (!ships.isEmpty()) {
-            for (Player ship : ships) {
-                if (defenseConfig.helpAttack && ship.isAttacking() && ship.getTarget() != null) {
-                    Entity tar = ship.getTarget();
-                    if (!(tar instanceof Npc) && tar.isValid()) {
-                        shipAttacker.setTarget((Ship) tar);
-                        return true;
-                    }
-                }
-
-                newTarget = SharedFunctions.getAttacker(ship, players, heroapi);
-                if (newTarget != null) {
-                    shipAttacker.setTarget((Ship) target);
-                    return true;
-                }
-            }
-        }
-
-        if (defenseConfig.goToGroup) {
-            shipAttacker.goToMemberAttacked();
-        }
-        shipAttacker.resetDefenseData();
-
-        if (shipAttacker.getTarget() != null && (!shipAttacker.getTarget().isValid()
-                || (defenseConfig.ignoreEnemies
-                        && shipAttacker.getTarget().getLocationInfo().distanceTo(heroapi) > 1500))) {
-            shipAttacker.setTarget(null);
-            target = null;
-            return false;
-        }
-
         return shipAttacker.getTarget() != null;
     }
 
