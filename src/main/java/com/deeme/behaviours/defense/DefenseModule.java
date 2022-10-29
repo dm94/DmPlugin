@@ -1,4 +1,4 @@
-package com.deeme.modules.temporal;
+package com.deeme.behaviours.defense;
 
 import java.util.Collection;
 import java.util.List;
@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 
 import com.deeme.types.SharedFunctions;
 import com.deeme.types.ShipAttacker;
-import com.deeme.types.config.Defense;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -39,11 +38,11 @@ public class DefenseModule extends TemporalModule {
     protected final ConfigSetting<ShipMode> configRun;
     protected final ConfigSetting<PercentRange> repairHpRange;
     private ShipAttacker shipAttacker;
-    private Defense defenseConfig;
+    private DefenseConfig defenseConfig;
     private boolean attackConfigLost = false;
     private Entity target = null;
 
-    public DefenseModule(PluginAPI api, Defense defenseConfig, Entity target) {
+    public DefenseModule(PluginAPI api, DefenseConfig defenseConfig, Entity target) {
         this(api, api.requireAPI(BotAPI.class),
                 api.requireAPI(HeroAPI.class),
                 api.requireAPI(MovementAPI.class),
@@ -55,7 +54,7 @@ public class DefenseModule extends TemporalModule {
 
     @Inject
     public DefenseModule(PluginAPI api, BotAPI bot, HeroAPI hero, MovementAPI movement, ConfigAPI configApi,
-            EntitiesAPI entities, SafetyFinder safety, Defense defenseConfig, Entity target) {
+            EntitiesAPI entities, SafetyFinder safety, DefenseConfig defenseConfig, Entity target) {
         super(bot);
         this.api = api;
         this.heroapi = hero;
@@ -88,12 +87,9 @@ public class DefenseModule extends TemporalModule {
                 shipAttacker.tryLockAndAttack();
 
                 shipAttacker.useKeyWithConditions(defenseConfig.ability, null);
-
-                shipAttacker.useKeyWithConditions(defenseConfig.ability, null);
                 shipAttacker.useKeyWithConditions(defenseConfig.ISH, Special.ISH_01);
                 shipAttacker.useKeyWithConditions(defenseConfig.SMB, Special.SMB_01);
                 shipAttacker.useKeyWithConditions(defenseConfig.PEM, Special.EMP_01);
-                shipAttacker.useKeyWithConditions(defenseConfig.otherKey, null);
                 shipAttacker.tryAttackOrFix();
                 movementLogic();
             } else {
@@ -175,56 +171,41 @@ public class DefenseModule extends TemporalModule {
     }
 
     private void setConfigToUse() {
-        if (defenseConfig.useSecondConfig && heroapi.getHealth().hpPercent() <= defenseConfig.healthToChange
+        if (defenseConfig.useAlternativeConfig && heroapi.getHealth().hpPercent() <= defenseConfig.healthToChange
                 && heroapi.getHealth().shieldPercent() <= 0.1) {
             attackConfigLost = true;
         }
 
-        if (attackConfigLost && defenseConfig.useSecondConfig) {
-            heroapi.setMode(defenseConfig.secondConfig);
+        if (attackConfigLost && defenseConfig.useAlternativeConfig) {
+            heroapi.setMode(defenseConfig.alternativeConfig);
         } else {
-            switch (defenseConfig.newMovementMode) {
-                case 0:
-                    heroapi.setMode(configRun.getValue());
-                    break;
-                case 1:
-                case 2:
-                case 5:
-                    heroapi.setMode(configOffensive.getValue());
-                    break;
-                case 4:
-                case 3:
-                    if (heroapi.getHealth().hpPercent() <= repairHpRange.getValue().getMin()) {
-                        heroapi.setMode(configRun.getValue());
-                    } else {
-                        heroapi.setMode(configOffensive.getValue());
-                    }
-                    break;
-                default:
-                    heroapi.setMode(configRun.getValue());
+            if (safetyFinder.state() != Escaping.ENEMY) {
+                heroapi.setMode(configOffensive.getValue());
+            } else {
+                heroapi.setMode(configRun.getValue());
             }
         }
     }
 
     private void movementLogic() {
-        switch (defenseConfig.newMovementMode) {
-            case 0:
+        switch (defenseConfig.movementMode) {
+            case VSSAFETY:
                 if (!safetyFinder.tick()) {
                     break;
                 }
-            case 1:
+            case VS:
                 shipAttacker.vsMove();
                 break;
-            case 2:
+            case RANDOM:
                 if (!movement.isMoving() || movement.isOutOfMap()) {
                     movement.moveRandom();
                 }
                 break;
-            case 4:
+            case GROUPVSSAFETY:
                 if (safetyFinder.tick()) {
                     GroupMember groupMember = shipAttacker.getClosestMember();
                     if (groupMember != null) {
-                        if (groupMember.getLocation().distanceTo(heroapi) < 1000) {
+                        if (groupMember.getLocation().distanceTo(heroapi) < 1500) {
                             shipAttacker.vsMove();
                         } else {
                             movement.moveTo(groupMember.getLocation());
@@ -234,10 +215,10 @@ public class DefenseModule extends TemporalModule {
                     }
                 }
                 break;
-            case 5:
+            case GROUPVS:
                 GroupMember groupMember = shipAttacker.getClosestMember();
                 if (groupMember != null) {
-                    if (groupMember.getLocation().distanceTo(heroapi) < 1000) {
+                    if (groupMember.getLocation().distanceTo(heroapi) < 1500) {
                         shipAttacker.vsMove();
                     } else {
                         movement.moveTo(groupMember.getLocation());
@@ -246,7 +227,6 @@ public class DefenseModule extends TemporalModule {
                     shipAttacker.vsMove();
                 }
                 break;
-            case 3:
             default:
                 if (safetyFinder.tick()) {
                     shipAttacker.vsMove();

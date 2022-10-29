@@ -1,12 +1,10 @@
-package com.deeme.behaviours;
+package com.deeme.behaviours.defense;
 
 import com.deeme.modules.PVPModule;
 import com.deeme.modules.SentinelModule;
-import com.deeme.modules.temporal.DefenseModule;
 import com.deeme.types.SharedFunctions;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
-import com.deeme.types.config.Defense;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -32,7 +30,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Feature(name = "Defense Mode", description = "Add enemy defense options")
-public class DefenseMode implements Behavior, Configurable<Defense> {
+public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
     protected final PluginAPI api;
     protected final HeroAPI heroapi;
     protected final MovementAPI movement;
@@ -40,7 +38,7 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
     protected final ConfigAPI configApi;
     protected final BotAPI botApi;
     protected final Collection<? extends Player> players;
-    private Defense defenseConfig;
+    private DefenseConfig defenseConfig;
     private Entity target = null;
 
     public DefenseMode(PluginAPI api) {
@@ -70,7 +68,7 @@ public class DefenseMode implements Behavior, Configurable<Defense> {
     }
 
     @Override
-    public void setConfig(ConfigSetting<Defense> arg0) {
+    public void setConfig(ConfigSetting<DefenseConfig> arg0) {
         this.defenseConfig = arg0.getValue();
     }
 
