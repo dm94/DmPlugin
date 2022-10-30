@@ -3,6 +3,7 @@ package com.deeme.modules.astral;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 import com.github.manolo8.darkbot.config.NpcExtraFlag;
+import com.github.manolo8.darkbot.core.api.DarkBoatAdapter;
 import com.github.manolo8.darkbot.core.itf.NpcExtraProvider;
 
 import eu.darkbot.api.PluginAPI;
@@ -48,6 +49,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Random;
+
+import static com.github.manolo8.darkbot.Main.API;
 
 @Feature(name = "Astral Gate", description = "For the astral gate and another GGs")
 public class AstralGate implements Module, InstructionProvider, Configurable<AstralConfig>, NpcExtraProvider {
@@ -582,8 +585,12 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
     private void goToTheMiddle() {
         if (!movement.isMoving() && astralGui != null && !astralGui.isVisible()) {
-            movement.moveTo(starSystem.getCurrentMapBounds().getWidth() / 2,
-                    starSystem.getCurrentMapBounds().getHeight() / 2);
+            if (API instanceof DarkBoatAdapter) {
+                movement.moveRandom();
+            } else {
+                movement.moveTo(starSystem.getCurrentMapBounds().getWidth() / 2,
+                        starSystem.getCurrentMapBounds().getHeight() / 2);
+            }
         }
     }
 
