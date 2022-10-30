@@ -1,13 +1,15 @@
 package com.deeme.behaviours.defense;
 
 import com.deeme.types.config.ExtraKeyConditions;
-import com.github.manolo8.darkbot.config.Config.ShipConfig;
 import com.github.manolo8.darkbot.config.Config.Loot.Sab;
 
 import eu.darkbot.api.config.annotations.Configuration;
 import eu.darkbot.api.config.annotations.Dropdown;
 import eu.darkbot.api.config.annotations.Option;
 import eu.darkbot.api.config.annotations.Percentage;
+import eu.darkbot.api.config.types.ShipMode;
+import eu.darkbot.api.game.items.SelectableItem.Formation;
+import eu.darkbot.api.managers.HeroAPI;
 
 @Configuration("defense")
 public class DefenseConfig {
@@ -51,7 +53,7 @@ public class DefenseConfig {
     public double healthToChange = 0.2;
 
     @Option("defense.alternative_config")
-    public ShipConfig alternativeConfig = new ShipConfig(2, '9');
+    public ShipMode alternativeConfig = ShipMode.of(HeroAPI.Configuration.FIRST, Formation.STANDARD);
 
     @Option("config.loot.sab")
     public Sab SAB = new Sab();
