@@ -19,13 +19,13 @@ import eu.darkbot.api.config.annotations.Option;
 @Configuration("auto_change_map")
 public class ChangeMapConfig {
 
-    @Option(value = "auto_change_map.ignote_target_health")
+    @Option("auto_change_map.ignote_target_health")
     public boolean ignoreTargetHealth = false;
 
-    @Option(value = "auto_change_map.random_time")
+    @Option("auto_change_map.random_time")
     public boolean addRandomTime = true;
 
-    @Option(value = "auto_change_map.go_to_all_maps")
+    @Option("auto_change_map.go_to_all_maps")
     public boolean goToAllMaps = false;
 
     @Option()

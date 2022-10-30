@@ -11,18 +11,18 @@ import eu.darkbot.api.config.annotations.Percentage;
 
 @Configuration("best_ability")
 public class BestAbilityConfig {
-    @Option(value = "general.npc_enabled")
+    @Option("general.npc_enabled")
     public boolean npcEnabled = true;
 
-    @Option(value = "best_ability.min_health_health")
+    @Option("best_ability.min_health_health")
     @Percentage
     public double minHealthToUseHealth = 0.5;
 
-    @Option(value = "best_ability.min_health_damage")
+    @Option("best_ability.min_health_damage")
     @Number(max = 1000000000, step = 1000)
     public int minHealthToUseDamage = 100000;
 
-    @Option(value = "best_ability.supported_abilities")
+    @Option("best_ability.supported_abilities")
     @Dropdown(multi = true)
     public transient Set<SupportedAbilities> supportedAbilities = EnumSet.allOf(SupportedAbilities.class);
 }

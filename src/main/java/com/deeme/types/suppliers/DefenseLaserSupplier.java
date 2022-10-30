@@ -52,7 +52,6 @@ public class DefenseLaserSupplier implements LaserSelector, PrioritizedSupplier<
 
     private boolean shouldRcb() {
         if (this.rsbActive) {
-
             Character key = items.getKeyBind(Laser.RCB_140);
             if (key != null) {
                 return items.getItem(Laser.RCB_140, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.POSITIVE_QUANTITY)

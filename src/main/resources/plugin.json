@@ -18,7 +18,7 @@
     "com.deeme.tasks.HitacFollower",
     "com.deeme.tasks.ExternalChat",
     "com.deeme.behaviours.Others",
-    "com.deeme.behaviours.DefenseMode",
+    "com.deeme.behaviours.defense.DefenseMode",
     "com.deeme.behaviours.PVPLog",
     "com.deeme.behaviours.CustomEvents",
     "com.deeme.behaviours.StopButton",

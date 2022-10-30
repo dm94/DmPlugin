@@ -5,15 +5,15 @@ import eu.darkbot.api.config.types.Condition;
 
 public class ExtraKeyConditionsKey {
 
-    @Option(value = "general.enabled")
+    @Option("general.enabled")
     public boolean enable = false;
 
-    @Option(value = "general.key")
+    @Option("general.key")
     public Character Key;
 
-    @Option(value = "general.name")
+    @Option("general.name")
     public String name = "";
 
-    @Option(value = "general.condition")
+    @Option("general.condition")
     public Condition condition;
 }
