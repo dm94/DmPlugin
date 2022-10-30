@@ -33,6 +33,7 @@ import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
+import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.GroupAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.MovementAPI;
@@ -118,7 +119,12 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.showDonateDialog();
+        if (!Utils.discordCheck(auth.getAuthId())) {
+            Utils.showDiscordDialog();
+            ExtensionsAPI extensionsAPI = api.getAPI(ExtensionsAPI.class);
+            extensionsAPI.getFeatureInfo(this.getClass())
+                    .addFailure("To use this option you need to be on my discord", "Log in to my discord and reload");
+        }
 
         this.main = main;
         this.currentStatus = State.INIT;
