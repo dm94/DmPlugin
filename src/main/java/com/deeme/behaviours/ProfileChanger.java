@@ -38,6 +38,8 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     private ProfileChangerConfig config;
     private Main main;
 
+    private long nextCheck = 0;
+
     private boolean resourceListUpdated = false;
     private final ConfigSetting<Map<String, BoxInfo>> boxInfos;
     protected Collection<? extends Box> boxes;
@@ -73,6 +75,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
         this.boxes = entities.getBoxes();
 
         this.resourceListUpdated = false;
+        this.nextCheck = 0;
     }
 
     @Override
@@ -86,10 +89,15 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
         if (config.active) {
             checkNPC();
             checkResource();
-            if ((config.condition == null || config.condition.get(api).allows())
-                    && isReadyNpcCondition() && isReadyResourceCondition()) {
-                resetCounters();
-                main.setConfig(config.BOT_PROFILE);
+            checkMap();
+
+            if (nextCheck < System.currentTimeMillis()) {
+                nextCheck = System.currentTimeMillis() + (config.timeToCheck * 1000);
+                if ((config.condition == null || config.condition.get(api).allows())
+                        && isReadyNpcCondition() && isReadyResourceCondition() && isReadyMapCondition()) {
+                    resetCounters();
+                    main.setConfig(config.BOT_PROFILE);
+                }
             }
         }
     }
@@ -133,7 +141,9 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
                 && (hero.hasEffect(EntityEffect.BOOTY_COLLECTING) || hero.hasEffect(EntityEffect.BOX_COLLECTING))) {
             Box box = boxes.stream().min(Comparator.<Box>comparingDouble(b -> b.distanceTo(hero))).orElse(null);
             if (box != null && box.distanceTo(hero) < 100
-                    && config.resourceCounterCondition.lastResourceId != box.getId()) {
+                    && config.resourceCounterCondition.lastResourceId != box.getId()
+                    && config.resourceCounterCondition.lastResourcePosition != box.getX()) {
+                config.resourceCounterCondition.lastResourcePosition = box.getX();
                 config.resourceCounterCondition.lastResourceId = box.getId();
                 if (box.getTypeName().equals(config.resourceCounterCondition.resourceName)) {
                     config.resourceCounterCondition.resourcesFarmed++;
@@ -142,10 +152,29 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
         }
     }
 
+    private boolean isReadyMapCondition() {
+        return !config.mapTimerCondition.active || (config.mapTimerCondition.mapTimeStart != 0
+                && (config.mapTimerCondition.mapTimeStart + (config.mapTimerCondition.timeInMap * 60000)) <= System
+                        .currentTimeMillis());
+    }
+
+    private void checkMap() {
+        if (config.mapTimerCondition.active) {
+            if (hero.getMap() != null && hero.getMap().getId() == config.mapTimerCondition.map) {
+                if (config.mapTimerCondition.mapTimeStart <= 0) {
+                    config.mapTimerCondition.mapTimeStart = System.currentTimeMillis();
+                }
+            } else {
+                config.mapTimerCondition.mapTimeStart = 0;
+            }
+        }
+    }
+
     private void resetCounters() {
         config.npcExtraCondition.npcCounter = 0;
         config.npcExtraCondition2.npcCounter = 0;
         config.resourceCounterCondition.resourcesFarmed = 0;
+        config.mapTimerCondition.mapTimeStart = 0;
     }
 
     private void updateResourceList() {

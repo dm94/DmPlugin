@@ -8,6 +8,7 @@ import eu.darkbot.api.config.annotations.Number;
 @Configuration("profile_changer.resource_counter_condition")
 public class ResourceCounterCondition {
     public transient int lastResourceId = 0;
+    public transient double lastResourcePosition = 0;
 
     @Option("general.enabled")
     public boolean active = false;
