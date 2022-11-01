@@ -16,6 +16,15 @@ import eu.darkbot.util.Popups;
 import eu.darkbot.util.SystemUtils;
 
 public class Utils {
+    private static boolean discordChecked = false;
+
+    private static void setDiscordCheck() {
+        discordChecked = true;
+    }
+
+    private static boolean isDiscordChecked() {
+        return discordChecked;
+    }
 
     public static void sendMessage(String message, String url) {
         if (message == null || message.isEmpty() || url == null || url.isEmpty()) {
@@ -43,7 +52,7 @@ public class Utils {
         }
     }
 
-    public static boolean checkDiscordApi(String id) {
+    private static boolean checkDiscordApi(String id) {
         String baseURL = "https://checkdiscord.stiletto.live/users/";
         String allData = "";
         try {
@@ -65,6 +74,8 @@ public class Utils {
             return false;
         }
 
+        setDiscordCheck();
+
         if (allData.contains("true")) {
             saveCheckDiscord();
             return true;
@@ -73,19 +84,21 @@ public class Utils {
         return false;
     }
 
-    public static void saveCheckDiscord() {
+    private static void saveCheckDiscord() {
         Preferences prefs = Preferences.userNodeForPackage(Utils.class);
         prefs.putBoolean("discord", true);
         prefs.putLong("nextDiscordCheck", System.currentTimeMillis() + 1296000000);
     }
 
-    public static boolean checkDiscordCached(String id) {
+    private static boolean checkDiscordCached(String id) {
         Preferences prefs = Preferences.userNodeForPackage(Utils.class);
 
-        if (prefs.getLong("nextDiscordCheck", 0) > System.currentTimeMillis()) {
-            if (prefs.getBoolean("discord", false)) {
-                return true;
-            }
+        if (prefs.getLong("nextDiscordCheck", 0) > System.currentTimeMillis() && prefs.getBoolean("discord", false)) {
+            return true;
+        }
+
+        if (isDiscordChecked()) {
+            return false;
         }
 
         return checkDiscordApi(id);
@@ -103,7 +116,7 @@ public class Utils {
         return data;
     }
 
-    public static boolean discordCheck(String authID) {
+    public synchronized static boolean discordCheck(String authID) {
         String discordID = parseDataToDiscordID(authID);
 
         if (checkDiscordCached(discordID)) {

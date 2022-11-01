@@ -1,20 +1,30 @@
 package com.deeme.behaviours;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Map;
 
+import com.deeme.behaviours.profilechanger.ProfileChangerConfig;
+import com.deeme.behaviours.profilechanger.ResourceSupplier;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
-import com.deeme.types.config.ProfileChanger.ProfileChangerConfig;
 import com.github.manolo8.darkbot.Main;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
+import eu.darkbot.api.config.types.BoxInfo;
 import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.game.entities.Box;
+import eu.darkbot.api.game.enums.EntityEffect;
 import eu.darkbot.api.game.other.Lockable;
 import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BotAPI;
+import eu.darkbot.api.managers.ConfigAPI;
+import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.utils.Inject;
@@ -27,6 +37,10 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     protected final HeroAPI hero;
     private ProfileChangerConfig config;
     private Main main;
+
+    private boolean resourceListUpdated = false;
+    private final ConfigSetting<Map<String, BoxInfo>> boxInfos;
+    protected Collection<? extends Box> boxes;
 
     public ProfileChanger(Main main, PluginAPI api) {
         this(main, api, api.requireAPI(AuthAPI.class),
@@ -51,6 +65,14 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
         this.api = api;
         this.bot = bot;
         this.hero = hero;
+
+        ConfigAPI configApi = api.getAPI(ConfigAPI.class);
+        this.boxInfos = configApi.requireConfig("collect.box_infos");
+
+        EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
+        this.boxes = entities.getBoxes();
+
+        this.resourceListUpdated = false;
     }
 
     @Override
@@ -60,18 +82,28 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
 
     @Override
     public void onTickBehavior() {
-        checkNPC();
-        if ((config.condition == null || config.condition.get(api).allows())
-                && (!config.npcExtraCondition.active || (config.npcExtraCondition.active
-                        && config.npcExtraCondition.npcCounter >= config.npcExtraCondition.npcsToKill))
-                &&
-                (!config.npcExtraCondition2.active || (config.npcExtraCondition2.active
-                        && config.npcExtraCondition2.npcCounter >= config.npcExtraCondition2.npcsToKill))) {
-            config.npcExtraCondition.npcCounter = 0;
-            config.npcExtraCondition2.npcCounter = 0;
-            main.setConfig(config.BOT_PROFILE);
+        updateResourceList();
+        if (config.active) {
+            checkNPC();
+            checkResource();
+            if ((config.condition == null || config.condition.get(api).allows())
+                    && isReadyNpcCondition() && isReadyResourceCondition()) {
+                resetCounters();
+                main.setConfig(config.BOT_PROFILE);
+            }
         }
+    }
 
+    @Override
+    public void onStoppedBehavior() {
+        updateResourceList();
+    }
+
+    private boolean isReadyNpcCondition() {
+        return (!config.npcExtraCondition.active ||
+                config.npcExtraCondition.npcCounter >= config.npcExtraCondition.npcsToKill)
+                && (!config.npcExtraCondition2.active ||
+                        config.npcExtraCondition2.npcCounter >= config.npcExtraCondition2.npcsToKill);
     }
 
     private void checkNPC() {
@@ -88,6 +120,42 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
                 config.npcExtraCondition2.lastNPCId = target.getId();
                 config.npcExtraCondition2.npcCounter++;
             }
+        }
+    }
+
+    private boolean isReadyResourceCondition() {
+        return !config.resourceCounterCondition.active
+                || config.resourceCounterCondition.resourcesFarmed >= config.resourceCounterCondition.resourcesToFarm;
+    }
+
+    private void checkResource() {
+        if (config.resourceCounterCondition.active
+                && (hero.hasEffect(EntityEffect.BOOTY_COLLECTING) || hero.hasEffect(EntityEffect.BOX_COLLECTING))) {
+            Box box = boxes.stream().min(Comparator.<Box>comparingDouble(b -> b.distanceTo(hero))).orElse(null);
+            if (box != null && box.distanceTo(hero) < 100
+                    && config.resourceCounterCondition.lastResourceId != box.getId()) {
+                config.resourceCounterCondition.lastResourceId = box.getId();
+                if (box.getTypeName().equals(config.resourceCounterCondition.resourceName)) {
+                    config.resourceCounterCondition.resourcesFarmed++;
+                }
+            }
+        }
+    }
+
+    private void resetCounters() {
+        config.npcExtraCondition.npcCounter = 0;
+        config.npcExtraCondition2.npcCounter = 0;
+        config.resourceCounterCondition.resourcesFarmed = 0;
+    }
+
+    private void updateResourceList() {
+        if (!resourceListUpdated) {
+            Map<String, BoxInfo> allBoxes = boxInfos.getValue();
+
+            ArrayList<String> boxes = new ArrayList<String>(allBoxes.keySet());
+
+            ResourceSupplier.updateBoxes(boxes);
+            resourceListUpdated = true;
         }
     }
 }
