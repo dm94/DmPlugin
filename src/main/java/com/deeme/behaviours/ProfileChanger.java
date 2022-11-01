@@ -1,5 +1,6 @@
 package com.deeme.behaviours;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -94,7 +95,8 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
             if (nextCheck < System.currentTimeMillis()) {
                 nextCheck = System.currentTimeMillis() + (config.timeToCheck * 1000);
                 if ((config.condition == null || config.condition.get(api).allows())
-                        && isReadyNpcCondition() && isReadyResourceCondition() && isReadyMapCondition()) {
+                        && isReadyNpcCondition() && isReadyResourceCondition() && isReadyMapCondition()
+                        && isReadyTimeCondition()) {
                     resetCounters();
                     main.setConfig(config.BOT_PROFILE);
                 }
@@ -156,6 +158,17 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
         return !config.mapTimerCondition.active || (config.mapTimerCondition.mapTimeStart != 0
                 && (config.mapTimerCondition.mapTimeStart + (config.mapTimerCondition.timeInMap * 60000)) <= System
                         .currentTimeMillis());
+    }
+
+    private boolean isReadyTimeCondition() {
+        if (!config.timeCondition.active) {
+            return true;
+        }
+
+        LocalDateTime da = LocalDateTime.now();
+
+        return da.getHour() > config.timeCondition.hour
+                || (config.timeCondition.hour == da.getHour() && da.getMinute() >= config.timeCondition.minute);
     }
 
     private void checkMap() {

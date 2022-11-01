@@ -36,4 +36,7 @@ public class ProfileChangerConfig {
 
     @Option("profile_changer.map_timmer_condition")
     public MapTimmerCondition mapTimerCondition = new MapTimmerCondition();
+
+    @Option("profile_changer.time_condition")
+    public TimeCondition timeCondition = new TimeCondition();
 }
