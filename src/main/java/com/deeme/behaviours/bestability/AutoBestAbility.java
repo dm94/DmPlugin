@@ -95,7 +95,8 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
         return items.getItems(ItemCategory.SHIP_ABILITIES).stream()
                 .filter(s -> s.isReadyToUse())
                 .map(s -> s.getAs(Ability.class))
-                .filter(s -> config.abilitiesToUseEverytime.stream().anyMatch(a -> a.name().equals(s.name())))
+                .filter(s -> s != null
+                        && config.abilitiesToUseEverytime.stream().anyMatch(a -> a.name().equals(s.name())))
                 .findFirst().orElse(null);
     }
 
