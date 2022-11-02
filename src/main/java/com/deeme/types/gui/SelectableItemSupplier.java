@@ -16,9 +16,7 @@ public class SelectableItemSupplier implements Dropdown.Options<String> {
         if (allItemsIds.isEmpty()) {
             Iterator<ItemCategory> it = SelectableItem.ALL_ITEMS.keySet().iterator();
             while (it.hasNext()) {
-                ItemCategory key = it.next();
-                List<SelectableItem> selectableItemList = SelectableItem.ALL_ITEMS.get(key);
-                Iterator<SelectableItem> itItem = selectableItemList.iterator();
+                Iterator<SelectableItem> itItem = SelectableItem.ALL_ITEMS.get(it.next()).iterator();
                 while (itItem.hasNext()) {
                     allItemsIds.add(itItem.next().getId());
                 }
@@ -31,6 +29,18 @@ public class SelectableItemSupplier implements Dropdown.Options<String> {
 
     @Override
     public String getText(String id) {
+        Iterator<ItemCategory> it = SelectableItem.ALL_ITEMS.keySet().iterator();
+        while (it.hasNext()) {
+            ItemCategory category = it.next();
+            String itemName = SelectableItem.ALL_ITEMS.get(category).stream()
+                    .filter(itItem -> itItem.getId().equals(id) && itItem instanceof Enum)
+                    .map(itItem -> (Enum) itItem)
+                    .map(itItem -> category + " || " + itItem.name()).findFirst().orElse(null);
+            if (itemName != null) {
+                return itemName;
+            }
+        }
+
         return id;
     }
 }

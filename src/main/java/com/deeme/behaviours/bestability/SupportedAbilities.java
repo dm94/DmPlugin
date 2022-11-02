@@ -4,8 +4,10 @@ import eu.darkbot.api.config.annotations.Configuration;
 
 @Configuration("supported_abilities")
 public enum SupportedAbilities {
+    SPEARHEAD_DOUBLE_MINIMAP,
     SPEARHEAD_ULTIMATE_CLOAK,
     SPEARHEAD_TARGET_MARKER,
+    SPEARHEAD_JAM_X,
     AEGIS_HP_REPAIR,
     AEGIS_SHIELD_REPAIR,
     AEGIS_REPAIR_POD,

@@ -111,8 +111,7 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
 
         List<Player> ships = players.stream()
                 .filter(s -> (defenseConfig.helpAllies && s.getEntityInfo().getClanDiplomacy() == Diplomacy.ALLIED)
-                        ||
-                        (defenseConfig.helpEveryone && !s.getEntityInfo().isEnemy())
+                        || (defenseConfig.helpEveryone && !s.getEntityInfo().isEnemy())
                         || (defenseConfig.helpGroup && inGroupAttacked(s.getId())))
                 .collect(Collectors.toList());
 

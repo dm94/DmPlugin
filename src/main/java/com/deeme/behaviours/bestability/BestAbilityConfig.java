@@ -14,6 +14,10 @@ public class BestAbilityConfig {
     @Option("general.npc_enabled")
     public boolean npcEnabled = true;
 
+    @Option("general.next_check_time")
+    @Number(max = 300, step = 1)
+    public int timeToCheck = 20;
+
     @Option("best_ability.min_health_health")
     @Percentage
     public double minHealthToUseHealth = 0.5;
@@ -24,5 +28,9 @@ public class BestAbilityConfig {
 
     @Option("best_ability.supported_abilities")
     @Dropdown(multi = true)
-    public transient Set<SupportedAbilities> supportedAbilities = EnumSet.allOf(SupportedAbilities.class);
+    public Set<SupportedAbilities> supportedAbilities = EnumSet.allOf(SupportedAbilities.class);
+
+    @Option("best_ability.abilities_to_use_everytime")
+    @Dropdown(multi = true)
+    public Set<SupportedAbilities> abilitiesToUseEverytime = EnumSet.noneOf(SupportedAbilities.class);
 }

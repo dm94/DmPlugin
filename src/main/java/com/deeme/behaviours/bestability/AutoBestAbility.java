@@ -17,6 +17,7 @@ import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.entities.Ship;
 import eu.darkbot.api.game.group.GroupMember;
+import eu.darkbot.api.game.items.ItemCategory;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem.Ability;
 import eu.darkbot.api.game.other.Lockable;
@@ -77,7 +78,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     @Override
     public void onTickBehavior() {
         if (nextCheck < System.currentTimeMillis()) {
-            nextCheck = System.currentTimeMillis() + 2000;
+            nextCheck = System.currentTimeMillis() + (config.timeToCheck * 1000);
             Entity target = heroapi.getLocalTarget();
             if (target != null && target.isValid()) {
                 if (config.npcEnabled || !(target instanceof Npc)) {
@@ -86,7 +87,16 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
             } else if (safety.state() == Escaping.ENEMY) {
                 useSelectableReadyWhenReady(getBestAbility());
             }
+            useSelectableReadyWhenReady(getAbilityAlwaysToUse());
         }
+    }
+
+    private Ability getAbilityAlwaysToUse() {
+        return items.getItems(ItemCategory.SHIP_ABILITIES).stream()
+                .filter(s -> s.isReadyToUse())
+                .map(s -> s.getAs(Ability.class))
+                .filter(s -> config.abilitiesToUseEverytime.stream().anyMatch(a -> a.name().equals(s.name())))
+                .findFirst().orElse(null);
     }
 
     private Ability getBestAbility() {
@@ -130,7 +140,9 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
             }
         }
         if (shoulFocusEvade()) {
-            if (isAvailable(Ability.SPEARHEAD_ULTIMATE_CLOAK)) {
+            if (isAvailable(Ability.SPEARHEAD_JAM_X)) {
+                return Ability.SPEARHEAD_JAM_X;
+            } else if (isAvailable(Ability.SPEARHEAD_ULTIMATE_CLOAK)) {
                 return Ability.SPEARHEAD_ULTIMATE_CLOAK;
             } else if (isAvailable(Ability.BERSERKER_RVG)) {
                 return Ability.BERSERKER_RVG;
@@ -270,7 +282,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     }
 
     private boolean isAvailable(Ability ability) {
-        return ability != null
+        return ability != null && config.supportedAbilities.stream().anyMatch(s -> s.name().equals(ability.name()))
                 && items.getItem(ability, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE).isPresent();
     }
 

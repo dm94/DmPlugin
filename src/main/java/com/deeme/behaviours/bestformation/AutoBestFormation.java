@@ -231,7 +231,9 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
 
     private boolean isAttacking() {
         Entity target = heroapi.getLocalTarget();
-        return target != null && target.isValid() && heroapi.isAttacking() && target.distanceTo(heroapi) < 1000;
+        return target != null && target.isValid() && heroapi.isAttacking() && target.distanceTo(heroapi) < 1000
+                && !(heroapi.getEffects() != null
+                        && heroapi.getEffects().toString().contains("76"));
     }
 
     private boolean isFaster() {
