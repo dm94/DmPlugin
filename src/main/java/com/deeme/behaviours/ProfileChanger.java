@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Map;
 
+import com.deeme.behaviours.profilechanger.NpcCounterCondition;
 import com.deeme.behaviours.profilechanger.ProfileChangerConfig;
 import com.deeme.behaviours.profilechanger.ResourceSupplier;
 import com.deeme.types.VerifierChecker;
@@ -88,14 +89,17 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     public void onTickBehavior() {
         updateResourceList();
         if (config.active) {
-            checkNPC();
+            checkNPC(config.npcExtraCondition);
+            checkNPC(config.npcExtraCondition2);
             checkResource();
             checkMap();
 
             if (nextCheck < System.currentTimeMillis()) {
                 nextCheck = System.currentTimeMillis() + (config.timeToCheck * 1000);
                 if ((config.condition == null || config.condition.get(api).allows())
-                        && isReadyNpcCondition() && isReadyResourceCondition() && isReadyMapCondition()
+                        && isReadyNpcCondition(config.npcExtraCondition)
+                        && isReadyNpcCondition(config.npcExtraCondition2)
+                        && isReadyResourceCondition() && isReadyMapCondition()
                         && isReadyTimeCondition()) {
                     resetCounters();
                     main.setConfig(config.BOT_PROFILE);
@@ -109,26 +113,25 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
         updateResourceList();
     }
 
-    private boolean isReadyNpcCondition() {
-        return (!config.npcExtraCondition.active ||
-                config.npcExtraCondition.npcCounter >= config.npcExtraCondition.npcsToKill)
-                && (!config.npcExtraCondition2.active ||
-                        config.npcExtraCondition2.npcCounter >= config.npcExtraCondition2.npcsToKill);
+    private boolean isReadyNpcCondition(NpcCounterCondition npcCondition) {
+        return !npcCondition.active ||
+                npcCondition.npcCounter >= npcCondition.npcsToKill;
     }
 
-    private void checkNPC() {
-        Lockable target = hero.getLocalTarget();
-        if (target != null && target.isValid() && target.isOwned()) {
-            String name = target.getEntityInfo().getUsername();
-            if (name != null && name.toLowerCase().contains(config.npcExtraCondition.npcName.toLowerCase())
-                    && target.getId() != config.npcExtraCondition.lastNPCId) {
-                config.npcExtraCondition.lastNPCId = target.getId();
-                config.npcExtraCondition.npcCounter++;
-            }
-            if (name != null && name.toLowerCase().contains(config.npcExtraCondition2.npcName.toLowerCase())
-                    && target.getId() != config.npcExtraCondition2.lastNPCId) {
-                config.npcExtraCondition2.lastNPCId = target.getId();
-                config.npcExtraCondition2.npcCounter++;
+    private void checkNPC(NpcCounterCondition npcCondition) {
+        if (npcCondition.active) {
+            Lockable target = hero.getLocalTarget();
+            if (target != null && target.isValid() && target.isOwned()) {
+                String name = target.getEntityInfo().getUsername();
+                if (target.getId() != npcCondition.lastNPCId && npcCondition.isAttacked) {
+                    npcCondition.isAttacked = false;
+                    npcCondition.npcCounter++;
+                }
+                if (name != null && name.toLowerCase().contains(npcCondition.npcName.toLowerCase())
+                        && target.getId() != npcCondition.lastNPCId) {
+                    npcCondition.lastNPCId = target.getId();
+                    npcCondition.isAttacked = true;
+                }
             }
         }
     }
@@ -193,9 +196,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     private void updateResourceList() {
         if (!resourceListUpdated) {
             Map<String, BoxInfo> allBoxes = boxInfos.getValue();
-
             ArrayList<String> boxes = new ArrayList<String>(allBoxes.keySet());
-
             ResourceSupplier.updateBoxes(boxes);
             resourceListUpdated = true;
         }

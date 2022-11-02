@@ -92,12 +92,17 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     }
 
     private Ability getAbilityAlwaysToUse() {
-        return items.getItems(ItemCategory.SHIP_ABILITIES).stream()
-                .filter(s -> s.isReadyToUse())
-                .map(s -> s.getAs(Ability.class))
-                .filter(s -> s != null
-                        && config.abilitiesToUseEverytime.stream().anyMatch(a -> a.name().equals(s.name())))
-                .findFirst().orElse(null);
+        try {
+            return items.getItems(ItemCategory.SHIP_ABILITIES).stream()
+                    .filter(s -> s.isReadyToUse())
+                    .map(s -> s.getAs(Ability.class))
+                    .filter(s -> s != null
+                            && config.abilitiesToUseEverytime.stream().anyMatch(a -> a.name().equals(s.name())))
+                    .findFirst().orElse(null);
+        } catch (Exception e) {
+            System.out.println(e.getLocalizedMessage());
+            return null;
+        }
     }
 
     private Ability getBestAbility() {
@@ -288,7 +293,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     }
 
     private boolean useSelectableReadyWhenReady(Ability selectableItem) {
-        return (selectableItem != null
-                && items.useItem(selectableItem, 500, ItemFlag.USABLE, ItemFlag.READY).isSuccessful());
+        return selectableItem != null
+                && items.useItem(selectableItem, 500, ItemFlag.USABLE, ItemFlag.READY).isSuccessful();
     }
 }
