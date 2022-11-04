@@ -10,32 +10,32 @@ public class AstralShip {
     private Integer weapons = 12;
     private Integer generators = 11;
 
-    private String shipType = "";
-    private boolean valid = false;
+    private ShipType shipType = null;
+
+    public enum ShipType {
+        SENTINEL,
+        DIMINISHER,
+        ZEPHIR,
+        PUSAT;
+    }
 
     public AstralShip(String shipType) {
         if (shipType.equals("ship_sentinel")) {
-            this.shipType = "Sentinel";
+            this.shipType = ShipType.SENTINEL;
             this.maxWeapons = 15;
             this.maxGenerators = 15;
-            this.valid = true;
         } else if (shipType.equals("ship_diminisher")) {
-            this.shipType = "Diminisher";
+            this.shipType = ShipType.DIMINISHER;
             this.maxWeapons = 15;
             this.maxGenerators = 15;
-            this.valid = true;
         } else if (shipType.equals("ship_zephyr")) {
-            this.shipType = "Zephir";
+            this.shipType = ShipType.ZEPHIR;
             this.maxWeapons = 12;
             this.maxGenerators = 16;
-            this.valid = true;
         } else if (shipType.equals("ship_pusat")) {
-            this.shipType = "Pusat";
+            this.shipType = ShipType.PUSAT;
             this.maxWeapons = 12;
             this.maxGenerators = 11;
-            this.valid = true;
-        } else {
-            this.shipType = shipType;
         }
     }
 
@@ -45,10 +45,10 @@ public class AstralShip {
     }
 
     public boolean isValid() {
-        return valid;
+        return this.shipType != null;
     }
 
-    public String getShipType() {
+    public ShipType getShipType() {
         return shipType;
     }
 

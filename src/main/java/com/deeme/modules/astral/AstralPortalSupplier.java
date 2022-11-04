@@ -64,7 +64,8 @@ public class AstralPortalSupplier implements PrioritizedSupplier<Portal> {
                 this.focusModules = true;
                 target = portals.stream().filter(portal -> portal.getTypeId() == 89).findFirst().orElse(null);
             }
-            if (astralShip.getMaxGenerators() > astralShip.getGenerators() && target == null) {
+            if (target == null && (astralShip.getMaxGenerators() > astralShip.getGenerators()
+                    || heroapi.getSpeed() < 370)) {
                 this.focusGenerators = true;
                 target = portals.stream().filter(portal -> portal.getTypeId() == 95).findFirst().orElse(null);
             }

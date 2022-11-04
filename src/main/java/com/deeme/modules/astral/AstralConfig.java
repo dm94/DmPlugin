@@ -1,5 +1,7 @@
 package com.deeme.modules.astral;
 
+import com.deeme.behaviours.bestrocket.RocketSupplier;
+
 import eu.darkbot.api.config.annotations.Configuration;
 import eu.darkbot.api.config.annotations.Dropdown;
 import eu.darkbot.api.config.annotations.Number;
@@ -8,11 +10,15 @@ import eu.darkbot.api.config.annotations.Option;
 @Configuration("astral")
 public class AstralConfig {
     @Option("astral.min_radius")
-    @Number(min = 500, max = 2000, step = 10)
+    @Number(min = 300, max = 800, step = 10)
     public int radioMin = 560;
 
     @Option("general.default_ammo")
     public Character ammoKey;
+
+    @Option("general.default_rocket")
+    @Dropdown(options = RocketSupplier.class)
+    public String defaultRocket = "";
 
     @Option("astral.attack_closest")
     public boolean alwaysTheClosestNPC = false;
@@ -26,7 +32,4 @@ public class AstralConfig {
 
     @Option("astral.choose_item")
     public boolean autoChooseItem = false;
-
-    @Option("astral.cpu_key")
-    public Character astralCPUKey;
 }

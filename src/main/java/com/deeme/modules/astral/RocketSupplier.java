@@ -44,7 +44,7 @@ public class RocketSupplier implements PrioritizedSupplier<SelectableItem> {
 
             try {
                 return items.getItems(ItemCategory.ROCKETS).stream()
-                        .filter(item -> item.isReady() && item.isUsable() && item.isAvailable())
+                        .filter(item -> item.isReadyToUse())
                         .sorted(Comparator.comparing(i -> damageOrder.indexOf(i.getId()))).findFirst().orElse(null);
             } catch (Exception e) {
                 return null;
@@ -57,7 +57,7 @@ public class RocketSupplier implements PrioritizedSupplier<SelectableItem> {
     public SelectableItem getReverse() {
         try {
             return items.getItems(ItemCategory.ROCKETS).stream()
-                    .filter(item -> item.isReady() && item.isUsable() && item.isAvailable())
+                    .filter(item -> item.isReadyToUse())
                     .sorted(Comparator.comparing(i -> damageOrder.indexOf(i.getId()), Comparator.reverseOrder()))
                     .findFirst().orElse(null);
         } catch (Exception e) {
@@ -73,8 +73,7 @@ public class RocketSupplier implements PrioritizedSupplier<SelectableItem> {
     }
 
     private boolean shoulUsePLD(Lockable target) {
-        return target instanceof Movable && ((Movable) target).isAiming(heroapi)
-                && heroapi.getHealth().shieldPercent() < 0.5;
+        return heroapi.getHealth().shieldPercent() < 0.8;
     }
 
     private boolean isAvailable(Rocket rocket) {
