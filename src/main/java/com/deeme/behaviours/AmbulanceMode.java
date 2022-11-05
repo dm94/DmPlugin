@@ -86,11 +86,9 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
                 memberToHelp = getMemberLowShield();
                 if (memberToHelp != 0
                         && items.getItem(Ability.AEGIS_SHIELD_REPAIR, ItemFlag.USABLE, ItemFlag.READY,
-                                ItemFlag.AVAILABLE).isPresent()) {
-                    Ability ability = Ability.AEGIS_SHIELD_REPAIR;
-                    if (botApi.getModule().getClass() != AmbulanceModule.class) {
-                        botApi.setModule(new AmbulanceModule(api, memberToHelp, ability));
-                    }
+                                ItemFlag.AVAILABLE).isPresent()
+                        && botApi.getModule().getClass() != AmbulanceModule.class) {
+                    botApi.setModule(new AmbulanceModule(api, memberToHelp, Ability.AEGIS_SHIELD_REPAIR));
                 }
             }
         }
