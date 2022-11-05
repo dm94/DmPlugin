@@ -618,17 +618,25 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         if (portals != null) {
             if (portals.isEmpty()) {
                 if (lastPortal != 0 && astralShip != null) {
-                    if (lastPortal == 87 || lastPortal == 88) {
-                        astralShip.setWeapons(astralShip.getWeapons() + 1);
-                    } else if (lastPortal == 89 || lastPortal == 90) {
-                        astralShip.setGenerators(astralShip.getGenerators() + 1);
-                    } else if (lastPortal == 95 || lastPortal == 96) {
-                        astralShip.setModules(astralShip.getModules() + 1);
+                    switch (lastPortal) {
+                        case 87:
+                        case 88:
+                            astralShip.setWeapons(astralShip.getWeapons() + 1);
+                            break;
+                        case 89:
+                        case 90:
+                            astralShip.setGenerators(astralShip.getGenerators() + 1);
+                            break;
+                        case 95:
+                        case 96:
+                            astralShip.setModules(astralShip.getModules() + 1);
+                            break;
+                        default:
+                            lastPortal = 0;
                     }
-                    lastPortal = 0;
                 }
             } else {
-                Portal portal = portals.stream().filter(p -> p.isJumping()).findFirst().orElse(null);
+                Portal portal = portals.stream().filter(Portal::isJumping).findFirst().orElse(null);
                 if (portal != null) {
                     lastPortal = portal.getTypeId();
                 }

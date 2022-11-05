@@ -171,8 +171,19 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
     @Override
     public String getStatus() {
         return safety.state() != SafetyFinder.Escaping.NONE ? safety.status()
-                : currentStatus.message + " | " + (isNpc ? "NPC" : "Player") + " | "
-                        + (isNpc ? attacker.getStatus() : shipAttacker.getStatus());
+                : currentStatus.message + " | " + getAttackStatus();
+    }
+
+    private String getAttackStatus() {
+        return isNpc ? getNpcStatus() : getPlayerStatus();
+    }
+
+    private String getNpcStatus() {
+        return "NPC | " + attacker.getStatus();
+    }
+
+    private String getPlayerStatus() {
+        return "Player | " + shipAttacker.getStatus();
     }
 
     @Override
@@ -201,21 +212,13 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
 
                     if (sConfig.aggressiveFollow
                             && heroapi.distanceTo(sentinel.getLocationInfo().getCurrent()) > sConfig.rangeToLider) {
-                        if (sConfig.goToMasterDestination && sentinel.getDestination().isPresent()) {
-                            movement.moveTo(sentinel.getDestination().get());
-                        } else {
-                            movement.moveTo(sentinel.getLocationInfo().getCurrent());
-                        }
+                        moveToMaster();
                     }
                 } else if (sentinel.isValid()) {
                     currentStatus = State.FOLLOWING_MASTER;
                     setMode(configRoam.getValue());
                     if (heroapi.distanceTo(sentinel.getLocationInfo().getCurrent()) > sConfig.rangeToLider) {
-                        if (sConfig.goToMasterDestination && sentinel.getDestination().isPresent()) {
-                            movement.moveTo(sentinel.getDestination().get());
-                        } else {
-                            movement.moveTo(sentinel.getLocationInfo().getCurrent());
-                        }
+                        moveToMaster();
                     } else if (sConfig.collectorActive) {
                         collectorModule.findBox();
                         if (collectorModule.currentBox != null && sentinel.getLocationInfo()
@@ -224,30 +227,16 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                         }
                     }
 
-                    if (sConfig.autoCloak.autoCloakShip && !heroapi.isInvisible()
-                            && lastTimeAttack < (System.currentTimeMillis()
-                                    - (sConfig.autoCloak.secondsOfWaiting * 1000))) {
-                        shipAttacker.useSelectableReadyWhenReady(Cpu.CL04K);
-                    }
+                    autoCloack();
                 } else {
                     sentinel = null;
                 }
             } else if (sConfig.followByPortals && lastSentinelLocation != null) {
-                Portal portal = getNearestPortal(lastSentinelLocation);
-                if (portal != null) {
-                    GameMap m = portal.getTargetMap().isPresent() ? portal.getTargetMap().get() : null;
-                    if (m != null) {
-                        this.bot.setModule(api.requireInstance(MapModule.class)).setTarget(m);
-                    } else {
-                        lastSentinelLocation = null;
-                    }
-                } else {
-                    lastSentinelLocation = null;
-                }
+                followByPortals();
             } else {
                 groupLeaderID = 0;
                 if (group.hasGroup()) {
-                    goToLeader();
+                    goToGroup();
                 } else {
                     if (lastMap != heroapi.getMap().getId()) {
                         maximumWaitingTime = System.currentTimeMillis() + 60000;
@@ -269,6 +258,36 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private void followByPortals() {
+        Portal portal = getNearestPortal(lastSentinelLocation);
+        if (portal != null) {
+            portal.getTargetMap().ifPresentOrElse(
+                    m -> this.bot.setModule(api.requireInstance(MapModule.class)).setTarget(m),
+                    () -> lastSentinelLocation = null);
+        } else {
+            lastSentinelLocation = null;
+        }
+    }
+
+    private void autoCloack() {
+        if (sConfig.autoCloak.autoCloakShip && !heroapi.isInvisible()
+                && lastTimeAttack < (System.currentTimeMillis()
+                        - (sConfig.autoCloak.secondsOfWaiting * 1000))) {
+            shipAttacker.useSelectableReadyWhenReady(Cpu.CL04K);
+        }
+    }
+
+    private void moveToMaster() {
+        if (sentinel != null) {
+            if (sConfig.goToMasterDestination) {
+                sentinel.getDestination().ifPresentOrElse(d -> movement.moveTo(d),
+                        () -> movement.moveTo(sentinel.getLocationInfo().getCurrent()));
+            } else {
+                movement.moveTo(sentinel.getLocationInfo().getCurrent());
             }
         }
     }
@@ -358,7 +377,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         return sentinel != null;
     }
 
-    private void goToLeader() {
+    private void goToGroup() {
         for (eu.darkbot.api.game.group.GroupMember m : group.getMembers()) {
             if (!m.isDead() && m.getId() != heroapi.getId()
                     && ((sConfig.MASTER_ID != 0 && m.getId() == sConfig.MASTER_ID) ||
@@ -390,7 +409,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                 .filter(in -> in.isIncoming() && (sConfig.SENTINEL_TAG == null ||
                         sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(in.getInviter().getId()))))
                 .findFirst()
-                .ifPresent(inv -> main.guiManager.group.acceptInvite(inv));
+                .ifPresent(main.guiManager.group::acceptInvite);
     }
 
     private void setMode(ShipMode config, Npc npc) {

@@ -67,33 +67,43 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
         if (lcConfig.maxDeathsKO > 0 && main.backpage.sidStatus().contains("KO")) {
             main.config.GENERAL.SAFETY.MAX_DEATHS = lcConfig.maxDeathsKO;
         }
-        if (lcConfig.reloadIfCrash && stats.getPing() > 10000 && inPortal()
-                && nextRefresh <= System.currentTimeMillis()) {
-            nextRefresh = System.currentTimeMillis() + 120000;
-            Main.API.handleRefresh();
+
+        if (lcConfig.reloadIfCrash && stats.getPing() > 10000 && inPortal()) {
+            refresh();
         }
 
-        if (lcConfig.maxMemory > 0 && Main.API.getMemoryUsage() >= lcConfig.maxMemory && bot.getModule().canRefresh()
-                && nextRefresh <= System.currentTimeMillis()) {
-            nextRefresh = System.currentTimeMillis() + 120000;
-            Main.API.handleRefresh();
+        if (lcConfig.maxMemory > 0 && Main.API.getMemoryUsage() >= lcConfig.maxMemory && bot.getModule().canRefresh()) {
+            refresh();
+        }
+        autoBuyLogic();
+    }
+
+    private void autoBuyLogic() {
+        if (lcConfig.autoBuyLcb10 && this.stats.getTotalCredits() >= 100000) {
+            this.items.getItem(SelectableItem.Laser.LCB_10, ItemFlag.USABLE).ifPresent(i -> {
+                if (i.getQuantity() <= 1000) {
+                    items.useItem(SelectableItem.AutoBuy.LCB_10, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE);
+                }
+            });
         }
 
-        if (lcConfig.autoBuyLcb10 && this.stats.getTotalCredits() >= 100000
-                && this.items.getItem(SelectableItem.Laser.LCB_10, ItemFlag.USABLE).get()
-                        .getQuantity() <= 1000
-                && this.items
-                        .getItem(SelectableItem.AutoBuy.LCB_10, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE)
-                        .isPresent()) {
-            items.useItem(SelectableItem.AutoBuy.LCB_10);
+        if (lcConfig.autoBuyPlt2026 && this.stats.getTotalCredits() >= 50000) {
+            this.items.getItem(SelectableItem.Rocket.PLT_2026, ItemFlag.USABLE).ifPresent(i -> {
+                if (i.getQuantity() <= 100) {
+                    items.useItem(SelectableItem.AutoBuy.PLT_2026, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE);
+                }
+            });
         }
-        if (lcConfig.autoBuyPlt2026 && this.stats.getTotalCredits() >= 50000
-                && this.items.getItem(SelectableItem.Rocket.PLT_2026, ItemFlag.USABLE).get()
-                        .getQuantity() <= 100
-                && this.items
-                        .getItem(SelectableItem.AutoBuy.PLT_2026, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE)
-                        .isPresent()) {
-            items.useItem(SelectableItem.AutoBuy.PLT_2026);
+    }
+
+    private boolean inPortal() {
+        return portals.stream().anyMatch(p -> p.distanceTo(heroapi) < 200);
+    }
+
+    private void refresh() {
+        if (nextRefresh <= System.currentTimeMillis()) {
+            nextRefresh = System.currentTimeMillis() + 120000;
+            Main.API.handleRefresh();
         }
     }
 
@@ -115,9 +125,5 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
 
         @Option("others.auto_buy_plt_2026")
         public boolean autoBuyPlt2026 = false;
-    }
-
-    private boolean inPortal() {
-        return portals.stream().anyMatch(p -> p.distanceTo(heroapi) < 200);
     }
 }
