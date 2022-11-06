@@ -111,6 +111,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     @Override
     public void onStoppedBehavior() {
         updateResourceList();
+        config.mapTimerCondition.mapTimeStart = 0;
     }
 
     private boolean isReadyNpcCondition(NpcCounterCondition npcCondition) {
