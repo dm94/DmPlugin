@@ -356,18 +356,18 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
     }
 
     private boolean shipAround() {
-        if (players.isEmpty()) {
+        if (players == null || players.isEmpty()) {
             return false;
         }
 
         sentinel = players.stream()
                 .filter(ship -> ship.isValid() && ship.getId() != heroapi.getId())
                 .filter(ship -> (ship.getId() == masterID ||
-                        (sConfig.MASTER_ID != 0 && ship.getId() == sConfig.MASTER_ID) ||
-                        (sConfig.SENTINEL_TAG != null
-                                && sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(ship.getId())))
+                        (ship.getId() == sConfig.MASTER_ID) ||
+                        (sConfig.SENTINEL_TAG != null && main.config.PLAYER_INFOS != null &&
+                                sConfig.SENTINEL_TAG.hasTag(main.config.PLAYER_INFOS.get(ship.getId())))
                         ||
-                        (sConfig.followGroupLeader && groupLeaderID != 0 && ship.getId() == groupLeaderID)))
+                        (sConfig.followGroupLeader && ship.getId() == groupLeaderID)))
                 .findAny().orElse(null);
 
         if (sentinel != null) {
