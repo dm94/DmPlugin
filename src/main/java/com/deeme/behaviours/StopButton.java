@@ -79,17 +79,12 @@ public class StopButton implements Behavior, ExtraMenus {
                 }
             }
         }
-        if (closeBot && isDisconnect()) {
-            System.exit(0);
-        }
-
+        stopCheck();
     }
 
     @Override
     public void onStoppedBehavior() {
-        if (closeBot && isDisconnect()) {
-            System.exit(0);
-        }
+        stopCheck();
     }
 
     @Override
@@ -102,6 +97,15 @@ public class StopButton implements Behavior, ExtraMenus {
                     stopBot = true;
                     closeBot = true;
                 }));
+    }
+
+    private void stopCheck() {
+        if (isDisconnect()) {
+            if (closeBot) {
+                System.exit(0);
+            }
+            stopBot = false;
+        }
     }
 
     private boolean isDisconnect() {
