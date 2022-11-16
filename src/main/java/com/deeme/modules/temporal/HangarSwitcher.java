@@ -18,7 +18,6 @@ import eu.darkbot.shared.modules.TemporalModule;
 public class HangarSwitcher extends TemporalModule {
     protected final PluginAPI api;
     protected final HeroAPI heroapi;
-    protected final BotAPI bot;
     protected final BackpageAPI backpageAPI;
 
     protected final Gui lostConnectionGUI;
@@ -66,7 +65,6 @@ public class HangarSwitcher extends TemporalModule {
 
         this.api = api;
         this.heroapi = api.getAPI(HeroAPI.class);
-        this.bot = api.getAPI(BotAPI.class);
         this.backpageAPI = api.getAPI(BackpageAPI.class);
         this.hangarToChage = hangar;
         this.checkCount = 0;
@@ -114,7 +112,7 @@ public class HangarSwitcher extends TemporalModule {
             } else if (!activeHangar.equals(hangarToChage)) {
                 if (!heroapi.isMoving()) {
                     if (isDisconnect()) {
-                        if (!backpageAPI.isInstanceValid()) {
+                        if (!backpageAPI.isInstanceValid() || !main.backpage.sidStatus().contains("OK")) {
                             this.currentStatus = State.SID_KO;
                             waitinUntil = System.currentTimeMillis() + 60000;
                         } else {

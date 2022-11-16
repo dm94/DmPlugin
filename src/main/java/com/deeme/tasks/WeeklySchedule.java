@@ -225,7 +225,8 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
     }
 
     private void tryUpdateHangarList() {
-        if (!updateHangarList || changingHangar || !main.backpage.isInstanceValid()) {
+        if (!updateHangarList || changingHangar || !main.backpage.isInstanceValid()
+                || !main.backpage.sidStatus().contains("OK")) {
             return;
         }
 

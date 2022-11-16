@@ -6,7 +6,6 @@ import com.deeme.types.suppliers.DefenseLaserSupplier;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.Config.Loot.Sab;
 import com.github.manolo8.darkbot.core.api.DarkBoatAdapter;
-import com.github.manolo8.darkbot.core.api.DarkBoatHookAdapter;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -134,19 +133,10 @@ public class ShipAttacker {
             return;
         }
 
-        if (API instanceof DarkBoatAdapter || API instanceof DarkBoatHookAdapter) {
-            if (heroapi.getLocalTarget() != target) {
-                tryLockTarget();
-                return;
-            }
-
+        if (heroapi.isAttacking(target)) {
             tryAttackOrFix();
         } else {
-            if (heroapi.isAttacking(target)) {
-                tryAttackOrFix();
-            } else {
-                tryLockTarget();
-            }
+            tryLockTarget();
         }
     }
 

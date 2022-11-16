@@ -317,11 +317,6 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         if (astralConfig.autoChooseItem) {
             Integer xPoint = rand.nextInt((int) astralGui.getWidth() - guiOffset) + guiOffset + (int) astralGui.getX();
             Integer yPoint = (int) ((astralGui.getHeight() / 2) + astralGui.getY());
-
-            System.out.println("GUI || X: " + astralGui.getX() + " | Y: " + astralGui.getY());
-            System.out.println("GUI MAX || X: " + astralGui.getX2() + " | Y: " + astralGui.getY2());
-            System.out.println("X: " + xPoint + " | Y: " + yPoint);
-
             astralGui.click(xPoint, yPoint);
         }
     }

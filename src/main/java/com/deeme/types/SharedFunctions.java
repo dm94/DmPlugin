@@ -37,7 +37,7 @@ public class SharedFunctions {
         }
 
         return allShips.stream()
-                .filter(s -> (s instanceof Npc || s.getEntityInfo().isEnemy()))
+                .filter(s -> (s instanceof Npc || s.getEntityInfo().isEnemy()) && s.getId() != hero.getId())
                 .filter(s -> !(s instanceof Pet))
                 .filter(s -> s.isAttacking(assaulted))
                 .sorted(Comparator.comparingDouble(s -> s.getLocationInfo().distanceTo(hero)))

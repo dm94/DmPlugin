@@ -30,11 +30,11 @@ import eu.darkbot.api.managers.GameScreenAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.MovementAPI;
 import eu.darkbot.api.managers.OreAPI;
+import eu.darkbot.api.managers.OreAPI.Ore;
 import eu.darkbot.api.managers.PetAPI;
 import eu.darkbot.api.managers.StarSystemAPI;
-import eu.darkbot.api.managers.StatsAPI;
-import eu.darkbot.api.managers.OreAPI.Ore;
 import eu.darkbot.api.managers.StarSystemAPI.MapNotFoundException;
+import eu.darkbot.api.managers.StatsAPI;
 import eu.darkbot.api.utils.Inject;
 import eu.darkbot.shared.modules.LootCollectorModule;
 import eu.darkbot.shared.modules.MapModule;
@@ -66,6 +66,8 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
     private State lastStatus;
     private Integer activeHangar = null;
     private boolean updateHangarList = true;
+
+    private long nextCheck = 0;
 
     private enum State {
         WAIT("Waiting"),
@@ -131,6 +133,7 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
         this.lastStatus = State.WAIT;
         this.activeHangar = null;
         this.updateHangarList = true;
+        this.nextCheck = 0;
     }
 
     @Override
@@ -169,11 +172,16 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
         if (aditionalWaitingTime > System.currentTimeMillis()) {
             return;
         }
-        tryUpdateHangarList();
 
-        if (activeHangar == null) {
-            currentStatus = State.LOADING_HANGARS;
-            updateHangarActive();
+        if (!configPa.ignoreSID || (backpage.isInstanceValid() && main.backpage.sidStatus().contains("OK"))) {
+            tryUpdateHangarList();
+            if (activeHangar == null) {
+                currentStatus = State.LOADING_HANGARS;
+                updateHangarActive();
+                return;
+            }
+        } else {
+            tickOnSidKO();
             return;
         }
 
@@ -192,8 +200,6 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
                     this.activeHangar = null;
                     botApi.setModule(new HangarSwitcher(main, api, configPa.sellHangar));
                 }
-            } else if (!backpage.isInstanceValid()) {
-                this.main.setModule(api.requireInstance(MapModule.class)).setTarget(this.sellMap);
             } else {
                 pet.setEnabled(true);
                 lootModule.onTickModule();
@@ -256,6 +262,26 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
         }
     }
 
+    private void tickOnSidKO() {
+        if (stats.getCargo() >= stats.getMaxCargo() && oreApi.getAmount(Ore.PALLADIUM) > 15) {
+            sell();
+        } else {
+            if (heroapi.getMap() != null && heroapi.getMap().getId() == this.activeMap.getId()) {
+                this.currentStatus = State.LOOT_PALADIUM;
+                if (tradeGui.isVisible()) {
+                    oreApi.showTrade(false, null);
+                    tradeGui.setVisible(false);
+                }
+                pet.setEnabled(true);
+                lootModule.onTickModule();
+            } else {
+                this.currentStatus = State.HANGAR_PALA_OTHER_MAP;
+                heroapi.setRoamMode();
+                this.main.setModule(api.requireInstance(MapModule.class)).setTarget(this.activeMap);
+            }
+        }
+    }
+
     public void updateHangarActive() {
         try {
             this.main.backpage.hangarManager.updateHangarList();
@@ -270,10 +296,12 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
     }
 
     private void tryUpdateHangarList() {
-        if (!updateHangarList || !backpage.isInstanceValid()) {
+        if (!updateHangarList || !backpage.isInstanceValid() || !main.backpage.sidStatus().contains("OK")
+                || nextCheck > System.currentTimeMillis()) {
             return;
         }
 
+        nextCheck = System.currentTimeMillis() + 10000;
         currentStatus = State.LOADING_HANGARS;
 
         try {
