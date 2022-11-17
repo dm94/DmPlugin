@@ -42,7 +42,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     private Collection<? extends Portal> allPortals;
     private long nextCheck = 0;
 
-    private ArrayList<Formation> availableFormations = new ArrayList<Formation>();
+    private ArrayList<Formation> availableFormations = new ArrayList<>();
 
     public AutoBestFormation(PluginAPI api) {
         this(api, api.requireAPI(AuthAPI.class), api.requireAPI(HeroItemsAPI.class));
@@ -60,7 +60,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
         this.items = items;
         this.heroapi = api.getAPI(HeroAPI.class);
         this.safety = api.requireInstance(SafetyFinder.class);
-        this.availableFormations = new ArrayList<Formation>();
+        this.availableFormations = new ArrayList<>();
 
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
         this.allNpcs = entities.getNpcs();
@@ -81,7 +81,9 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     public void onTickBehavior() {
         if (nextCheck < System.currentTimeMillis()) {
             nextCheck = System.currentTimeMillis() + (config.timeToCheck * 1000);
-            useSelectableReadyWhenReady(getBestFormation());
+            if (isAttacking() || safety.state() == Escaping.ENEMY) {
+                useSelectableReadyWhenReady(getBestFormation());
+            }
         }
     }
 
@@ -92,44 +94,41 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
         if (hasFormation(Formation.WHEEL) && shoulFocusSpeed()) {
             return Formation.WHEEL;
         }
-
-        if (isAttacking()) {
-            if (shoulFocusPenetration()) {
-                if (hasFormation(Formation.MOTH)) {
-                    return Formation.MOTH;
-                } else if (hasFormation(Formation.DOUBLE_ARROW)) {
-                    return Formation.DOUBLE_ARROW;
-                }
-            }
-
-            if (shoulUseCrab()) {
-                return Formation.CRAB;
-            } else if (shoulUseDiamond()) {
-                return Formation.DIAMOND;
-            }
-
-            Entity target = heroapi.getLocalTarget();
-            if (target instanceof Npc) {
-                if (shoulUseBat()) {
-                    return Formation.BAT;
-                } else if (hasFormation(Formation.BARRAGE)) {
-                    return Formation.BARRAGE;
-                }
-            } else if (hasFormation(Formation.PINCER)) {
-                return Formation.PINCER;
-            }
-
-            if (hasFormation(Formation.STAR)) {
-                return Formation.STAR;
-            } else if (hasFormation(Formation.DRILL) && !shoulFocusSpeed()
-                    && !isFaster()) {
-                return Formation.DRILL;
+        if (shoulFocusPenetration()) {
+            if (hasFormation(Formation.MOTH)) {
+                return Formation.MOTH;
             } else if (hasFormation(Formation.DOUBLE_ARROW)) {
                 return Formation.DOUBLE_ARROW;
-            } else if (hasFormation(Formation.CHEVRON)
-                    && (heroapi.getHealth().hpPercent() < 0.8 || heroapi.isInFormation(Formation.CHEVRON))) {
-                return Formation.CHEVRON;
             }
+        }
+
+        if (shoulUseCrab()) {
+            return Formation.CRAB;
+        } else if (shoulUseDiamond()) {
+            return Formation.DIAMOND;
+        }
+
+        Entity target = heroapi.getLocalTarget();
+        if (target instanceof Npc) {
+            if (shoulUseBat()) {
+                return Formation.BAT;
+            } else if (hasFormation(Formation.BARRAGE)) {
+                return Formation.BARRAGE;
+            }
+        } else if (hasFormation(Formation.PINCER)) {
+            return Formation.PINCER;
+        }
+
+        if (hasFormation(Formation.STAR)) {
+            return Formation.STAR;
+        } else if (hasFormation(Formation.DRILL) && !shoulFocusSpeed()
+                && !isFaster()) {
+            return Formation.DRILL;
+        } else if (hasFormation(Formation.DOUBLE_ARROW)) {
+            return Formation.DOUBLE_ARROW;
+        } else if (hasFormation(Formation.CHEVRON)
+                && (heroapi.getHealth().hpPercent() < 0.8 || heroapi.isInFormation(Formation.CHEVRON))) {
+            return Formation.CHEVRON;
         }
 
         return null;
@@ -154,7 +153,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
         if (target != null && target.isValid()) {
             double distance = heroapi.getLocationInfo().getCurrent().distanceTo(target.getLocationInfo());
             double speed = target instanceof Movable ? ((Movable) target).getSpeed() : 0;
-            return distance > 900 && speed >= heroapi.getSpeed();
+            return distance > 500 && (speed >= heroapi.getSpeed() || heroapi.isInFormation(Formation.WHEEL));
         }
 
         return false;

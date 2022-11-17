@@ -23,6 +23,7 @@ import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.entities.Ship;
 import eu.darkbot.api.game.items.SelectableItem.Cpu;
 import eu.darkbot.api.game.items.SelectableItem.Formation;
+import eu.darkbot.api.game.items.SelectableItem.Special;
 import eu.darkbot.api.game.other.GameMap;
 import eu.darkbot.api.game.other.Locatable;
 import eu.darkbot.api.game.other.Location;
@@ -205,9 +206,13 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                     lastTimeAttack = System.currentTimeMillis();
                     if (isNpc) {
                         npcMove();
+                        if (sConfig.specialItems.npcEnabled) {
+                            useSpecialItems();
+                        }
                     } else {
                         shipAttacker.tryAttackOrFix();
                         shipAttacker.vsMove();
+                        useSpecialItems();
                     }
 
                     if (sConfig.aggressiveFollow
@@ -260,6 +265,12 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                 }
             }
         }
+    }
+
+    private void useSpecialItems() {
+        shipAttacker.useKeyWithConditions(sConfig.specialItems.ish, Special.ISH_01);
+        shipAttacker.useKeyWithConditions(sConfig.specialItems.smb, Special.SMB_01);
+        shipAttacker.useKeyWithConditions(sConfig.specialItems.pem, Special.EMP_01);
     }
 
     private void followByPortals() {

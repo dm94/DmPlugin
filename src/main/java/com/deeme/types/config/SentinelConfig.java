@@ -48,4 +48,7 @@ public class SentinelConfig {
 
     @Option("general.auto_cloak")
     public AutoCloak autoCloak = new AutoCloak();
+
+    @Option("general.special_items")
+    public SpecialItems specialItems = new SpecialItems();
 }

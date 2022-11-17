@@ -45,15 +45,9 @@ public class DefenseConfig {
     @Option("general.rsb")
     public boolean useRSB = false;
 
-    @Option("defense.use_alternative_config")
-    public boolean useAlternativeConfig = true;
-
-    @Option("defense.alternative_config_min_health")
+    @Option("defense.run_config_min_health")
     @Percentage
-    public double healthToChange = 0.2;
-
-    @Option("defense.alternative_config")
-    public ShipMode alternativeConfig = ShipMode.of(HeroAPI.Configuration.FIRST, Formation.STANDARD);
+    public double healthToChange = 0.0;
 
     @Option("config.loot.sab")
     public Sab SAB = new Sab();

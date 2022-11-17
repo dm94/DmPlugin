@@ -119,13 +119,13 @@ public class DefenseModule extends TemporalModule {
     }
 
     private void setConfigToUse() {
-        if (defenseConfig.useAlternativeConfig && heroapi.getHealth().hpPercent() <= defenseConfig.healthToChange
+        if (heroapi.getHealth().hpPercent() <= defenseConfig.healthToChange
                 && heroapi.getHealth().shieldPercent() <= 0.1) {
             attackConfigLost = true;
         }
 
-        if (attackConfigLost && defenseConfig.useAlternativeConfig) {
-            heroapi.setMode(defenseConfig.alternativeConfig);
+        if (attackConfigLost) {
+            heroapi.setMode(configRun.getValue());
         } else {
             if (safetyFinder.state() != Escaping.ENEMY) {
                 heroapi.setMode(configOffensive.getValue());

@@ -12,7 +12,6 @@ import eu.darkbot.api.config.types.PercentRange;
 import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
-import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
@@ -68,12 +67,12 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
 
     @Override
     public void onTickBehavior() {
-        Entity target = heroapi.getLocalTarget();
+        Lockable target = heroapi.getLocalTarget();
         if (target != null && target.isValid()) {
             if (target instanceof Npc) {
                 changeRocket(SharedFunctions.getItemById(config.npcRocket));
             } else {
-                changeRocket(getBestRocketPVP());
+                changeRocket(getBestRocketPVP(target));
             }
         }
     }
@@ -88,19 +87,16 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
         }
     }
 
-    private Rocket getBestRocketPVP() {
-        Lockable target = heroapi.getLocalTarget();
-        if (target != null && target.isValid()) {
-            if (config.useICRorDCR && shoulFocusSpeed(target)) {
-                if (isAvailable(Rocket.R_IC3)) {
-                    return Rocket.R_IC3;
-                } else if (isAvailable(Rocket.DCR_250)) {
-                    return Rocket.DCR_250;
-                }
+    private Rocket getBestRocketPVP(Lockable target) {
+        if (config.useICRorDCR && shoulFocusSpeed(target)) {
+            if (isAvailable(Rocket.R_IC3)) {
+                return Rocket.R_IC3;
+            } else if (isAvailable(Rocket.DCR_250)) {
+                return Rocket.DCR_250;
             }
-            if (config.usePLD && isAvailable(Rocket.PLD_8) && shoulUsePLD(target)) {
-                return Rocket.PLD_8;
-            }
+        }
+        if (config.usePLD && isAvailable(Rocket.PLD_8) && shoulUsePLD(target)) {
+            return Rocket.PLD_8;
         }
         if (isAvailable(Rocket.PLT_3030)) {
             return Rocket.PLT_3030;
