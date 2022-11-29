@@ -17,6 +17,7 @@ import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.entities.Ship;
 import eu.darkbot.api.game.group.GroupMember;
+import eu.darkbot.api.game.items.Item;
 import eu.darkbot.api.game.items.ItemCategory;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem.Ability;
@@ -94,13 +95,12 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     private Ability getAbilityAlwaysToUse() {
         try {
             return items.getItems(ItemCategory.SHIP_ABILITIES).stream()
-                    .filter(s -> s.isReadyToUse())
+                    .filter(Item::isReadyToUse)
                     .map(s -> s.getAs(Ability.class))
                     .filter(s -> s != null
                             && config.abilitiesToUseEverytime.stream().anyMatch(a -> a.name().equals(s.name())))
                     .findFirst().orElse(null);
         } catch (Exception e) {
-            System.out.println(e.getLocalizedMessage());
             return null;
         }
     }

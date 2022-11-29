@@ -147,8 +147,8 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
     }
 
     private boolean canBeDisconnected() {
-        if (configPa.goPortalChange) {
-            return canRefresh();
+        if (configPa.goPortalChange && !(canRefresh() && lootModule.canRefresh())) {
+            return false;
         }
         return !heroapi.isAttacking() && !SharedFunctions.hasAttacker(heroapi, main);
     }

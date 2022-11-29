@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import eu.darkbot.api.extensions.selectors.PrioritizedSupplier;
+import eu.darkbot.api.game.items.Item;
 import eu.darkbot.api.game.items.ItemCategory;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
@@ -38,13 +39,13 @@ public class RocketSupplier implements PrioritizedSupplier<SelectableItem> {
                 }
             }
 
-            if (shoulUsePLD(target) && isAvailable(Rocket.PLD_8)) {
+            if (shoulUsePLD() && isAvailable(Rocket.PLD_8)) {
                 return Rocket.PLD_8;
             }
 
             try {
                 return items.getItems(ItemCategory.ROCKETS).stream()
-                        .filter(item -> item.isReadyToUse())
+                        .filter(Item::isReadyToUse)
                         .sorted(Comparator.comparing(i -> damageOrder.indexOf(i.getId()))).findFirst().orElse(null);
             } catch (Exception e) {
                 return null;
@@ -57,7 +58,7 @@ public class RocketSupplier implements PrioritizedSupplier<SelectableItem> {
     public SelectableItem getReverse() {
         try {
             return items.getItems(ItemCategory.ROCKETS).stream()
-                    .filter(item -> item.isReadyToUse())
+                    .filter(Item::isReadyToUse)
                     .sorted(Comparator.comparing(i -> damageOrder.indexOf(i.getId()), Comparator.reverseOrder()))
                     .findFirst().orElse(null);
         } catch (Exception e) {
@@ -72,7 +73,7 @@ public class RocketSupplier implements PrioritizedSupplier<SelectableItem> {
         return distance < 600 && speed > heroapi.getSpeed();
     }
 
-    private boolean shoulUsePLD(Lockable target) {
+    private boolean shoulUsePLD() {
         return heroapi.getHealth().shieldPercent() < 0.8;
     }
 
