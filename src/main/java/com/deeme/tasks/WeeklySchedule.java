@@ -1,6 +1,6 @@
 package com.deeme.tasks;
 
-import com.deeme.modules.PallladiumHangar;
+import com.deeme.modules.PalladiumHangar;
 import com.deeme.modules.temporal.HangarSwitcher;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
@@ -221,7 +221,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
     }
 
     private boolean isRunningPalladiumModule() {
-        return botApi.getModule().getClass() == PallladiumHangar.class;
+        return botApi.getModule().getClass() == PalladiumHangar.class;
     }
 
     private void tryUpdateHangarList() {
