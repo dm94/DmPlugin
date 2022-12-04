@@ -41,7 +41,7 @@ import eu.darkbot.shared.modules.MapModule;
 import eu.darkbot.shared.utils.SafetyFinder;
 
 @Feature(name = "Palladium Hangar", description = "Collect palladium and change hangars to sell")
-public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
+public class PalladiumHangar implements Module, Configurable<PalladiumConfig> {
     protected final Main main;
     protected final PluginAPI api;
     protected final BotAPI botApi;
@@ -87,12 +87,12 @@ public class PallladiumHangar implements Module, Configurable<PalladiumConfig> {
         }
     }
 
-    public PallladiumHangar(Main main, PluginAPI api) {
+    public PalladiumHangar(Main main, PluginAPI api) {
         this(main, api, api.requireAPI(AuthAPI.class), api.requireInstance(SafetyFinder.class));
     }
 
     @Inject
-    public PallladiumHangar(Main main, PluginAPI api, AuthAPI auth, SafetyFinder safety) {
+    public PalladiumHangar(Main main, PluginAPI api, AuthAPI auth, SafetyFinder safety) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);

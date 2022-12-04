@@ -6,7 +6,7 @@
   "supportedVersion": "1.13.17 beta 111 alpha 6",
   "basePackage": "com.deeme",
   "features": [
-    "com.deeme.modules.PallladiumHangar",
+    "com.deeme.modules.PalladiumHangar",
     "com.deeme.modules.SentinelModule",
     "com.deeme.modules.PVPModule",
     "com.deeme.modules.astral.AstralGate",
