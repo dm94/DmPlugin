@@ -3,6 +3,9 @@ package com.deeme.types.config;
 import com.github.manolo8.darkbot.config.types.Option;
 
 public class CustomEventsConfig {
+    @Option("Tick with bot stopped")
+    public boolean tickStopped = false;
+
     public @Option("Event 1") ExtraKeyConditionsKey otherKey = new ExtraKeyConditionsKey();
     public @Option("Event 2") ExtraKeyConditionsKey otherKey2 = new ExtraKeyConditionsKey();
     public @Option("Event 3") ExtraKeyConditionsKey otherKey3 = new ExtraKeyConditionsKey();

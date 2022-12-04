@@ -7,6 +7,7 @@ import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 import com.deeme.types.config.CustomEventsConfig;
 import com.deeme.types.config.ExtraKeyConditionsKey;
+import com.deeme.types.config.ExtraKeyConditionsSelectable;
 import com.github.manolo8.darkbot.config.Config;
 
 import eu.darkbot.api.PluginAPI;
@@ -59,32 +60,36 @@ public class CustomEvents implements Behavior, Configurable<CustomEventsConfig> 
     }
 
     @Override
+    public void onStoppedBehavior() {
+        if (config.tickStopped) {
+            onTickBehavior();
+        }
+    }
+
+    @Override
     public void onTickBehavior() {
         useKeyWithConditions(config.otherKey);
         useKeyWithConditions(config.otherKey2);
         useKeyWithConditions(config.otherKey3);
         useKeyWithConditions(config.otherKey4);
         useKeyWithConditions(config.otherKey5);
-        if (config.selectable1.enable) {
-            useKeyWithConditions(config.selectable1.condition, SharedFunctions.getItemById(config.selectable1.item));
-        }
-        if (config.selectable2.enable) {
-            useKeyWithConditions(config.selectable2.condition, SharedFunctions.getItemById(config.selectable2.item));
-        }
-        if (config.selectable3.enable) {
-            useKeyWithConditions(config.selectable3.condition, SharedFunctions.getItemById(config.selectable3.item));
-        }
-        if (config.selectable4.enable) {
-            useKeyWithConditions(config.selectable4.condition, SharedFunctions.getItemById(config.selectable4.item));
-        }
-        if (config.selectable5.enable) {
-            useKeyWithConditions(config.selectable5.condition, SharedFunctions.getItemById(config.selectable5.item));
-        }
+        useKeyWithConditions(config.selectable1);
+        useKeyWithConditions(config.selectable2);
+        useKeyWithConditions(config.selectable3);
+        useKeyWithConditions(config.selectable4);
+        useKeyWithConditions(config.selectable5);
     }
 
     public boolean useKeyWithConditions(Condition condition, SelectableItem selectableItem) {
         if (selectableItem != null && condition != null && condition.get(api).allows()) {
             return useSelectableReadyWhenReady(selectableItem);
+        }
+        return false;
+    }
+
+    public boolean useKeyWithConditions(ExtraKeyConditionsSelectable extra) {
+        if (extra.enable) {
+            return useKeyWithConditions(extra.condition, SharedFunctions.getItemById(extra.item));
         }
         return false;
     }
