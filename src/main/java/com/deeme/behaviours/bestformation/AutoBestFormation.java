@@ -78,6 +78,13 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     }
 
     @Override
+    public void onStoppedBehavior() {
+        if (config.tickStopped) {
+            onTickBehavior();
+        }
+    }
+
+    @Override
     public void onTickBehavior() {
         if (nextCheck < System.currentTimeMillis()) {
             nextCheck = System.currentTimeMillis() + (config.timeToCheck * 1000);

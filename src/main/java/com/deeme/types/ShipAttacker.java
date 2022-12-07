@@ -317,9 +317,9 @@ public class ShipAttacker {
     }
 
     public Ship getEnemy(int maxDistance) {
-        if (heroapi.getMap().isPvp() || !allPortals.stream().anyMatch(p -> heroapi.distanceTo(p) < 1500)) {
+        if (heroapi.getMap().isPvp() || allPortals.stream().noneMatch(p -> heroapi.distanceTo(p) < 1500)) {
             return allShips.stream()
-                    .filter(s -> (s.getEntityInfo().isEnemy() && !s.getEffects().toString().contains("290")
+                    .filter(s -> (s.getEntityInfo().isEnemy() && !s.hasEffect(290)
                             && s.getLocationInfo().distanceTo(heroapi) <= maxDistance)
                             && !(s instanceof Pet)
                             && !inGroup(s.getId()))

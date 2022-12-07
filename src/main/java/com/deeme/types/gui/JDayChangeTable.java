@@ -25,11 +25,6 @@ public class JDayChangeTable extends InfoTable<GenericTableModel, Hour> implemen
         super.updateUI();
     }
 
-    @Override
-    public void setValueAt(Object value, int row, int column) {
-        super.setValueAt(value, row, column);
-    }
-
     public static class RenderColors extends DefaultTableCellRenderer {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,

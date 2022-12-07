@@ -112,7 +112,7 @@ public class HangarSwitcher extends TemporalModule {
             } else if (!activeHangar.equals(hangarToChage)) {
                 if (!heroapi.isMoving()) {
                     if (isDisconnect()) {
-                        if (!backpageAPI.isInstanceValid() || !main.backpage.sidStatus().contains("OK")) {
+                        if (!this.backpageAPI.isInstanceValid() || !this.backpageAPI.getSidStatus().contains("OK")) {
                             this.currentStatus = State.SID_KO;
                             waitinUntil = System.currentTimeMillis() + 60000;
                         } else {

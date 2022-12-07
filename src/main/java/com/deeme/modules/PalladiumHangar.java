@@ -173,14 +173,14 @@ public class PalladiumHangar implements Module, Configurable<PalladiumConfig> {
             return;
         }
 
-        if (!configPa.ignoreSID || (backpage.isInstanceValid() && main.backpage.sidStatus().contains("OK"))) {
+        if (backpage.isInstanceValid() && this.backpage.getSidStatus().contains("OK")) {
             tryUpdateHangarList();
             if (activeHangar == null) {
                 currentStatus = State.LOADING_HANGARS;
                 updateHangarActive();
                 return;
             }
-        } else {
+        } else if (configPa.ignoreSID) {
             tickOnSidKO();
             return;
         }
@@ -296,7 +296,7 @@ public class PalladiumHangar implements Module, Configurable<PalladiumConfig> {
     }
 
     private void tryUpdateHangarList() {
-        if (!updateHangarList || !backpage.isInstanceValid() || !main.backpage.sidStatus().contains("OK")
+        if (!updateHangarList || !backpage.isInstanceValid() || !backpage.getSidStatus().contains("OK")
                 || nextCheck > System.currentTimeMillis()) {
             return;
         }

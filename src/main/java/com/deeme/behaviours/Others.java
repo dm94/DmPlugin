@@ -16,6 +16,7 @@ import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
+import eu.darkbot.api.managers.BackpageAPI;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.HeroAPI;
@@ -34,6 +35,7 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
     protected final BotAPI bot;
     protected final HeroItemsAPI items;
     protected final HeroAPI heroapi;
+    protected final BackpageAPI backpage;
 
     private Collection<? extends Portal> portals;
 
@@ -52,6 +54,7 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
         this.bot = bot;
         this.stats = stats;
         this.items = heroItems;
+        this.backpage = api.getAPI(BackpageAPI.class);
         this.heroapi = api.getAPI(HeroAPI.class);
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
         this.portals = entities.getPortals();
@@ -64,7 +67,7 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
 
     @Override
     public void onTickBehavior() {
-        if (lcConfig.maxDeathsKO > 0 && main.backpage.sidStatus().contains("KO")) {
+        if (lcConfig.maxDeathsKO > 0 && backpage.getSidStatus().contains("KO")) {
             main.config.GENERAL.SAFETY.MAX_DEATHS = lcConfig.maxDeathsKO;
         }
 

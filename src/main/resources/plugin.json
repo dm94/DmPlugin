@@ -1,9 +1,9 @@
 {
   "name": "DmPlugin",
   "author": "Dm94Dani",
-  "version": "1.7.15",
-  "minVersion": "1.13.17 beta 110",
-  "supportedVersion": "1.13.17 beta 111 alpha 6",
+  "version": "1.7.16",
+  "minVersion": "1.13.17 beta 111 alpha 6",
+  "supportedVersion": "1.13.17 beta 111 alpha 7",
   "basePackage": "com.deeme",
   "features": [
     "com.deeme.modules.PalladiumHangar",
@@ -12,7 +12,7 @@
     "com.deeme.modules.astral.AstralGate",
     "com.deeme.tasks.Discord",
     "com.deeme.tasks.Ifttt",
-    "com.deeme.tasks.Skylab",
+    "com.deeme.tasks.SkylabSender",
     "com.deeme.tasks.WeeklySchedule",
     "com.deeme.tasks.AutoChangeMap",
     "com.deeme.tasks.HitacFollower",
@@ -30,6 +30,6 @@
   ],
   "donation": "https://www.paypal.com/donate/?business=JR2XWPSKLWN76&amount=5&no_recurring=0&currency_code=EUR",
   "discord": "https://discord.gg/GPRTRRZJPw",
-  "download": "https://github.com/darkbot-reloaded/DmPlugin/releases/download/v1.7.15/DmPlugin.jar",
+  "download": "https://github.com/darkbot-reloaded/DmPlugin/releases/download/v1.7.16/DmPlugin.jar",
   "update": "https://raw.githubusercontent.com/darkbot-reloaded/DmPlugin/master/src/main/resources/plugin.json"
 }

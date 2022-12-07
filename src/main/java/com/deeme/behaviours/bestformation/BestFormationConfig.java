@@ -23,4 +23,7 @@ public class BestFormationConfig {
     @Option("best_formation.formations_to_use")
     @Dropdown(multi = true)
     public Set<SupportedFormations> formationsToUse = EnumSet.allOf(SupportedFormations.class);
+
+    @Option("general.tick_stopped")
+    public boolean tickStopped = false;
 }

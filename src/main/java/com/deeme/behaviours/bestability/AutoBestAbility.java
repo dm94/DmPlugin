@@ -77,11 +77,18 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     }
 
     @Override
+    public void onStoppedBehavior() {
+        if (config.tickStopped) {
+            onTickBehavior();
+        }
+    }
+
+    @Override
     public void onTickBehavior() {
         if (nextCheck < System.currentTimeMillis()) {
             nextCheck = System.currentTimeMillis() + (config.timeToCheck * 1000);
             Entity target = heroapi.getLocalTarget();
-            if (target != null && target.isValid()) {
+            if (target != null && target.isValid() && heroapi.isAttacking()) {
                 if (config.npcEnabled || !(target instanceof Npc)) {
                     useSelectableReadyWhenReady(getBestAbility());
                 }

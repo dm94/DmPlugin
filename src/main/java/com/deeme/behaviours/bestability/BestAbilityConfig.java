@@ -33,4 +33,7 @@ public class BestAbilityConfig {
     @Option("best_ability.abilities_to_use_everytime")
     @Dropdown(multi = true)
     public Set<SupportedAbilities> abilitiesToUseEverytime = EnumSet.noneOf(SupportedAbilities.class);
+
+    @Option("general.tick_stopped")
+    public boolean tickStopped = false;
 }

@@ -14,7 +14,7 @@ public class DefenseLaserSupplier implements LaserSelector, PrioritizedSupplier<
     protected final PluginAPI api;
     protected final HeroAPI heroapi;
     private final HeroItemsAPI items;
-    private boolean useRsb, useRcb, useSab, rsbActive = false;
+    private boolean rsbActive = false;
 
     private Sab sab;
 
@@ -27,10 +27,14 @@ public class DefenseLaserSupplier implements LaserSelector, PrioritizedSupplier<
     }
 
     public Laser get() {
-        return shouldRcb() ? Laser.RCB_140
-                : shouldRsb() ? Laser.RSB_75
-                        : shouldSab() ? Laser.SAB_50
-                                : Laser.UCB_100;
+        if (shouldRcb()) {
+            return Laser.RCB_140;
+        } else if (shouldRsb()) {
+            return Laser.RSB_75;
+        } else if (shouldSab()) {
+            return Laser.SAB_50;
+        }
+        return Laser.UCB_100;
     }
 
     private boolean shouldSab() {
@@ -59,14 +63,6 @@ public class DefenseLaserSupplier implements LaserSelector, PrioritizedSupplier<
             }
         }
         return false;
-    }
-
-    @Override
-    public Priority getPriority() {
-        useRcb = shouldRcb();
-        useRsb = shouldRsb();
-        useSab = shouldSab();
-        return useRcb ? Priority.HIGH : useRsb ? Priority.MODERATE : useSab ? Priority.LOW : Priority.LOWEST;
     }
 
     @Override

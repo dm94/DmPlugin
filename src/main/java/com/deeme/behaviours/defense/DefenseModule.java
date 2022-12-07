@@ -92,7 +92,6 @@ public class DefenseModule extends TemporalModule {
                 super.goBack();
             }
         } catch (Exception e) {
-            System.err.println(e);
             super.goBack();
         }
     }
@@ -112,10 +111,7 @@ public class DefenseModule extends TemporalModule {
         }
 
         shipAttacker.resetDefenseData();
-        if (safetyFinder.state() != Escaping.ENEMY) {
-            return false;
-        }
-        return shipAttacker.getTarget() != null;
+        return false;
     }
 
     private void setConfigToUse() {

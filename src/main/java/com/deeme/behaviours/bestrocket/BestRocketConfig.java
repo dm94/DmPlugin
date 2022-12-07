@@ -15,4 +15,7 @@ public class BestRocketConfig {
 
     @Option("best_rocket.usepld")
     public boolean usePLD = true;
+
+    @Option("general.tick_stopped")
+    public boolean tickStopped = false;
 }

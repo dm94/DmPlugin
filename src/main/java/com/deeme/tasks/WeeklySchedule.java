@@ -20,6 +20,7 @@ import eu.darkbot.api.extensions.InstructionProvider;
 import eu.darkbot.api.extensions.Task;
 import eu.darkbot.api.game.other.Gui;
 import eu.darkbot.api.managers.AuthAPI;
+import eu.darkbot.api.managers.BackpageAPI;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.GameScreenAPI;
@@ -39,6 +40,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
     protected final ExtensionsAPI extensionsAPI;
     protected final HeroAPI heroapi;
     protected final BotAPI botApi;
+    protected final BackpageAPI backpage;
     private WeeklyConfig weeklyConfig;
     private Main main;
     private long nextCheck = 0;
@@ -49,8 +51,8 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
     private Integer activeHangar = null;
     private long disconectTime = 0;
     private long nextCheckCurrentHangar = 0;
-    private String lastCheck = "";
     private boolean updateHangarList = true;
+    private JLabel jLabel = new JLabel("Loading");
 
     @Override
     public String instructions() {
@@ -62,10 +64,6 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
 
     public WeeklySchedule(Main main, PluginAPI api) {
         this(main, api, api.requireAPI(AuthAPI.class));
-    }
-
-    public JComponent beforeConfig() {
-        return new JLabel("Last Check: " + lastCheck);
     }
 
     @Inject
@@ -81,6 +79,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
         this.heroapi = api.getAPI(HeroAPI.class);
         this.botApi = api.getAPI(BotAPI.class);
         this.extensionsAPI = api.getAPI(ExtensionsAPI.class);
+        this.backpage = api.getAPI(BackpageAPI.class);
 
         GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
         lostConnectionGUI = gameScreenAPI.getGui("lost_connection");
@@ -89,6 +88,11 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
         this.profileToUse = null;
         this.activeHangar = null;
         this.updateHangarList = true;
+    }
+
+    @Override
+    public JComponent beforeConfig() {
+        return jLabel;
     }
 
     @Override
@@ -169,7 +173,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
         if (nextCheck < System.currentTimeMillis()) {
             LocalDateTime da = LocalDateTime.now();
             int currentHour = da.getHour();
-            lastCheck = String.format("%02d", da.getHour()) + ":" + String.format("%02d", da.getMinute());
+            jLabel.setText(String.format("%02d", da.getHour()) + ":" + String.format("%02d", da.getMinute()));
             Hour hour = this.weeklyConfig.Hours_Changes.get(String.format("%02d", currentHour));
             String profile = "";
             if (hour != null) {
@@ -225,8 +229,8 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
     }
 
     private void tryUpdateHangarList() {
-        if (!updateHangarList || changingHangar || !main.backpage.isInstanceValid()
-                || !main.backpage.sidStatus().contains("OK")) {
+        if (!updateHangarList || changingHangar || !backpage.isInstanceValid()
+                || !backpage.getSidStatus().contains("OK")) {
             return;
         }
 
@@ -246,7 +250,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
     }
 
     private void updateHangarActive() {
-        if (nextCheckCurrentHangar > System.currentTimeMillis() || !main.backpage.isInstanceValid()) {
+        if (nextCheckCurrentHangar > System.currentTimeMillis() || !backpage.isInstanceValid()) {
             return;
         }
         try {

@@ -66,9 +66,16 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
     }
 
     @Override
+    public void onStoppedBehavior() {
+        if (config.tickStopped) {
+            onTickBehavior();
+        }
+    }
+
+    @Override
     public void onTickBehavior() {
         Lockable target = heroapi.getLocalTarget();
-        if (target != null && target.isValid()) {
+        if (target != null && target.isValid() && heroapi.isAttacking(target)) {
             if (target instanceof Npc) {
                 changeRocket(SharedFunctions.getItemById(config.npcRocket));
             } else {
