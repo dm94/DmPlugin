@@ -5,7 +5,6 @@ import com.deeme.types.config.ExtraKeyConditions;
 import com.deeme.types.suppliers.DefenseLaserSupplier;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.Config.Loot.Sab;
-import com.github.manolo8.darkbot.core.api.DarkBoatAdapter;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -167,8 +166,6 @@ public class ShipAttacker {
         if (normal) {
             lastShot = getAttackKey();
             API.keyboardClick(lastShot);
-        } else if (API instanceof DarkBoatAdapter) {
-            heroapi.triggerLaserAttack();
         } else if (target != null && target.isValid()) {
             target.trySelect(true);
         }
