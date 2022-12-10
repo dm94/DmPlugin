@@ -2,8 +2,8 @@
   "name": "DmPlugin",
   "author": "Dm94Dani",
   "version": "1.7.16",
-  "minVersion": "1.13.17 beta 111 alpha 6",
-  "supportedVersion": "1.13.17 beta 111 alpha 7",
+  "minVersion": "1.13.17 beta 111",
+  "supportedVersion": "1.13.17 beta 111",
   "basePackage": "com.deeme",
   "features": [
     "com.deeme.modules.PalladiumHangar",
