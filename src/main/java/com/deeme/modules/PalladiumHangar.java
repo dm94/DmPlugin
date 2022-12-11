@@ -78,7 +78,8 @@ public class PalladiumHangar implements Module, Configurable<PalladiumConfig> {
         HANGAR_PALA_OTHER_MAP("Hangar paladium - To 5-3"),
         SWITCHING_PALA_HANGAR("Switching to the palladium hangar"),
         LOADING_HANGARS("Waiting - Loading hangars"),
-        SEARCHING_PORTALS("Looking for a portal to change hangar");
+        SEARCHING_PORTALS("Looking for a portal to change hangar"),
+        ERROR_NO_HANGAR("Error - No active hangar");
 
         private final String message;
 
@@ -182,6 +183,11 @@ public class PalladiumHangar implements Module, Configurable<PalladiumConfig> {
             }
         } else if (configPa.ignoreSID) {
             tickOnSidKO();
+            return;
+        }
+
+        if (activeHangar == null) {
+            this.currentStatus = State.ERROR_NO_HANGAR;
             return;
         }
 
