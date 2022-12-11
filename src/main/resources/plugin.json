@@ -17,6 +17,7 @@
     "com.deeme.tasks.AutoChangeMap",
     "com.deeme.tasks.HitacFollower",
     "com.deeme.tasks.ExternalChat",
+    "com.deeme.tasks.ConfigExporter",
     "com.deeme.behaviours.Others",
     "com.deeme.behaviours.defense.DefenseMode",
     "com.deeme.behaviours.PVPLog",
