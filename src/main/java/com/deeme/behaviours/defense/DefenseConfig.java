@@ -7,9 +7,6 @@ import eu.darkbot.api.config.annotations.Configuration;
 import eu.darkbot.api.config.annotations.Dropdown;
 import eu.darkbot.api.config.annotations.Option;
 import eu.darkbot.api.config.annotations.Percentage;
-import eu.darkbot.api.config.types.ShipMode;
-import eu.darkbot.api.game.items.SelectableItem.Formation;
-import eu.darkbot.api.managers.HeroAPI;
 
 @Configuration("defense")
 public class DefenseConfig {
