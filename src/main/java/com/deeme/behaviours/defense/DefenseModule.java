@@ -37,24 +37,26 @@ public class DefenseModule extends TemporalModule {
     private boolean attackConfigLost = false;
     private Entity target = null;
 
+    private long nextAttackCheck = 0;
+    private final int maxSecondsTimeOut = 20;
+
+    private int timeOut = 0;
+
     public DefenseModule(PluginAPI api, DefenseConfig defenseConfig, Entity target) {
         this(api, api.requireAPI(BotAPI.class),
-                api.requireAPI(HeroAPI.class),
-                api.requireAPI(MovementAPI.class),
-                api.requireAPI(ConfigAPI.class),
-                api.requireAPI(EntitiesAPI.class),
-                api.requireInstance(SafetyFinder.class), defenseConfig, target);
+                api.requireAPI(HeroAPI.class), defenseConfig, target);
 
     }
 
     @Inject
-    public DefenseModule(PluginAPI api, BotAPI bot, HeroAPI hero, MovementAPI movement, ConfigAPI configApi,
-            EntitiesAPI entities, SafetyFinder safety, DefenseConfig defenseConfig, Entity target) {
+    public DefenseModule(PluginAPI api, BotAPI bot, HeroAPI hero, DefenseConfig defenseConfig, Entity target) {
         super(bot);
         this.api = api;
         this.heroapi = hero;
-        this.movement = movement;
-        this.safetyFinder = safety;
+        this.movement = api.requireAPI(MovementAPI.class);
+        this.safetyFinder = api.requireInstance(SafetyFinder.class);
+        EntitiesAPI entities = api.requireAPI(EntitiesAPI.class);
+        ConfigAPI configApi = api.requireAPI(ConfigAPI.class);
         this.players = entities.getPlayers();
         this.configOffensive = configApi.requireConfig("general.offensive");
         this.configRun = configApi.requireConfig("general.run");
@@ -62,6 +64,8 @@ public class DefenseModule extends TemporalModule {
         this.defenseConfig = defenseConfig;
         this.shipAttacker = new ShipAttacker(api, defenseConfig);
         this.target = target;
+        this.nextAttackCheck = 0;
+        this.timeOut = 0;
     }
 
     @Override
@@ -71,7 +75,8 @@ public class DefenseModule extends TemporalModule {
 
     @Override
     public String getStatus() {
-        return "Defense Mode | " + shipAttacker.getStatus() + " | " + safetyFinder.status();
+        return "Defense Mode | " + shipAttacker.getStatus() + " | " + safetyFinder.status() + " | Time out:" + timeOut
+                + "/" + maxSecondsTimeOut;
     }
 
     @Override
@@ -87,12 +92,29 @@ public class DefenseModule extends TemporalModule {
                 shipAttacker.useKeyWithConditions(defenseConfig.PEM, Special.EMP_01);
                 shipAttacker.tryAttackOrFix();
                 movementLogic();
+                timeOutCheck();
             } else {
                 target = null;
                 super.goBack();
             }
         } catch (Exception e) {
+            target = null;
             super.goBack();
+        }
+    }
+
+    private void timeOutCheck() {
+        if (nextAttackCheck < System.currentTimeMillis()) {
+            nextAttackCheck = System.currentTimeMillis() + 1000;
+            if (heroapi.isAttacking(shipAttacker.getTarget())) {
+                timeOut = 0;
+            } else {
+                timeOut++;
+                if (timeOut >= maxSecondsTimeOut) {
+                    target = null;
+                    super.goBack();
+                }
+            }
         }
     }
 

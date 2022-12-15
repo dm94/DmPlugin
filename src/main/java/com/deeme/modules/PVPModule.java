@@ -75,8 +75,12 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     private boolean isConfigAttackFull = false;
     private boolean isCongigRunFull = false;
 
-    private boolean antiPush = true;
+    private long nextAttackCheck = 0;
+    private final int maxSecondsTimeOut = 10;
 
+    private int timeOut = 0;
+
+    private boolean antiPush = true;
     private final int maxKills = 4;
 
     private ArrayList<Integer> playersKilled = new ArrayList<>();
@@ -129,7 +133,8 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         if (safety.state() != SafetyFinder.Escaping.NONE) {
             return safety.status();
         } else if (target != null) {
-            return shipAttacker.getStatus();
+            return shipAttacker.getStatus() + " | Time out:" + timeOut
+                    + "/" + maxSecondsTimeOut;
         }
         return collectorModule.getStatus();
     }
@@ -201,6 +206,21 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
 
         if (pvpConfig.move) {
             shipAttacker.vsMove();
+        }
+        timeOutCheck();
+    }
+
+    private void timeOutCheck() {
+        if (nextAttackCheck < System.currentTimeMillis()) {
+            nextAttackCheck = System.currentTimeMillis() + 1000;
+            if (heroapi.isAttacking(shipAttacker.getTarget())) {
+                timeOut = 0;
+            } else {
+                timeOut++;
+                if (timeOut >= maxSecondsTimeOut) {
+                    target = null;
+                }
+            }
         }
     }
 
