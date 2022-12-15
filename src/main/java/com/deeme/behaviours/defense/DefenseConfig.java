@@ -1,5 +1,8 @@
 package com.deeme.behaviours.defense;
 
+import java.util.EnumSet;
+import java.util.Set;
+
 import com.deeme.types.config.ExtraKeyConditions;
 import com.github.manolo8.darkbot.config.Config.Loot.Sab;
 
@@ -14,17 +17,12 @@ public class DefenseConfig {
     @Option("defense.respond_attacks")
     public boolean respondAttacks = true;
 
-    @Option("defense.help_allies")
-    public boolean helpAllies = true;
-
-    @Option("defense.help_group")
-    public boolean helpGroup = true;
+    @Option("defense.help_list")
+    @Dropdown(multi = true)
+    public Set<HelpList> helpList = EnumSet.of(HelpList.ALLY, HelpList.CLAN, HelpList.GROUP);
 
     @Option("defense.go_to_group")
     public boolean goToGroup = true;
-
-    @Option("defense.help_everyone")
-    public boolean helpEveryone = true;
 
     @Option("defense.help_attack")
     public boolean helpAttack = true;

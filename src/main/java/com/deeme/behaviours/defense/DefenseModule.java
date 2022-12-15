@@ -104,14 +104,13 @@ public class DefenseModule extends TemporalModule {
 
         if (shipAttacker.getTarget() != null && shipAttacker.getTarget().isValid()
                 && shipAttacker.getTarget().getId() != heroapi.getId()
-                && shipAttacker.getTarget().getEntityInfo().isEnemy()
                 && (!defenseConfig.ignoreEnemies
                         || shipAttacker.getTarget().getLocationInfo().distanceTo(heroapi) < 1500)) {
             return true;
         }
 
         if (target.isValid()
-                && (!defenseConfig.ignoreEnemies || target.getLocationInfo().distanceTo(heroapi) < 1500)) {
+                && target.getLocationInfo().distanceTo(heroapi) < 1500 && movement.canMove(target)) {
             shipAttacker.setTarget((Ship) target);
             return true;
         }

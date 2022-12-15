@@ -33,8 +33,10 @@ import eu.darkbot.shared.modules.CollectorModule;
 import eu.darkbot.shared.modules.MapModule;
 import eu.darkbot.shared.utils.SafetyFinder;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 @Feature(name = "PVP Module", description = "It is limited so as not to spoil the game")
 public class PVPModule implements Module, Configurable<PVPConfig> {
@@ -72,6 +74,13 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
 
     private boolean isConfigAttackFull = false;
     private boolean isCongigRunFull = false;
+
+    private boolean antiPush = true;
+
+    private final int maxKills = 4;
+
+    private ArrayList<Integer> playersKilled = new ArrayList<>();
+    private int lastPlayerId = 0;
 
     public PVPModule(PluginAPI api) {
         this(api, api.requireAPI(HeroAPI.class),
@@ -150,9 +159,19 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     public void onTickModule() {
         pet.setEnabled(true);
         if (!pvpConfig.move || (safety.tick() && checkMap())) {
-            if (getTarget()) {
+            if (hasTarget()) {
+                if (target.getId() != lastPlayerId) {
+                    playersKilled.add(lastPlayerId);
+                }
+                if (target.getHealth().getHp() <= 30000) {
+                    lastPlayerId = target.getId();
+                }
                 attackLogic();
             } else {
+                if (0 != lastPlayerId) {
+                    playersKilled.add(lastPlayerId);
+                    lastPlayerId = 0;
+                }
                 attackConfigLost = false;
                 target = null;
                 shipAttacker.resetDefenseData();
@@ -236,14 +255,14 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         return true;
     }
 
-    private boolean getTarget() {
+    private boolean hasTarget() {
         if ((target != null && target.isValid() && !shipAttacker.inGroup(target.getId())
                 && target.getLocationInfo().distanceTo(heroapi) < pvpConfig.rangeForAttackedEnemy)
                 || isUnderAttack()) {
             return true;
         }
 
-        target = shipAttacker.getEnemy(pvpConfig.rangeForEnemies);
+        target = shipAttacker.getEnemy(pvpConfig.rangeForEnemies, getIgnoredPlayers());
         shipAttacker.setTarget(target);
         return target != null;
     }
@@ -254,7 +273,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
             heroapi.setMode(configRun.getValue());
         } else if (pvpConfig.useRunConfig && target != null) {
             double distance = heroapi.getLocationInfo().distanceTo(target);
-            if (distance > 400 && distance > lastDistanceTarget && target.getSpeed() > heroapi.getSpeed()) {
+            if (distance > 500 && distance > lastDistanceTarget && target.getSpeed() > heroapi.getSpeed()) {
                 heroapi.setMode(configRun.getValue());
                 lastDistanceTarget = distance;
             } else {
@@ -267,7 +286,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
 
     private boolean isUnderAttack() {
         Entity targetAttacker = SharedFunctions.getAttacker(heroapi, players, heroapi);
-        if (targetAttacker != null) {
+        if (targetAttacker != null && targetAttacker.isValid()) {
             shipAttacker.setTarget((Ship) targetAttacker);
             return true;
         }
@@ -276,5 +295,19 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         target = null;
 
         return false;
+    }
+
+    private ArrayList<Integer> getIgnoredPlayers() {
+        ArrayList<Integer> playersToIgnore = new ArrayList<>();
+
+        if (antiPush) {
+            playersKilled.forEach(id -> {
+                if (!playersToIgnore.contains(id) && Collections.frequency(playersKilled, id) >= maxKills) {
+                    playersToIgnore.add(id);
+                }
+            });
+        }
+
+        return playersToIgnore;
     }
 }

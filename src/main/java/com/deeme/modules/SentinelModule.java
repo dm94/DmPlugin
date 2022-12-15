@@ -236,9 +236,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                 } else {
                     sentinel = null;
                 }
-            } else if (sConfig.followByPortals && lastSentinelLocation != null) {
-                followByPortals();
-            } else {
+            } else if (!followByPortals()) {
                 groupLeaderID = 0;
                 if (group.hasGroup()) {
                     goToGroup();
@@ -273,15 +271,26 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         shipAttacker.useKeyWithConditions(sConfig.specialItems.pem, Special.EMP_01);
     }
 
-    private void followByPortals() {
+    private boolean followByPortals() {
+        if (!sConfig.followByPortals || lastSentinelLocation == null) {
+            return false;
+        }
         Portal portal = getNearestPortal(lastSentinelLocation);
         if (portal != null) {
+            if (group.hasGroup() && masterID != 0) {
+                eu.darkbot.api.game.group.GroupMember member = group.getMember(masterID);
+                if (member != null && !member.isDead()) {
+                    return false;
+                }
+            }
             portal.getTargetMap().ifPresentOrElse(
                     m -> this.bot.setModule(api.requireInstance(MapModule.class)).setTarget(m),
                     () -> lastSentinelLocation = null);
+            return true;
         } else {
             lastSentinelLocation = null;
         }
+        return false;
     }
 
     private void autoCloack() {
@@ -398,6 +407,10 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                     groupLeaderID = m.getId();
                 }
                 masterID = m.getId();
+
+                if (heroapi.getMap() != null && m.getMapId() == heroapi.getMap().getId()) {
+                    lastSentinelLocation = m.getLocation();
+                }
                 if (m.getMapId() == heroapi.getMap().getId()) {
                     movement.moveTo(m.getLocation());
                     currentStatus = State.FOLLOWING_MASTER;

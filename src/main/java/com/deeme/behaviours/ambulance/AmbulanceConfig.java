@@ -1,4 +1,4 @@
-package com.deeme.types.config;
+package com.deeme.behaviours.ambulance;
 
 import eu.darkbot.api.config.annotations.Configuration;
 import eu.darkbot.api.config.annotations.Dropdown;
@@ -25,4 +25,7 @@ public class AmbulanceConfig {
 
     @Option("ambulance.repair_shield")
     public boolean repairShield = true;
+
+    @Option("ambulance.return_to_target")
+    public boolean returnToTarget = false;
 }

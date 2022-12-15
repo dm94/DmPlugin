@@ -1,4 +1,4 @@
-package com.deeme.modules.temporal;
+package com.deeme.behaviours.ambulance;
 
 import java.util.Collection;
 
@@ -30,11 +30,11 @@ public class AmbulanceModule extends TemporalModule {
     private Lockable oldTarget = null;
 
     private long clickDelay;
-    private long keyDelay;
     private State currentStatus;
     private long maxModuleTime = 0;
 
     private boolean abilityUsed = false;
+    private boolean returnToTarget = true;
 
     private enum State {
         INIT("Init"),
@@ -52,28 +52,27 @@ public class AmbulanceModule extends TemporalModule {
         }
     }
 
-    public AmbulanceModule(PluginAPI api, int idMember, Ability abilityToUse) {
-        this(api, api.requireAPI(BotAPI.class),
-                api.requireAPI(HeroAPI.class),
-                api.requireAPI(MovementAPI.class),
-                api.requireAPI(EntitiesAPI.class), api.requireAPI(GroupAPI.class), idMember, abilityToUse);
-
+    public AmbulanceModule(PluginAPI api, int idMember, Ability abilityToUse, boolean returnToTarget) {
+        this(api, api.requireAPI(BotAPI.class), idMember, abilityToUse, returnToTarget);
     }
 
     @Inject
-    public AmbulanceModule(PluginAPI api, BotAPI bot, HeroAPI hero, MovementAPI movement,
-            EntitiesAPI entities, GroupAPI groupAPI, int idMember, Ability abilityToUse) {
+    public AmbulanceModule(PluginAPI api, BotAPI bot, int idMember, Ability abilityToUse, boolean returnToTarget) {
         super(bot);
         this.api = api;
-        this.heroapi = hero;
-        this.movement = movement;
-        this.groupAPI = groupAPI;
+        this.movement = api.getAPI(MovementAPI.class);
+        this.groupAPI = api.getAPI(GroupAPI.class);
+        this.heroapi = api.getAPI(HeroAPI.class);
         this.items = api.getAPI(HeroItemsAPI.class);
+
+        EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
         this.idMember = idMember;
         this.abilityToUse = abilityToUse;
         this.players = entities.getPlayers();
         this.currentStatus = State.INIT;
         this.maxModuleTime = System.currentTimeMillis() + 60000;
+        this.returnToTarget = returnToTarget;
+        this.abilityUsed = false;
     }
 
     @Override
@@ -89,59 +88,68 @@ public class AmbulanceModule extends TemporalModule {
     @Override
     public void onTickModule() {
         try {
-            if (idMember != 0 && abilityToUse != null) {
-                if (maxModuleTime != 0 && maxModuleTime < System.currentTimeMillis()) {
+            if (idMember == 0 || abilityToUse == null) {
+                super.goBack();
+                return;
+            }
+            if (maxModuleTime != 0 && maxModuleTime < System.currentTimeMillis()) {
+                super.goBack();
+                return;
+            }
+            if (abilityUsed) {
+                if (returnToTarget) {
+                    selectOldTarget();
+                } else {
                     super.goBack();
                 }
-                if (!abilityUsed) {
-                    this.currentStatus = State.SEARCHING_MEMBER;
-                    Player player = getPlayerIfIsClosed();
-                    if (player != null && player.isValid()) {
-                        if (abilityToUse == Ability.AEGIS_REPAIR_POD) {
-                            useAbilityReadyWhenReady();
-                        } else {
-                            if (heroapi.getTarget() != null && heroapi.getTarget().getId() != player.getId()) {
-                                oldTarget = heroapi.getLocalTarget();
-                            } else if (heroapi.getTarget() != null && heroapi.getTarget().getId() == player.getId()) {
-                                useAbilityReadyWhenReady();
-                            } else {
-                                this.currentStatus = State.TARGET_MEMBER;
-                                if (heroapi.getLocationInfo().distanceTo(player) < 800) {
-                                    if (System.currentTimeMillis() - clickDelay > 500) {
-                                        heroapi.setLocalTarget(player);
-                                        player.trySelect(false);
-                                        clickDelay = System.currentTimeMillis();
-                                    }
-                                } else {
-                                    movement.moveTo(player);
-                                }
-                            }
-                        }
-                    } else {
-                        goToMemberAttacked();
-                    }
+                return;
+            }
+            this.currentStatus = State.SEARCHING_MEMBER;
+            Player player = getPlayerIfIsClosed();
+            if (player != null && player.isValid()) {
+                if (abilityToUse == Ability.AEGIS_REPAIR_POD) {
+                    useAbilityReadyWhenReady();
                 } else {
-                    if (oldTarget != null && oldTarget.isValid() && heroapi.getTarget() != null
-                            && heroapi.getTarget() != oldTarget) {
-                        this.currentStatus = State.TARGET_OLD_TARGET;
-                        if (heroapi.getLocationInfo().distanceTo(oldTarget) < 800) {
-                            if (System.currentTimeMillis() - clickDelay > 500) {
-                                heroapi.setLocalTarget(oldTarget);
-                                oldTarget.trySelect(false);
+                    if (heroapi.getTarget() != null && heroapi.getTarget().getId() != player.getId()) {
+                        oldTarget = heroapi.getLocalTarget();
+                    } else {
+                        this.currentStatus = State.TARGET_MEMBER;
+                        if (heroapi.getLocationInfo().distanceTo(player) <= 600) {
+                            if (heroapi.getTarget() != null && heroapi.getTarget().getId() == player.getId()) {
+                                useAbilityReadyWhenReady();
+                            } else if (System.currentTimeMillis() - clickDelay > 500) {
+                                heroapi.setLocalTarget(player);
+                                player.trySelect(false);
                                 clickDelay = System.currentTimeMillis();
                             }
                         } else {
-                            super.goBack();
+                            movement.moveTo(player);
                         }
-                    } else {
-                        super.goBack();
                     }
+                }
+            } else {
+                goToMemberAttacked();
+            }
+        } catch (Exception e) {
+            System.err.println(e);
+            super.goBack();
+        }
+    }
+
+    private void selectOldTarget() {
+        if (oldTarget != null && oldTarget.isValid() && heroapi.getTarget() != null
+                && heroapi.getTarget() != oldTarget) {
+            this.currentStatus = State.TARGET_OLD_TARGET;
+            if (heroapi.getLocationInfo().distanceTo(oldTarget) <= 600) {
+                if (System.currentTimeMillis() - clickDelay > 500) {
+                    heroapi.setLocalTarget(oldTarget);
+                    oldTarget.trySelect(false);
+                    clickDelay = System.currentTimeMillis();
                 }
             } else {
                 super.goBack();
             }
-        } catch (Exception e) {
-            System.err.println(e);
+        } else {
             super.goBack();
         }
     }
@@ -163,13 +171,13 @@ public class AmbulanceModule extends TemporalModule {
 
     private void useAbilityReadyWhenReady() {
         this.currentStatus = State.USING_ABILITY;
-        if (abilityToUse == null || System.currentTimeMillis() - keyDelay < 500) {
-            abilityUsed = false;
+        if (abilityToUse == null) {
+            abilityUsed = true;
+            return;
         }
 
         if (items.getItem(abilityToUse, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
             if (items.useItem(abilityToUse).isSuccessful()) {
-                keyDelay = System.currentTimeMillis();
                 abilityUsed = true;
             }
         } else {

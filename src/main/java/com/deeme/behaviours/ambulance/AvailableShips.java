@@ -1,4 +1,4 @@
-package com.deeme.types.config;
+package com.deeme.behaviours.ambulance;
 
 import eu.darkbot.api.config.annotations.Configuration;
 

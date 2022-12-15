@@ -24,6 +24,8 @@ import eu.darkbot.api.managers.GroupAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.MovementAPI;
 import eu.darkbot.api.utils.Inject;
+import eu.darkbot.shared.modules.TemporalModule;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -80,6 +82,7 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
         if (botApi.getModule() != null && botApi.getModule().getClass() != DefenseModule.class
                 && !(botApi.getModule().getClass() == PVPModule.class && heroapi.isAttacking())
                 && !(botApi.getModule().getClass() == SentinelModule.class && heroapi.isAttacking())
+                && !(botApi.getModule() instanceof TemporalModule)
                 && isUnderAttack()) {
             botApi.setModule(new DefenseModule(api, defenseConfig, target));
         }
@@ -97,8 +100,8 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
     }
 
     private boolean isUnderAttack() {
-        if (target != null && target.isValid() && target.getId() != heroapi.getId() && (!defenseConfig.ignoreEnemies
-                || target.getLocationInfo().distanceTo(heroapi) < 1500)) {
+        if (target != null && target.isValid() && target.getId() != heroapi.getId()
+                && target.getLocationInfo().distanceTo(heroapi) < 2000) {
             return true;
         }
 
@@ -110,9 +113,14 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
         }
 
         List<Player> ships = players.stream()
-                .filter(s -> (defenseConfig.helpAllies && s.getEntityInfo().getClanDiplomacy() == Diplomacy.ALLIED)
-                        || (defenseConfig.helpEveryone && !s.getEntityInfo().isEnemy())
-                        || (defenseConfig.helpGroup && inGroupAttacked(s.getId())))
+                .filter(Player::isValid)
+                .filter(s -> (defenseConfig.helpList.contains(HelpList.CLAN)
+                        && s.getEntityInfo().getClanId() == heroapi.getEntityInfo().getClanId())
+                        || (defenseConfig.helpList.contains(HelpList.ALLY)
+                                && s.getEntityInfo().getClanDiplomacy() == Diplomacy.ALLIED)
+                        || (defenseConfig.helpList.contains(HelpList.GROUP) && inGroupAttacked(s.getId())
+                                || (defenseConfig.helpList.contains(HelpList.EVERYONE)
+                                        && !s.getEntityInfo().isEnemy())))
                 .collect(Collectors.toList());
 
         if (!ships.isEmpty()) {
@@ -140,24 +148,9 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
     }
 
     public void goToMemberAttacked() {
-        GroupMember member = getMemberGroupAttacked();
+        GroupMember member = SharedFunctions.getMemberGroupAttacked(group, heroapi, configApi);
         if (member != null) {
             movement.moveTo(member.getLocation());
         }
-    }
-
-    private GroupMember getMemberGroupAttacked() {
-        if (group.hasGroup()) {
-            for (GroupMember member : group.getMembers()) {
-                if (!member.isDead() && member.getMapId() == heroapi.getMap().getId() && member.isAttacked()
-                        && member.getTargetInfo() != null
-                        && member.getTargetInfo().getShipType() != 0 && !member.getTargetInfo().getUsername().isEmpty()
-                        && !SharedFunctions.isNpc(configApi, member.getTargetInfo().getUsername())) {
-                    return member;
-
-                }
-            }
-        }
-        return null;
     }
 }

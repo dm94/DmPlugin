@@ -7,10 +7,12 @@ import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.config.types.NpcInfo;
 import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.entities.Ship;
+import eu.darkbot.api.game.group.GroupMember;
 import eu.darkbot.api.game.items.ItemCategory;
 import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
+import eu.darkbot.api.managers.GroupAPI;
 import eu.darkbot.api.managers.HeroAPI;
 
 import java.util.Collection;
@@ -37,6 +39,7 @@ public class SharedFunctions {
         }
 
         return allShips.stream()
+                .filter(Ship::isValid)
                 .filter(s -> (s instanceof Npc || s.getEntityInfo().isEnemy()) && s.getId() != hero.getId())
                 .filter(s -> !(s instanceof Pet))
                 .filter(s -> s.isAttacking(assaulted))
@@ -49,7 +52,7 @@ public class SharedFunctions {
         return ship != null;
     }
 
-    public static boolean isNpc(ConfigAPI config, String name) {
+    public static boolean isNpcByName(ConfigAPI config, String name) {
         ConfigSetting<Map<String, NpcInfo>> configSetting = config.requireConfig("loot.npc_infos");
         if (configSetting.getValue() != null) {
             Map<String, NpcInfo> npcInfos = configSetting.getValue();
@@ -72,6 +75,21 @@ public class SharedFunctions {
                 SelectableItem next = itItem.next();
                 if (next.getId().equals(id)) {
                     return next;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static GroupMember getMemberGroupAttacked(GroupAPI group, HeroAPI heroapi, ConfigAPI configApi) {
+        if (group.hasGroup()) {
+            for (GroupMember member : group.getMembers()) {
+                if (!member.isDead() && member.getMapId() == heroapi.getMap().getId() && member.isAttacked()
+                        && member.getTargetInfo() != null
+                        && member.getTargetInfo().getShipType() != 0 && !member.getTargetInfo().getUsername().isEmpty()
+                        && !SharedFunctions.isNpcByName(configApi, member.getTargetInfo().getUsername())) {
+                    return member;
+
                 }
             }
         }

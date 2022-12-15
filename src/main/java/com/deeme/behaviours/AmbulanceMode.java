@@ -3,11 +3,10 @@ package com.deeme.behaviours;
 
 import java.util.Arrays;
 
-import com.deeme.modules.temporal.AmbulanceModule;
+import com.deeme.behaviours.ambulance.AmbulanceConfig;
+import com.deeme.behaviours.ambulance.AmbulanceModule;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
-import com.deeme.types.config.AmbulanceConfig;
-import com.deeme.types.config.AvailableShips;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -74,23 +73,21 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
             nextCheck = System.currentTimeMillis() + (config.timeToCheck * 1000);
             int memberToHelp = getMemberLowLife();
             if (memberToHelp != 0) {
-                Ability ability = getAbility();
-                if (ability != null) {
-                    if (config.shipType == AvailableShips.SOLACE) {
-                        items.useItem(ability);
-                    } else if (botApi.getModule().getClass() != AmbulanceModule.class) {
-                        botApi.setModule(new AmbulanceModule(api, memberToHelp, ability));
-                    }
-                }
+                setTemporalModule(memberToHelp, getHealthAbility());
             } else if (config.repairShield) {
                 memberToHelp = getMemberLowShield();
-                if (memberToHelp != 0
-                        && items.getItem(Ability.AEGIS_SHIELD_REPAIR, ItemFlag.USABLE, ItemFlag.READY,
-                                ItemFlag.AVAILABLE).isPresent()
-                        && botApi.getModule().getClass() != AmbulanceModule.class) {
-                    botApi.setModule(new AmbulanceModule(api, memberToHelp, Ability.AEGIS_SHIELD_REPAIR));
+                if (memberToHelp != 0) {
+                    setTemporalModule(memberToHelp, getShieldAbility());
                 }
             }
+        }
+    }
+
+    private void setTemporalModule(int memberToHelp, Ability ability) {
+        if (ability != null && botApi.getModule().getClass() != AmbulanceModule.class) {
+            botApi.setModule(
+                    new AmbulanceModule(api, memberToHelp, Ability.AEGIS_SHIELD_REPAIR,
+                            config.returnToTarget));
         }
     }
 
@@ -120,26 +117,30 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
         return 0;
     }
 
-    public Ability getAbility() {
-        if (config.shipType == AvailableShips.AEGIS || config.shipType == AvailableShips.HAMMERCLAW) {
-            if (items.getItem(Ability.AEGIS_HP_REPAIR, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE)
-                    .isPresent()) {
-                return Ability.AEGIS_HP_REPAIR;
-            }
-            if (items.getItem(Ability.AEGIS_REPAIR_POD, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE)
-                    .isPresent()) {
-                return Ability.AEGIS_REPAIR_POD;
-            }
-        } else if (config.shipType == AvailableShips.SOLACE) {
-            if (items.getItem(Ability.SOLACE, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE).isPresent()) {
-                return Ability.SOLACE;
-            }
-            if (items.getItem(Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS, ItemFlag.USABLE, ItemFlag.READY,
-                    ItemFlag.AVAILABLE)
-                    .isPresent()) {
-                return Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS;
+    public Ability getShieldAbility() {
+        if (items.getItem(Ability.AEGIS_SHIELD_REPAIR, ItemFlag.USABLE, ItemFlag.READY,
+                ItemFlag.AVAILABLE).isPresent()) {
+            return Ability.AEGIS_SHIELD_REPAIR;
+        }
+        return null;
+    }
 
-            }
+    public Ability getHealthAbility() {
+        if (items.getItem(Ability.AEGIS_HP_REPAIR, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE)
+                .isPresent()) {
+            return Ability.AEGIS_HP_REPAIR;
+        }
+        if (items.getItem(Ability.AEGIS_REPAIR_POD, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE)
+                .isPresent()) {
+            return Ability.AEGIS_REPAIR_POD;
+        }
+        if (items.useItem(Ability.SOLACE, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE).isSuccessful()) {
+            return null;
+        }
+        if (items.useItem(Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS, ItemFlag.USABLE, ItemFlag.READY,
+                ItemFlag.AVAILABLE)
+                .isSuccessful()) {
+            return null;
         }
         return null;
     }

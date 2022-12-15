@@ -16,7 +16,6 @@ import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
-import eu.darkbot.api.extensions.Module;
 import eu.darkbot.api.game.entities.Station;
 import eu.darkbot.api.game.other.GameMap;
 import eu.darkbot.api.game.other.Gui;
@@ -28,10 +27,8 @@ import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.GameScreenAPI;
 import eu.darkbot.api.managers.HeroAPI;
-import eu.darkbot.api.managers.MovementAPI;
 import eu.darkbot.api.managers.OreAPI;
 import eu.darkbot.api.managers.OreAPI.Ore;
-import eu.darkbot.api.managers.PetAPI;
 import eu.darkbot.api.managers.StarSystemAPI;
 import eu.darkbot.api.managers.StarSystemAPI.MapNotFoundException;
 import eu.darkbot.api.managers.StatsAPI;
@@ -41,16 +38,14 @@ import eu.darkbot.shared.modules.MapModule;
 import eu.darkbot.shared.utils.SafetyFinder;
 
 @Feature(name = "Palladium Hangar", description = "Collect palladium and change hangars to sell")
-public class PalladiumHangar implements Module, Configurable<PalladiumConfig> {
+public class PalladiumHangar extends LootCollectorModule implements Configurable<PalladiumConfig> {
     protected final Main main;
     protected final PluginAPI api;
     protected final BotAPI botApi;
     protected final OreAPI oreApi;
     protected final HeroAPI heroapi;
     protected final AttackAPI attackApi;
-    protected final MovementAPI movement;
     protected final StatsAPI stats;
-    protected final PetAPI pet;
     protected final BackpageAPI backpage;
     private GameMap sellMap;
     private GameMap activeMap;
@@ -58,7 +53,6 @@ public class PalladiumHangar implements Module, Configurable<PalladiumConfig> {
     private Gui tradeGui;
 
     private PalladiumConfig configPa;
-    protected LootCollectorModule lootModule;
     private State currentStatus;
 
     private long sellClick;
@@ -94,6 +88,7 @@ public class PalladiumHangar implements Module, Configurable<PalladiumConfig> {
 
     @Inject
     public PalladiumHangar(Main main, PluginAPI api, AuthAPI auth, SafetyFinder safety) {
+        super(api);
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
@@ -105,10 +100,8 @@ public class PalladiumHangar implements Module, Configurable<PalladiumConfig> {
         this.botApi = api.getAPI(BotAPI.class);
         this.heroapi = api.getAPI(HeroAPI.class);
         this.attackApi = api.getAPI(AttackAPI.class);
-        this.movement = api.getAPI(MovementAPI.class);
         this.oreApi = api.getAPI(OreAPI.class);
         this.stats = api.getAPI(StatsAPI.class);
-        this.pet = api.getAPI(PetAPI.class);
         this.backpage = api.getAPI(BackpageAPI.class);
 
         GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
@@ -129,7 +122,6 @@ public class PalladiumHangar implements Module, Configurable<PalladiumConfig> {
             this.activeMap = main.starManager.byName("5-3");
         }
 
-        this.lootModule = new LootCollectorModule(api);
         this.currentStatus = State.WAIT;
         this.lastStatus = State.WAIT;
         this.activeHangar = null;
@@ -148,7 +140,7 @@ public class PalladiumHangar implements Module, Configurable<PalladiumConfig> {
     }
 
     private boolean canBeDisconnected() {
-        if (configPa.goPortalChange && !(canRefresh() && lootModule.canRefresh())) {
+        if (configPa.goPortalChange && !(canRefresh() && super.canRefresh())) {
             return false;
         }
         return !heroapi.isAttacking() && !SharedFunctions.hasAttacker(heroapi, main);
@@ -156,7 +148,7 @@ public class PalladiumHangar implements Module, Configurable<PalladiumConfig> {
 
     @Override
     public String getStatus() {
-        return currentStatus.message + " | " + lootModule.getStatus();
+        return currentStatus.message + " | " + super.getStatus();
     }
 
     @Override
@@ -208,7 +200,7 @@ public class PalladiumHangar implements Module, Configurable<PalladiumConfig> {
                 }
             } else {
                 pet.setEnabled(true);
-                lootModule.onTickModule();
+                super.onTickModule();
                 currentStatus = State.SEARCHING_PORTALS;
             }
         } else if (activeHangar.equals(configPa.collectHangar)) {
@@ -219,7 +211,7 @@ public class PalladiumHangar implements Module, Configurable<PalladiumConfig> {
                     tradeGui.setVisible(false);
                 }
                 pet.setEnabled(true);
-                lootModule.onTickModule();
+                super.onTickModule();
             } else {
                 this.currentStatus = State.HANGAR_PALA_OTHER_MAP;
                 heroapi.setRoamMode();
@@ -279,7 +271,7 @@ public class PalladiumHangar implements Module, Configurable<PalladiumConfig> {
                     tradeGui.setVisible(false);
                 }
                 pet.setEnabled(true);
-                lootModule.onTickModule();
+                super.onTickModule();
             } else {
                 this.currentStatus = State.HANGAR_PALA_OTHER_MAP;
                 heroapi.setRoamMode();

@@ -30,6 +30,7 @@ import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
 import eu.darkbot.api.managers.MovementAPI;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Random;
@@ -196,7 +197,7 @@ public class ShipAttacker {
     }
 
     public void vsMove() {
-        if (target != null) {
+        if (target != null && target.isValid()) {
             double distance = heroapi.getLocationInfo().distanceTo(target);
             Location targetLoc = target.getLocationInfo().destinationInTime(400);
             if (distance > 600) {
@@ -269,25 +270,10 @@ public class ShipAttacker {
     }
 
     public void goToMemberAttacked() {
-        GroupMember member = getMemberGroupAttacked();
+        GroupMember member = SharedFunctions.getMemberGroupAttacked(group, heroapi, configAPI);
         if (member != null) {
             movement.moveTo(member.getLocation());
         }
-    }
-
-    private GroupMember getMemberGroupAttacked() {
-        if (group.hasGroup()) {
-            for (GroupMember member : group.getMembers()) {
-                if (!member.isDead() && member.getMapId() == heroapi.getMap().getId() && member.isAttacked()
-                        && member.getTargetInfo() != null
-                        && member.getTargetInfo().getShipType() != 0 && !member.getTargetInfo().getUsername().isEmpty()
-                        && !SharedFunctions.isNpc(configAPI, member.getTargetInfo().getUsername())) {
-                    return member;
-
-                }
-            }
-        }
-        return null;
     }
 
     public GroupMember getClosestMember() {
@@ -314,8 +300,14 @@ public class ShipAttacker {
     }
 
     public Ship getEnemy(int maxDistance) {
+        return getEnemy(maxDistance, new ArrayList<>());
+    }
+
+    public Ship getEnemy(int maxDistance, ArrayList<Integer> playersToIgnore) {
         if (heroapi.getMap().isPvp() || allPortals.stream().noneMatch(p -> heroapi.distanceTo(p) < 1500)) {
             return allShips.stream()
+                    .filter(Ship::isValid)
+                    .filter(s -> s.getId() != heroapi.getId() && !playersToIgnore.contains(s.getId()))
                     .filter(s -> (s.getEntityInfo().isEnemy() && !s.hasEffect(290)
                             && s.getLocationInfo().distanceTo(heroapi) <= maxDistance)
                             && !(s instanceof Pet)

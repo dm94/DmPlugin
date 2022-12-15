@@ -3,7 +3,7 @@ package com.deeme.behaviours.bestability;
 import java.util.Arrays;
 import java.util.Collection;
 
-import com.deeme.modules.temporal.AmbulanceModule;
+import com.deeme.behaviours.ambulance.AmbulanceModule;
 import com.deeme.types.SharedFunctions;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
