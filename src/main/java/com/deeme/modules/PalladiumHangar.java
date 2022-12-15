@@ -204,27 +204,7 @@ public class PalladiumHangar extends LootCollectorModule implements Configurable
                 currentStatus = State.SEARCHING_PORTALS;
             }
         } else if (activeHangar.equals(configPa.collectHangar)) {
-            if (heroapi.getMap() != null && heroapi.getMap().getId() == this.activeMap.getId()) {
-                this.currentStatus = State.LOOT_PALADIUM;
-                if (tradeGui.isVisible()) {
-                    oreApi.showTrade(false, null);
-                    tradeGui.setVisible(false);
-                }
-                pet.setEnabled(true);
-                super.onTickModule();
-            } else {
-                this.currentStatus = State.HANGAR_PALA_OTHER_MAP;
-                heroapi.setRoamMode();
-                if (configPa.sellOnDie && oreApi.getAmount(Ore.PALLADIUM) > 15) {
-                    sell();
-                } else {
-                    if (tradeGui.isVisible()) {
-                        oreApi.showTrade(false, null);
-                        tradeGui.setVisible(false);
-                    }
-                    this.main.setModule(api.requireInstance(MapModule.class)).setTarget(this.activeMap);
-                }
-            }
+            farmLogic();
         } else if (configPa.collectHangar != null
                 && !configPa.collectHangar.equals(
                         activeHangar)) {
@@ -234,7 +214,14 @@ public class PalladiumHangar extends LootCollectorModule implements Configurable
                 botApi.setModule(new HangarSwitcher(main, api, configPa.collectHangar));
             }
         }
+    }
 
+    private void tickOnSidKO() {
+        if (stats.getCargo() >= stats.getMaxCargo() && oreApi.getAmount(Ore.PALLADIUM) > 15) {
+            sell();
+        } else {
+            farmLogic();
+        }
     }
 
     private void sell() {
@@ -256,27 +243,33 @@ public class PalladiumHangar extends LootCollectorModule implements Configurable
                 oreApi.sellOre(OreAPI.Ore.PALLADIUM);
                 sellClick = System.currentTimeMillis();
                 oreApi.showTrade(false, base);
+                hideTradeGui();
             }
         }
     }
 
-    private void tickOnSidKO() {
-        if (stats.getCargo() >= stats.getMaxCargo() && oreApi.getAmount(Ore.PALLADIUM) > 15) {
-            sell();
+    private void farmLogic() {
+        if (heroapi.getMap() != null && heroapi.getMap().getId() == this.activeMap.getId()) {
+            this.currentStatus = State.LOOT_PALADIUM;
+            hideTradeGui();
+            pet.setEnabled(true);
+            super.onTickModule();
         } else {
-            if (heroapi.getMap() != null && heroapi.getMap().getId() == this.activeMap.getId()) {
-                this.currentStatus = State.LOOT_PALADIUM;
-                if (tradeGui.isVisible()) {
-                    oreApi.showTrade(false, null);
-                    tradeGui.setVisible(false);
-                }
-                pet.setEnabled(true);
-                super.onTickModule();
+            this.currentStatus = State.HANGAR_PALA_OTHER_MAP;
+            heroapi.setRoamMode();
+            if (configPa.sellOnDie && oreApi.getAmount(Ore.PALLADIUM) > 15) {
+                sell();
             } else {
-                this.currentStatus = State.HANGAR_PALA_OTHER_MAP;
-                heroapi.setRoamMode();
+                hideTradeGui();
                 this.main.setModule(api.requireInstance(MapModule.class)).setTarget(this.activeMap);
             }
+        }
+    }
+
+    private void hideTradeGui() {
+        if (tradeGui.isVisible()) {
+            oreApi.showTrade(false, null);
+            tradeGui.setVisible(false);
         }
     }
 

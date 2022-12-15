@@ -58,12 +58,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
-        if (!Utils.discordCheck(auth.getAuthId())) {
-            Utils.showDiscordDialog();
-            ExtensionsAPI extensionsAPI = api.getAPI(ExtensionsAPI.class);
-            extensionsAPI.getFeatureInfo(this.getClass())
-                    .addFailure("To use this option you need to be on my discord", "Log in to my discord and reload");
-        }
+        Utils.discordCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
         this.main = main;
         this.api = api;

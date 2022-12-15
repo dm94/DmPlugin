@@ -61,9 +61,7 @@ public class Ifttt implements Task, Configurable<Ifttt.IftttConfig>, Instruction
     @Override
     public JComponent beforeConfig() {
         JButton goLink = new JButton("Go IFTTT WebHooks");
-        goLink.addActionListener(e -> {
-            SystemUtils.openUrl("https://ifttt.com/maker_webhooks");
-        });
+        goLink.addActionListener(e -> SystemUtils.openUrl("https://ifttt.com/maker_webhooks"));
 
         return goLink;
     }

@@ -3,7 +3,6 @@ package com.deeme.tasks;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.awt.LayoutManager;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -52,18 +51,14 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
         VerifierChecker.checkAuthenticity(auth);
 
         this.extensionsAPI = api.getAPI(ExtensionsAPI.class);
-        if (!Utils.discordCheck(auth.getAuthId())) {
-            Utils.showDiscordDialog();
-            extensionsAPI.getFeatureInfo(this.getClass())
-                    .addFailure("To use this option you need to be on my discord", "Log in to my discord and reload");
-        }
+        Utils.discordCheck(extensionsAPI.getFeatureInfo(this.getClass()), auth.getAuthId());
 
         this.api = api;
 
-        this.mainPanel = new JPanel((LayoutManager) new MigLayout(""));
+        this.mainPanel = new JPanel(new MigLayout(""));
         JTabbedPane tabbedPane = new JTabbedPane();
-        JPanel globalChatPanel = new JPanel((LayoutManager) new MigLayout(""));
-        JPanel otherChatPanel = new JPanel((LayoutManager) new MigLayout(""));
+        JPanel globalChatPanel = new JPanel(new MigLayout(""));
+        JPanel otherChatPanel = new JPanel(new MigLayout(""));
         this.globalChatTextArea = new JTextArea();
         this.otherChatTextArea = new JTextArea();
         globalChatTextArea.setEditable(false);
@@ -103,7 +98,8 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
     public void onChatMessage(MessageSentEvent event) {
         if (extensionsAPI.getFeatureInfo(this.getClass()).isEnabled()) {
             String message = String.format("%s %s : %s",
-                    (event.getMessage().getClanTag() != "ERROR" ? "[" + event.getMessage().getClanTag() + "]" : ""),
+                    (!event.getMessage().getClanTag().equals("ERROR") ? "[" + event.getMessage().getClanTag() + "]"
+                            : ""),
                     event.getMessage().getUsername(),
                     event.getMessage().getMessage());
 
@@ -119,9 +115,7 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
     public Collection<JComponent> getExtraMenuItems(PluginAPI pluginAPI) {
         return Arrays.asList(
                 createSeparator("ExternalChat"),
-                create("Show chat", e -> {
-                    showChat();
-                }));
+                create("Show chat", e -> showChat()));
     }
 
     private void showChat() {

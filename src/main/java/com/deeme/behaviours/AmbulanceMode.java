@@ -48,12 +48,7 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
-        if (!Utils.discordCheck(auth.getAuthId())) {
-            Utils.showDiscordDialog();
-            ExtensionsAPI extensionsAPI = api.getAPI(ExtensionsAPI.class);
-            extensionsAPI.getFeatureInfo(this.getClass())
-                    .addFailure("To use this option you need to be on my discord", "Log in to my discord and reload");
-        }
+        Utils.discordCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
         this.api = api;
         this.heroapi = hero;

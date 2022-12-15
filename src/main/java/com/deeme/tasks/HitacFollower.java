@@ -64,11 +64,7 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
         VerifierChecker.checkAuthenticity(auth);
 
         this.extensionsAPI = api.getAPI(ExtensionsAPI.class);
-        if (!Utils.discordCheck(auth.getAuthId())) {
-            Utils.showDiscordDialog();
-            extensionsAPI.getFeatureInfo(this.getClass())
-                    .addFailure("To use this option you need to be on my discord", "Log in to my discord and reload");
-        }
+        Utils.discordCheck(extensionsAPI.getFeatureInfo(this.getClass()), auth.getAuthId());
 
         this.api = api;
         this.bot = bot;

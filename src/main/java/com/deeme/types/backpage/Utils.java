@@ -12,11 +12,16 @@ import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
+import eu.darkbot.api.extensions.FeatureInfo;
 import eu.darkbot.util.Popups;
 import eu.darkbot.util.SystemUtils;
 
 public class Utils {
     private static boolean discordChecked = false;
+
+    private Utils() {
+        throw new IllegalStateException("Utility class");
+    }
 
     private static void setDiscordCheck() {
         discordChecked = true;
@@ -116,7 +121,15 @@ public class Utils {
         return data;
     }
 
-    public synchronized static boolean discordCheck(String authID) {
+    public synchronized static void discordCheck(FeatureInfo featureInfo, String authID) {
+        if (!isInDiscord(authID)) {
+            showDiscordDialog();
+            featureInfo
+                    .addFailure("To use this option you need to be on my discord", "Log in to my discord and reload");
+        }
+    }
+
+    public synchronized static boolean isInDiscord(String authID) {
         String discordID = parseDataToDiscordID(authID);
 
         if (checkDiscordCached(discordID)) {
@@ -133,9 +146,7 @@ public class Utils {
             SystemUtils.openUrl("https://discord.gg/GPRTRRZJPw");
             SwingUtilities.getWindowAncestor(discordBtn).setVisible(false);
         });
-        closeBtn.addActionListener(e -> {
-            SwingUtilities.getWindowAncestor(closeBtn).setVisible(false);
-        });
+        closeBtn.addActionListener(e -> SwingUtilities.getWindowAncestor(closeBtn).setVisible(false));
 
         Popups.showMessageSync("DmPlugin",
                 new JOptionPane("To use this option you need to be on my discord", JOptionPane.INFORMATION_MESSAGE,
@@ -154,9 +165,7 @@ public class Utils {
                         "https://www.paypal.com/donate/?business=JR2XWPSKLWN76&amount=5&no_recurring=0&currency_code=EUR");
                 SwingUtilities.getWindowAncestor(donateBtn).setVisible(false);
             });
-            closeBtn.addActionListener(e -> {
-                SwingUtilities.getWindowAncestor(closeBtn).setVisible(false);
-            });
+            closeBtn.addActionListener(e -> SwingUtilities.getWindowAncestor(closeBtn).setVisible(false));
 
             Popups.showMessageSync("DmPlugin donate",
                     new JOptionPane(
