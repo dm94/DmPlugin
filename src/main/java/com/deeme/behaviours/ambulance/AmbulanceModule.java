@@ -114,7 +114,8 @@ public class AmbulanceModule extends TemporalModule {
                         oldTarget = heroapi.getLocalTarget();
                     } else {
                         this.currentStatus = State.TARGET_MEMBER;
-                        if (heroapi.getLocationInfo().distanceTo(player) <= 600) {
+                        movement.moveTo(player);
+                        if (heroapi.getLocationInfo().distanceTo(player) <= 700) {
                             if (heroapi.getTarget() != null && heroapi.getTarget().getId() == player.getId()) {
                                 useAbilityReadyWhenReady();
                             } else if (System.currentTimeMillis() - clickDelay > 500) {
@@ -122,8 +123,6 @@ public class AmbulanceModule extends TemporalModule {
                                 player.trySelect(false);
                                 clickDelay = System.currentTimeMillis();
                             }
-                        } else {
-                            movement.moveTo(player);
                         }
                     }
                 }
@@ -140,7 +139,8 @@ public class AmbulanceModule extends TemporalModule {
         if (oldTarget != null && oldTarget.isValid() && heroapi.getTarget() != null
                 && heroapi.getTarget() != oldTarget) {
             this.currentStatus = State.TARGET_OLD_TARGET;
-            if (heroapi.getLocationInfo().distanceTo(oldTarget) <= 600) {
+            movement.moveTo(oldTarget);
+            if (heroapi.getLocationInfo().distanceTo(oldTarget) <= 700) {
                 if (System.currentTimeMillis() - clickDelay > 500) {
                     heroapi.setLocalTarget(oldTarget);
                     oldTarget.trySelect(false);

@@ -148,7 +148,7 @@ public class ShipAttacker {
         if (!firstAttack) {
             firstAttack = true;
             sendAttack(1500, 5000, true);
-        } else if (!lastShot.equals(getAttackKey())) {
+        } else if (lastShot == null || !lastShot.equals(getAttackKey())) {
             sendAttack(250, 5000, true);
         } else if (!heroapi.isAttacking(target) || !heroapi.isAiming(target)) {
             sendAttack(1500, 5000, false);

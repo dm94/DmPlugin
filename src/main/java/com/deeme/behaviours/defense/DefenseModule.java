@@ -38,7 +38,7 @@ public class DefenseModule extends TemporalModule {
     private Entity target = null;
 
     private long nextAttackCheck = 0;
-    private final int maxSecondsTimeOut = 20;
+    private final int maxSecondsTimeOut = 10;
 
     private int timeOut = 0;
 
@@ -83,6 +83,7 @@ public class DefenseModule extends TemporalModule {
     public void onTickModule() {
         try {
             if (isUnderAttack()) {
+                timeOutCheck();
                 setConfigToUse();
                 shipAttacker.tryLockAndAttack();
 
@@ -92,12 +93,12 @@ public class DefenseModule extends TemporalModule {
                 shipAttacker.useKeyWithConditions(defenseConfig.PEM, Special.EMP_01);
                 shipAttacker.tryAttackOrFix();
                 movementLogic();
-                timeOutCheck();
             } else {
                 target = null;
                 super.goBack();
             }
         } catch (Exception e) {
+            System.err.println(e.getLocalizedMessage());
             target = null;
             super.goBack();
         }
@@ -106,7 +107,7 @@ public class DefenseModule extends TemporalModule {
     private void timeOutCheck() {
         if (nextAttackCheck < System.currentTimeMillis()) {
             nextAttackCheck = System.currentTimeMillis() + 1000;
-            if (heroapi.isAttacking(shipAttacker.getTarget())) {
+            if (shipAttacker.getTarget() != null && heroapi.isAttacking(shipAttacker.getTarget())) {
                 timeOut = 0;
             } else {
                 timeOut++;
@@ -120,7 +121,7 @@ public class DefenseModule extends TemporalModule {
 
     private boolean isUnderAttack() {
         if (target == null
-                || target.getId() == heroapi.getId()) {
+                || target.getId() == heroapi.getId() || !target.isValid()) {
             return false;
         }
 

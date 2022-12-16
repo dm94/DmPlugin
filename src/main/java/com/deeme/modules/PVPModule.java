@@ -279,7 +279,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
 
         target = shipAttacker.getEnemy(pvpConfig.rangeForEnemies, getIgnoredPlayers());
         shipAttacker.setTarget(target);
-        return target != null;
+        return target != null && target.isValid();
     }
 
     private void setConfigToUse() {
