@@ -4,7 +4,7 @@ on:
   push:
   workflow_dispatch:
   schedule:
-    - cron: "0 4 * * *" # run once a day at 4 AM
+    - cron: "0 18 * * 1" # At 06:00 PM, only on Monday
 jobs:
   scan:
     name: gitleaks
