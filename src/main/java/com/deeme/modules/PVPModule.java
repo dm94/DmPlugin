@@ -284,16 +284,20 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         if (attackConfigLost || heroapi.getHealth().shieldPercent() < 0.1 && heroapi.getHealth().hpPercent() < 0.3) {
             attackConfigLost = true;
             heroapi.setMode(configRun.getValue());
+            lastDistanceTarget = 1000;
         } else if (pvpConfig.useRunConfig && target != null) {
             double distance = heroapi.getLocationInfo().distanceTo(target);
-            if (distance > 500 && distance > lastDistanceTarget && target.getSpeed() > heroapi.getSpeed()) {
+            if (distance > 500 && distance > lastDistanceTarget && target.getSpeed() >= heroapi.getSpeed()) {
                 heroapi.setMode(configRun.getValue());
                 lastDistanceTarget = distance;
+                return;
             } else {
                 heroapi.setMode(configOffensive.getValue());
+                lastDistanceTarget = 1000;
             }
         } else {
             heroapi.setMode(configOffensive.getValue());
+            lastDistanceTarget = 1000;
         }
     }
 

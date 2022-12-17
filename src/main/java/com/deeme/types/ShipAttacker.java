@@ -304,22 +304,22 @@ public class ShipAttacker {
     }
 
     public Ship getEnemy(int maxDistance, ArrayList<Integer> playersToIgnore) {
-        if (heroapi.getMap().isPvp() || allPortals.stream().noneMatch(p -> heroapi.distanceTo(p) < 1500)) {
-            return allShips.stream()
-                    .filter(Ship::isValid)
-                    .filter(s -> s.getId() != heroapi.getId()
-                            && s.getEntityInfo().isEnemy()
-                            && !playersToIgnore.contains(s.getId())
-                            && !s.hasEffect(290)
-                            && !(s instanceof Pet)
-                            && !inGroup(s.getId())
-                            && movement.canMove(s)
-                            && s.getLocationInfo().distanceTo(heroapi) <= maxDistance)
+        boolean ableToAttack = heroapi.getMap().isPvp()
+                || allPortals.stream().noneMatch(p -> heroapi.distanceTo(p) < 1500);
+        return allShips.stream()
+                .filter(Ship::isValid)
+                .filter(s -> s.getId() != heroapi.getId()
+                        && s.getEntityInfo().isEnemy()
+                        && (ableToAttack || s.isAttacking())
+                        && !playersToIgnore.contains(s.getId())
+                        && !s.hasEffect(290)
+                        && !(s instanceof Pet)
+                        && !inGroup(s.getId())
+                        && movement.canMove(s)
+                        && s.getLocationInfo().distanceTo(heroapi) <= maxDistance)
 
-                    .sorted(Comparator.comparingDouble(s -> s.getLocationInfo().distanceTo(heroapi))).findAny()
-                    .orElse(null);
-        }
-        return null;
+                .sorted(Comparator.comparingDouble(s -> s.getLocationInfo().distanceTo(heroapi))).findAny()
+                .orElse(null);
     }
 
     public void resetDefenseData() {
