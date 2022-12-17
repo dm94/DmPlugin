@@ -307,11 +307,14 @@ public class ShipAttacker {
         if (heroapi.getMap().isPvp() || allPortals.stream().noneMatch(p -> heroapi.distanceTo(p) < 1500)) {
             return allShips.stream()
                     .filter(Ship::isValid)
-                    .filter(s -> s.getId() != heroapi.getId() && !playersToIgnore.contains(s.getId()))
-                    .filter(s -> (s.getEntityInfo().isEnemy() && !s.hasEffect(290)
-                            && s.getLocationInfo().distanceTo(heroapi) <= maxDistance)
+                    .filter(s -> s.getId() != heroapi.getId()
+                            && s.getEntityInfo().isEnemy()
+                            && !playersToIgnore.contains(s.getId())
+                            && !s.hasEffect(290)
                             && !(s instanceof Pet)
-                            && !inGroup(s.getId()))
+                            && !inGroup(s.getId())
+                            && s.getLocationInfo().distanceTo(heroapi) <= maxDistance)
+
                     .sorted(Comparator.comparingDouble(s -> s.getLocationInfo().distanceTo(heroapi))).findAny()
                     .orElse(null);
         }

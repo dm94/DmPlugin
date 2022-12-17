@@ -1,5 +1,7 @@
-package com.deeme.types.config;
+package com.deeme.modules.pvp;
 
+import com.deeme.types.config.AutoCloak;
+import com.deeme.types.config.ExtraKeyConditions;
 import com.github.manolo8.darkbot.config.Config;
 import com.github.manolo8.darkbot.config.types.Num;
 import com.github.manolo8.darkbot.config.types.Option;
@@ -43,4 +45,6 @@ public class PVPConfig {
     public @Option(value = "PEM-01", description = "PEM-01 Conditions") ExtraKeyConditions PEM = new ExtraKeyConditions();
 
     public @Option(value = "Auto Cloak", description = "It will automatically camouflage") AutoCloak autoCloak = new AutoCloak();
+
+    public @Option(value = "Anti Push") AntiPush antiPush = new AntiPush();
 }

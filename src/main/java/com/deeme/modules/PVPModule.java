@@ -1,10 +1,10 @@
 package com.deeme.modules;
 
+import com.deeme.modules.pvp.PVPConfig;
 import com.deeme.types.SharedFunctions;
 import com.deeme.types.ShipAttacker;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
-import com.deeme.types.config.PVPConfig;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -77,11 +77,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
 
     private long nextAttackCheck = 0;
     private final int maxSecondsTimeOut = 10;
-
     private int timeOut = 0;
-
-    private boolean antiPush = true;
-    private final int maxKills = 4;
 
     private ArrayList<Integer> playersKilled = new ArrayList<>();
     private int lastPlayerId = 0;
@@ -271,14 +267,16 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     }
 
     private boolean hasTarget() {
-        if ((target != null && target.isValid() && !shipAttacker.inGroup(target.getId())
-                && target.getLocationInfo().distanceTo(heroapi) < pvpConfig.rangeForAttackedEnemy)
-                || isUnderAttack()) {
+        if (target != null && target.isValid() && !shipAttacker.inGroup(target.getId())
+                && target.getLocationInfo().distanceTo(heroapi) < pvpConfig.rangeForAttackedEnemy) {
             return true;
         }
 
-        target = shipAttacker.getEnemy(pvpConfig.rangeForEnemies, getIgnoredPlayers());
-        shipAttacker.setTarget(target);
+        if (!isUnderAttack()) {
+            target = shipAttacker.getEnemy(pvpConfig.rangeForEnemies, getIgnoredPlayers());
+            shipAttacker.setTarget(target);
+        }
+
         return target != null && target.isValid();
     }
 
@@ -302,7 +300,8 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     private boolean isUnderAttack() {
         Entity targetAttacker = SharedFunctions.getAttacker(heroapi, players, heroapi);
         if (targetAttacker != null && targetAttacker.isValid()) {
-            shipAttacker.setTarget((Ship) targetAttacker);
+            target = (Ship) targetAttacker;
+            shipAttacker.setTarget(target);
             return true;
         }
         shipAttacker.resetDefenseData();
@@ -315,9 +314,10 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     private ArrayList<Integer> getIgnoredPlayers() {
         ArrayList<Integer> playersToIgnore = new ArrayList<>();
 
-        if (antiPush) {
+        if (pvpConfig.antiPush.enable) {
             playersKilled.forEach(id -> {
-                if (!playersToIgnore.contains(id) && Collections.frequency(playersKilled, id) >= maxKills) {
+                if (!playersToIgnore.contains(id)
+                        && Collections.frequency(playersKilled, id) >= pvpConfig.antiPush.maxKills) {
                     playersToIgnore.add(id);
                 }
             });
