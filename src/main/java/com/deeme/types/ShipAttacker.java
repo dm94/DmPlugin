@@ -313,6 +313,7 @@ public class ShipAttacker {
                             && !s.hasEffect(290)
                             && !(s instanceof Pet)
                             && !inGroup(s.getId())
+                            && movement.canMove(s)
                             && s.getLocationInfo().distanceTo(heroapi) <= maxDistance)
 
                     .sorted(Comparator.comparingDouble(s -> s.getLocationInfo().distanceTo(heroapi))).findAny()
