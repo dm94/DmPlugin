@@ -29,6 +29,7 @@ import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.HeroAPI;
+import eu.darkbot.api.managers.RepairAPI;
 import eu.darkbot.api.utils.Inject;
 
 @Feature(name = "ProfileChanger", description = "Change the profile to another one when completing a task")
@@ -37,6 +38,8 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     protected final PluginAPI api;
     protected final BotAPI bot;
     protected final HeroAPI hero;
+    protected final RepairAPI repair;
+
     private ProfileChangerConfig config;
     private Main main;
 
@@ -64,6 +67,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
         this.api = api;
         this.bot = bot;
         this.hero = hero;
+        this.repair = api.getAPI(RepairAPI.class);
 
         ConfigAPI configApi = api.getAPI(ConfigAPI.class);
         this.boxInfos = configApi.requireConfig("collect.box_infos");
@@ -73,11 +77,14 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
 
         this.resourceListUpdated = false;
         this.nextCheck = 0;
+
+        resetCounters();
     }
 
     @Override
     public void setConfig(ConfigSetting<ProfileChangerConfig> arg0) {
         this.config = arg0.getValue();
+        resetCounters();
     }
 
     @Override
@@ -91,11 +98,12 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
 
             if (nextCheck < System.currentTimeMillis()) {
                 nextCheck = System.currentTimeMillis() + (config.timeToCheck * 1000);
-                if ((config.condition == null || config.condition.get(api).allows())
+                if (isReadyMainCondtion()
                         && isReadyNpcCondition(config.npcExtraCondition)
                         && isReadyNpcCondition(config.npcExtraCondition2)
                         && isReadyResourceCondition() && isReadyMapCondition()
-                        && isReadyTimeCondition()) {
+                        && isReadyTimeCondition()
+                        && isReadyDeathCondition()) {
                     resetCounters();
                     main.setConfig(config.BOT_PROFILE);
                 }
@@ -107,6 +115,10 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     public void onStoppedBehavior() {
         updateResourceList();
         config.mapTimerCondition.mapTimeStart = 0;
+    }
+
+    private boolean isReadyMainCondtion() {
+        return config.condition == null || config.condition.get(api).toBoolean() || config.condition.get(api).allows();
     }
 
     private boolean isReadyNpcCondition(NpcCounterCondition npcCondition) {
@@ -182,7 +194,19 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
         }
     }
 
+    private boolean isReadyDeathCondition() {
+        return !config.deathsCondition.active
+                || config.deathsCondition.maxDeaths >= repair.getDeathAmount();
+    }
+
     private void resetCounters() {
+        if (this.main == null || this.config == null) {
+            return;
+        }
+        if (this.config.deathsCondition.active) {
+            this.main.repairManager.resetDeaths();
+        }
+
         config.npcExtraCondition.npcCounter = 0;
         config.npcExtraCondition2.npcCounter = 0;
         config.resourceCounterCondition.resourcesFarmed = 0;

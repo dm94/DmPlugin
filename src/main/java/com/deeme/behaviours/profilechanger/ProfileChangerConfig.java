@@ -39,4 +39,7 @@ public class ProfileChangerConfig {
 
     @Option("profile_changer.time_condition")
     public TimeCondition timeCondition = new TimeCondition();
+
+    @Option("profile_changer.deaths_condition")
+    public DeathsCondition deathsCondition = new DeathsCondition();
 }
