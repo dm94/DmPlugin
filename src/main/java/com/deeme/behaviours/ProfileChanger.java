@@ -216,7 +216,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     private void updateResourceList() {
         if (!resourceListUpdated) {
             Map<String, BoxInfo> allBoxes = boxInfos.getValue();
-            ArrayList<String> arrayBoxes = new ArrayList<String>(allBoxes.keySet());
+            ArrayList<String> arrayBoxes = new ArrayList<>(allBoxes.keySet());
             ResourceSupplier.updateBoxes(arrayBoxes);
             resourceListUpdated = true;
         }
