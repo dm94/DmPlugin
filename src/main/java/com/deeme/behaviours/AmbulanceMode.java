@@ -81,7 +81,7 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
     private void setTemporalModule(int memberToHelp, Ability ability) {
         if (ability != null && botApi.getModule().getClass() != AmbulanceModule.class) {
             botApi.setModule(
-                    new AmbulanceModule(api, memberToHelp, Ability.AEGIS_SHIELD_REPAIR,
+                    new AmbulanceModule(api, memberToHelp, ability,
                             config.returnToTarget));
         }
     }
