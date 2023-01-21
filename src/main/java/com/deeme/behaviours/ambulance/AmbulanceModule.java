@@ -112,17 +112,16 @@ public class AmbulanceModule extends TemporalModule {
                 } else {
                     if (heroapi.getTarget() != null && heroapi.getTarget().getId() != player.getId()) {
                         oldTarget = heroapi.getLocalTarget();
-                    } else {
-                        this.currentStatus = State.TARGET_MEMBER;
-                        movement.moveTo(player);
-                        if (heroapi.getLocationInfo().distanceTo(player) <= 700) {
-                            if (heroapi.getTarget() != null && heroapi.getTarget().getId() == player.getId()) {
-                                useAbilityReadyWhenReady();
-                            } else if (System.currentTimeMillis() - clickDelay > 500) {
-                                heroapi.setLocalTarget(player);
-                                player.trySelect(false);
-                                clickDelay = System.currentTimeMillis();
-                            }
+                    }
+                    this.currentStatus = State.TARGET_MEMBER;
+                    movement.moveTo(player);
+                    if (heroapi.getLocationInfo().distanceTo(player) <= 700) {
+                        if (heroapi.getTarget() != null && heroapi.getTarget().getId() == player.getId()) {
+                            useAbilityReadyWhenReady();
+                        } else if (System.currentTimeMillis() - clickDelay > 500) {
+                            heroapi.setLocalTarget(player);
+                            player.trySelect(false);
+                            clickDelay = System.currentTimeMillis();
                         }
                     }
                 }
