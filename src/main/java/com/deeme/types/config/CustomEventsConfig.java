@@ -16,4 +16,9 @@ public class CustomEventsConfig {
     public @Option("Event 8") ExtraKeyConditionsSelectable selectable3 = new ExtraKeyConditionsSelectable();
     public @Option("Event 9") ExtraKeyConditionsSelectable selectable4 = new ExtraKeyConditionsSelectable();
     public @Option("Event 10") ExtraKeyConditionsSelectable selectable5 = new ExtraKeyConditionsSelectable();
+    public @Option("Event 11") ExtraKeyConditionsSelectable selectable6 = new ExtraKeyConditionsSelectable();
+    public @Option("Event 12") ExtraKeyConditionsSelectable selectable7 = new ExtraKeyConditionsSelectable();
+    public @Option("Event 13") ExtraKeyConditionsSelectable selectable8 = new ExtraKeyConditionsSelectable();
+    public @Option("Event 14") ExtraKeyConditionsSelectable selectable9 = new ExtraKeyConditionsSelectable();
+    public @Option("Event 15") ExtraKeyConditionsSelectable selectable10 = new ExtraKeyConditionsSelectable();
 }

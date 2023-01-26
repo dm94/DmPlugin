@@ -63,7 +63,7 @@ public class StopButton implements Behavior, ExtraMenus {
     @Override
     public void onTickBehavior() {
         if (stopBot) {
-            if (bot.getModule().canRefresh()) {
+            if (!heroapi.getMap().isGG() && bot.getModule().canRefresh()) {
                 if (!isDisconnect() && !(bot.getModule() instanceof DisconnectModule)) {
                     bot.setModule(new DisconnectModule(null, "Stop Button"));
                 }

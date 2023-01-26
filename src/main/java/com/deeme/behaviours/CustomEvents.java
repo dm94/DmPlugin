@@ -78,6 +78,11 @@ public class CustomEvents implements Behavior, Configurable<CustomEventsConfig> 
         useKeyWithConditions(config.selectable3);
         useKeyWithConditions(config.selectable4);
         useKeyWithConditions(config.selectable5);
+        useKeyWithConditions(config.selectable6);
+        useKeyWithConditions(config.selectable7);
+        useKeyWithConditions(config.selectable8);
+        useKeyWithConditions(config.selectable9);
+        useKeyWithConditions(config.selectable10);
     }
 
     public boolean useKeyWithConditions(Condition condition, SelectableItem selectableItem) {
