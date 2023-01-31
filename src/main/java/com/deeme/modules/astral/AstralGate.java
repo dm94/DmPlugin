@@ -64,7 +64,6 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     protected ConfigSetting<Boolean> runConfigInCircle;
     protected final ConfigSetting<Character> ammoKey;
 
-    private Gui shipGuiSelection;
     private Gui astralGui;
 
     protected Collection<? extends Portal> portals;
@@ -135,7 +134,6 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         this.items = api.getAPI(HeroItemsAPI.class);
 
         GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
-        this.shipGuiSelection = gameScreenAPI.getGui("rogue_lite_selection");
         this.astralGui = gameScreenAPI.getGui("rogue_lite");
 
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
@@ -199,9 +197,11 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                 astralShip = new AstralShip(heroapi.getShipType());
             }
             if (astralShip.isValid()) {
-                if (shipGuiSelection != null && shipGuiSelection.isVisible()) {
-                    shipGuiSelection.setVisible(false);
-                }
+                /*
+                 * if (shipGuiSelection != null && shipGuiSelection.isVisible()) {
+                 * shipGuiSelection.setVisible(false);
+                 * }
+                 */
                 activeAutoRocketCPU();
                 repairShield = repairShield && heroapi.getHealth().shieldPercent() < 0.9
                         || heroapi.getHealth().shieldPercent() < 0.2;
@@ -219,6 +219,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                     if (waitingSign) {
                         nextWaveCheck = System.currentTimeMillis() + 30000;
                         goToTheMiddle();
+
                         if (astralGui != null && (astralConfig.autoChoosePortal || astralConfig.autoChooseItem)) {
                             autoChooseLogic();
                         } else if (!portals.isEmpty()) {
@@ -270,6 +271,10 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     }
 
     private void jumpToTheBestPortal() {
+        if (astralGui != null && astralGui.isVisible()) {
+            astralGui.setVisible(false);
+        }
+
         astralPortalSupplier.setAstralShip(astralShip);
         Portal portal = astralPortalSupplier.get();
 
@@ -310,6 +315,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
             Integer xPoint = rand.nextInt((int) astralGui.getWidth() - guiOffset) + guiOffset + (int) astralGui.getX();
             Integer yPoint = (int) ((astralGui.getHeight() / 2) + astralGui.getY());
             astralGui.click(xPoint, yPoint);
+            System.out.println("Click  X: " + xPoint + " | Y:" + yPoint);
         }
     }
 
@@ -584,18 +590,17 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     }
 
     private void goToTheMiddle() {
-        if (!movement.isMoving() && astralGui != null && !astralGui.isVisible()) {
-
-            movement.moveTo(starSystem.getCurrentMapBounds().getWidth() / 2,
-                    starSystem.getCurrentMapBounds().getHeight() / 2);
-
+        Locatable loc = Locatable.of(starSystem.getCurrentMapBounds().getWidth() / 2,
+                starSystem.getCurrentMapBounds().getHeight() / 2);
+        if (!movement.isMoving() && heroapi.distanceTo(loc) > 500) {
+            movement.moveTo(loc);
         }
     }
 
     private void activeAutoRocketCPU() {
-        if (nextCPUCheck < System.currentTimeMillis()
-                && items.useItem(SelectableItem.Cpu.AROL_X, ItemFlag.NOT_SELECTED).isSuccessful()) {
+        if (nextCPUCheck < System.currentTimeMillis()) {
             nextCPUCheck = System.currentTimeMillis() + 300000;
+            items.useItem(SelectableItem.Cpu.AROL_X, ItemFlag.NOT_SELECTED);
         }
     }
 
