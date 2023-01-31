@@ -7,7 +7,6 @@ import eu.darkbot.api.config.annotations.Configuration;
 import eu.darkbot.api.config.annotations.Dropdown;
 import eu.darkbot.api.config.annotations.Option;
 import eu.darkbot.api.config.annotations.Number;
-import eu.darkbot.api.config.types.Condition;
 
 @Configuration("profile_changer")
 public class ProfileChangerConfig {
@@ -22,8 +21,14 @@ public class ProfileChangerConfig {
     @Dropdown(options = ConfigSupplier.class)
     public String BOT_PROFILE = ConfigManager.DEFAULT;
 
+    @Option("profile_changer.only_one_condition")
+    public boolean orConditional = false;
+
     @Option("general.condition")
-    public Condition condition;
+    public NormalCondition normalCondition = new NormalCondition();
+
+    @Option("general.condition")
+    public NormalCondition normalCondition2 = new NormalCondition();
 
     @Option("profile_changer.npc_counter_condition")
     public NpcCounterCondition npcExtraCondition = new NpcCounterCondition();

@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Map;
 
+import com.deeme.behaviours.profilechanger.NormalCondition;
 import com.deeme.behaviours.profilechanger.NpcCounterCondition;
 import com.deeme.behaviours.profilechanger.ProfileChangerConfig;
 import com.deeme.behaviours.profilechanger.ResourceSupplier;
@@ -84,7 +85,6 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     @Override
     public void setConfig(ConfigSetting<ProfileChangerConfig> arg0) {
         this.config = arg0.getValue();
-        resetCounters();
     }
 
     @Override
@@ -98,14 +98,11 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
 
             if (nextCheck < System.currentTimeMillis()) {
                 nextCheck = System.currentTimeMillis() + (config.timeToCheck * 1000);
-                if (isReadyMainCondtion()
-                        && isReadyNpcCondition(config.npcExtraCondition)
-                        && isReadyNpcCondition(config.npcExtraCondition2)
-                        && isReadyResourceCondition() && isReadyMapCondition()
-                        && isReadyTimeCondition()
-                        && isReadyDeathCondition()) {
-                    resetCounters();
-                    main.setConfig(config.BOT_PROFILE);
+
+                if (config.orConditional) {
+                    orConditional();
+                } else {
+                    andConditional();
                 }
             }
         }
@@ -117,8 +114,34 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
         config.mapTimerCondition.mapTimeStart = 0;
     }
 
-    private boolean isReadyMainCondtion() {
-        return config.condition == null || config.condition.get(api).toBoolean() || config.condition.get(api).allows();
+    private void orConditional() {
+        if (isReadyNormalCondtion(config.normalCondition)
+                || isReadyNormalCondtion(config.normalCondition2)
+                || isReadyNpcCondition(config.npcExtraCondition)
+                || isReadyNpcCondition(config.npcExtraCondition2)
+                || isReadyResourceCondition() || isReadyMapCondition()
+                || isReadyTimeCondition()
+                || isReadyDeathCondition()) {
+            resetCounters();
+            main.setConfig(config.BOT_PROFILE);
+        }
+    }
+
+    private void andConditional() {
+        if (isReadyNormalCondtion(config.normalCondition)
+                && isReadyNormalCondtion(config.normalCondition2)
+                && isReadyNpcCondition(config.npcExtraCondition)
+                && isReadyNpcCondition(config.npcExtraCondition2)
+                && isReadyResourceCondition() && isReadyMapCondition()
+                && isReadyTimeCondition()
+                && isReadyDeathCondition()) {
+            resetCounters();
+            main.setConfig(config.BOT_PROFILE);
+        }
+    }
+
+    private boolean isReadyNormalCondtion(NormalCondition condition) {
+        return !condition.active || condition.condition.get(api).toBoolean() || condition.condition.get(api).allows();
     }
 
     private boolean isReadyNpcCondition(NpcCounterCondition npcCondition) {
@@ -166,9 +189,9 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     }
 
     private boolean isReadyMapCondition() {
-        return !config.mapTimerCondition.active || (config.mapTimerCondition.mapTimeStart != 0
-                && (config.mapTimerCondition.mapTimeStart + (config.mapTimerCondition.timeInMap * 60000)) <= System
-                        .currentTimeMillis());
+        return !config.mapTimerCondition.active
+                || (config.mapTimerCondition.mapTimeStart + (config.mapTimerCondition.timeInMap * 60000)) <= System
+                        .currentTimeMillis();
     }
 
     private boolean isReadyTimeCondition() {
