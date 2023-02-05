@@ -129,6 +129,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         VerifierChecker.checkAuthenticity(auth);
 
         Utils.discordCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
+        Utils.showDonateDialog();
 
         this.main = main;
         this.currentStatus = State.INIT;

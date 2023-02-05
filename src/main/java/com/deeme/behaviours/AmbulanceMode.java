@@ -49,6 +49,7 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
         VerifierChecker.checkAuthenticity(auth);
 
         Utils.discordCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
+        Utils.showDonateDialog();
 
         this.api = api;
         this.heroapi = hero;

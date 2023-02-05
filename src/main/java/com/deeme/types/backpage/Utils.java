@@ -121,7 +121,7 @@ public class Utils {
         return data;
     }
 
-    public synchronized static void discordCheck(FeatureInfo featureInfo, String authID) {
+    public static synchronized void discordCheck(FeatureInfo featureInfo, String authID) {
         if (!isInDiscord(authID)) {
             showDiscordDialog();
             featureInfo
@@ -129,14 +129,9 @@ public class Utils {
         }
     }
 
-    public synchronized static boolean isInDiscord(String authID) {
+    public static synchronized boolean isInDiscord(String authID) {
         String discordID = parseDataToDiscordID(authID);
-
-        if (checkDiscordCached(discordID)) {
-            return true;
-        }
-
-        return false;
+        return checkDiscordCached(discordID);
     }
 
     public static void showDiscordDialog() {
@@ -148,9 +143,10 @@ public class Utils {
         });
         closeBtn.addActionListener(e -> SwingUtilities.getWindowAncestor(closeBtn).setVisible(false));
 
-        Popups.showMessageSync("DmPlugin",
+        Popups.of("DmPlugin",
                 new JOptionPane("To use this option you need to be on my discord", JOptionPane.INFORMATION_MESSAGE,
-                        JOptionPane.DEFAULT_OPTION, null, new Object[] { discordBtn, closeBtn }));
+                        JOptionPane.DEFAULT_OPTION, null, new Object[] { discordBtn, closeBtn }))
+                .showAsync();
     }
 
     public static void showDonateDialog() {
@@ -167,11 +163,12 @@ public class Utils {
             });
             closeBtn.addActionListener(e -> SwingUtilities.getWindowAncestor(closeBtn).setVisible(false));
 
-            Popups.showMessageSync("DmPlugin donate",
+            Popups.of("DmPlugin donate",
                     new JOptionPane(
                             "You can help improve the plugin by donating. \n You get nothing extra if you donate.",
                             JOptionPane.INFORMATION_MESSAGE,
-                            JOptionPane.DEFAULT_OPTION, null, new Object[] { donateBtn, closeBtn }));
+                            JOptionPane.DEFAULT_OPTION, null, new Object[] { donateBtn, closeBtn }))
+                    .showAsync();
         }
     }
 }

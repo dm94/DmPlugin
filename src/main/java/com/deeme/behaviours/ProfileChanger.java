@@ -63,6 +63,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
         VerifierChecker.checkAuthenticity(auth);
 
         Utils.discordCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
+        Utils.showDonateDialog();
 
         this.main = main;
         this.api = api;

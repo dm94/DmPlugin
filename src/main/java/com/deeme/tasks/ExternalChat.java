@@ -52,6 +52,7 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
 
         this.extensionsAPI = api.getAPI(ExtensionsAPI.class);
         Utils.discordCheck(extensionsAPI.getFeatureInfo(this.getClass()), auth.getAuthId());
+        Utils.showDonateDialog();
 
         this.api = api;
 
@@ -125,6 +126,6 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
         caretOthers.setUpdatePolicy(1);
         new ChatProcessor(this.globalChatTextArea, this.globalChat).execute();
         new ChatProcessor(this.otherChatTextArea, this.otherChats).execute();
-        Popups.showMessageAsync("Chat", new Object[] { this.mainPanel }, -1);
+        Popups.of("Chat", new Object[] { this.mainPanel }, -1).showAsync();
     }
 }

@@ -64,7 +64,7 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
         VerifierChecker.checkAuthenticity(auth);
 
         this.extensionsAPI = api.getAPI(ExtensionsAPI.class);
-        Utils.discordCheck(extensionsAPI.getFeatureInfo(this.getClass()), auth.getAuthId());
+        Utils.showDonateDialog();
 
         this.api = api;
         this.bot = bot;

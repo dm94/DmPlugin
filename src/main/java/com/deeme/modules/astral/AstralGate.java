@@ -125,6 +125,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         VerifierChecker.checkAuthenticity(auth);
 
         Utils.discordCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
+        Utils.showDonateDialog();
 
         this.api = api;
         this.bot = api.getAPI(BotAPI.class);
