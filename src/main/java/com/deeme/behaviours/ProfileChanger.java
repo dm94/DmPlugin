@@ -190,9 +190,9 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     }
 
     private boolean isReadyMapCondition() {
-        return !config.mapTimerCondition.active
-                || (config.mapTimerCondition.mapTimeStart + (config.mapTimerCondition.timeInMap * 60000)) <= System
-                        .currentTimeMillis();
+        return !config.mapTimerCondition.active || (config.mapTimerCondition.mapTimeStart > 0
+                && (config.mapTimerCondition.mapTimeStart + (config.mapTimerCondition.timeInMap * 60000)) <= System
+                        .currentTimeMillis());
     }
 
     private boolean isReadyTimeCondition() {
