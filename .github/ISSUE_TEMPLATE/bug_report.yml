@@ -11,7 +11,7 @@ body:
           required: true
   - type: checkboxes
     attributes:
-      label: Are you running the latest bot version?
+      label: Are you running the latest bot and plugin version?
       description: Please double-check that you're running the latest release.
       options:
         - label: I have confirmed i'm running the latest bot version
@@ -58,15 +58,6 @@ body:
       placeholder: Attach any relevant videos or screenshots of the bug happening
     validations:
       required: true
-  - type: textarea
-    attributes:
-      label: Logs
-      description: |
-        Include your bot logs, they can be found in the logs folder.
-        Tip: You can attach logs by clicking this area to highlight it and then dragging files in.
-      placeholder: Attach the latest .log file
-    validations:
-      required: true
   - type: input
     attributes:
       label: Bot Version
@@ -74,11 +65,10 @@ body:
       placeholder: e.g. v1.117 b2
     validations:
       required: true
-  - type: textarea
+  - type: input
     attributes:
       label: Plugin version
-      placeholder: |
-       v1.7.23
+      placeholder: e.g. v1.7.23
     validations:
       required: true
   - type: textarea
