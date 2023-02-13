@@ -193,17 +193,19 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     }
 
     private boolean shoulUseVeteran() {
+        boolean useFormation = false;
         if (hasFormation(Formation.VETERAN)) {
             if (config.useVeteran || hasTag(ExtraNpcFlags.USE_VETERAN)) {
                 Lockable target = heroapi.getLocalTarget();
                 if (target != null && target.isValid() && target instanceof Npc) {
-                    return target.getHealth() != null
+                    useFormation = target.getHealth() != null
                             && (target.getHealth().hpPercent() <= 0.15 && target.getHealth().getHp() < 200000);
                 }
             }
-            return heroapi.getMap() != null && heroapi.getMap().isGG() && allNpcs.isEmpty() && allPortals.isEmpty();
+            useFormation = heroapi.getMap() != null && heroapi.getMap().isGG() && allNpcs.isEmpty()
+                    && allPortals.isEmpty();
         }
-        return false;
+        return useFormation;
     }
 
     private boolean shoulUseBat() {
