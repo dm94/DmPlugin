@@ -127,7 +127,7 @@ public class HangarSwitcher extends TemporalModule {
                                 goBack();
                             } else {
                                 this.currentStatus = State.SWITCHING_HANGAR;
-                                if (changeHangar(hangarToChage)) {
+                                if (hangarManager.changeHangar(String.valueOf(hangarToChage))) {
                                     hangarChanged = true;
                                     this.currentStatus = State.HANGAR_CHANGED;
                                     waitinUntil = System.currentTimeMillis() + 10000;
@@ -187,30 +187,4 @@ public class HangarSwitcher extends TemporalModule {
             activeHangar = null;
         }
     }
-
-    private boolean changeHangar(Integer hangarId) {
-        String token = "";
-        try {
-            token = main.backpage
-                    .getReloadToken(backpageAPI.getConnection("indexInternal.es?action=internalDock").getInputStream());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        if (token == null || token.isEmpty()) {
-            this.currentStatus = State.SID_KO;
-            return false;
-        }
-
-        String url = "indexInternal.es?action=internalDock&subAction=changeHangar&hangarId=" + hangarId
-                + "&reloadToken=" + token;
-        try {
-            backpageAPI.getConnection(url, 2000).getResponseCode();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
-    }
-
 }
