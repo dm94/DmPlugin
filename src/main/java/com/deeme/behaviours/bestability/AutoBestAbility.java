@@ -200,6 +200,8 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
                 return Ability.VENOM;
             } else if (isAvailable(Ability.SOLARIS_INC)) {
                 return Ability.SOLARIS_INC;
+            } else if (isAvailable(Ability.SOLARIS_PLUS_INCINERATE_PLUS)) {
+                return Ability.SOLARIS_PLUS_INCINERATE_PLUS;
             } else if (isAvailable(Ability.TARTARUS_RAPID_FIRE)) {
                 return Ability.TARTARUS_RAPID_FIRE;
             } else if (isAvailable(Ability.DISRUPTOR_SHIELD_DISARRAY)) {
