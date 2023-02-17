@@ -3,7 +3,8 @@ package com.deeme.behaviours.bestformation;
 import com.github.manolo8.darkbot.config.NpcExtraFlag;
 
 public enum ExtraNpcFlags implements NpcExtraFlag {
-    USE_VETERAN("FVT", "Use veteran formation", "Auto Best Formation - Will use veteran foramtion");
+    USE_VETERAN("FVT", "Use veteran formation", "Auto Best Formation - Will use veteran foramtion"),
+    USE_AUTO_BEST_FORMATION("ATF", "Use Auto Best Formation", "Use Auto Best Formation");
 
     private final String shortName;
     private final String name;
