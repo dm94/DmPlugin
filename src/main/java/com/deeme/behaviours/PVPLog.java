@@ -6,10 +6,13 @@ import com.google.gson.Gson;
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.extensions.Task;
+import eu.darkbot.api.game.entities.Player;
 import eu.darkbot.api.game.items.Item;
 import eu.darkbot.api.game.items.ItemCategory;
 import eu.darkbot.api.game.other.Lockable;
 import eu.darkbot.api.managers.AuthAPI;
+import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
 import eu.darkbot.api.managers.RepairAPI;
@@ -25,21 +28,23 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Feature(name = "PVPLog", description = "Create a log of the PVP battles")
-public class PVPLog implements Behavior {
+public class PVPLog implements Behavior, Task {
     public final Path battleLogFolder = Paths.get("battlelog");
-    private Lockable target = null;
+    private Player target = null;
 
     protected final PluginAPI api;
     protected final StatsAPI stats;
     protected final HeroAPI hero;
     protected final RepairAPI repair;
     protected final HeroItemsAPI items;
+    protected Collection<? extends Player> players;
 
     private Gson gson;
 
@@ -64,7 +69,8 @@ public class PVPLog implements Behavior {
     private boolean hasPet = false;
 
     // Enemy Data
-    private String enemyName = "";
+    private int enemyId = 0;
+    private String enemyShipType = "";
     private int enemyMaxHp = 0;
     private int enemyInitialHP = 0;
     private int enemyMaxShield = 0;
@@ -77,6 +83,8 @@ public class PVPLog implements Behavior {
 
     Map<String, Object> lastOurData = new HashMap<>();
     Map<String, Object> lastEnemyData = new HashMap<>();
+
+    private ArrayList<String> saveQueue = new ArrayList<String>();
 
     public PVPLog(PluginAPI api) {
         this(api, api.requireAPI(HeroAPI.class),
@@ -99,6 +107,9 @@ public class PVPLog implements Behavior {
         this.items = items;
         this.gson = new Gson();
 
+        EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
+        this.players = entities.getPlayers();
+
         try {
             if (!Files.exists(battleLogFolder)) {
                 Files.createDirectory(battleLogFolder);
@@ -106,6 +117,11 @@ public class PVPLog implements Behavior {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void onTickTask() {
+        saveData();
     }
 
     @Override
@@ -121,7 +137,7 @@ public class PVPLog implements Behavior {
                         && hero.getLocalTarget().getEntityInfo().isEnemy()
                         && !hero.getLocalTarget().getEntityInfo().getUsername().contains("Saturn")) {
                     battleStart = true;
-                    if (!enemyName.equals(hero.getLocalTarget().getEntityInfo().getUsername())) {
+                    if (enemyId != hero.getLocalTarget().getId()) {
                         setInitialEnemyData();
                     }
                     addBattleData();
@@ -137,6 +153,17 @@ public class PVPLog implements Behavior {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private Player getEnemy() {
+        Lockable enemy = hero.getLocalTarget();
+        if (enemy != null && enemy.getHealth() != null) {
+            return players.stream()
+                    .filter(s -> (enemy.getId() == s.getId()))
+                    .findAny().orElse(null);
+        }
+
+        return null;
     }
 
     private void setOwnInitialData() {
@@ -157,12 +184,10 @@ public class PVPLog implements Behavior {
     }
 
     private void setInitialEnemyData() {
-        target = hero.getLocalTarget();
-        if (target != null && target.getHealth() != null) {
-            enemyName = hero.getLocalTarget() != null && hero.getLocalTarget().getEntityInfo() != null
-                    && hero.getLocalTarget().getEntityInfo().getUsername() != null
-                            ? hero.getLocalTarget().getEntityInfo().getUsername()
-                            : "";
+        target = getEnemy();
+        if (target != null) {
+            enemyId = target.getId();
+            enemyShipType = target.getShipType();
             enemyMaxHp = target.getHealth().getMaxHp();
             enemyInitialHP = target.getHealth().getHp();
             enemyMaxShield = target.getHealth().getMaxShield();
@@ -186,11 +211,13 @@ public class PVPLog implements Behavior {
         ourData.put("items", getOurSpecialItems());
 
         Map<String, Object> enemyData = new HashMap<>();
-
         enemyData.put("hp", target.getHealth().getHp());
         enemyData.put("shield", target.getHealth().getShield());
         enemyData.put("hull", target.getHealth().getHull());
         enemyData.put("effects", target.getEffects().toString());
+        enemyData.put("formation", target.getFormation() != null ? target.getFormation().getId() : "");
+        enemyData.put("speed", target.getSpeed());
+        enemyData.put("pet", target.hasPet());
 
         if (!lastOurData.equals(ourData) && !lastEnemyData.equals(enemyData)) {
             Map<String, Object> globalDetails = new HashMap<>();
@@ -229,55 +256,64 @@ public class PVPLog implements Behavior {
             if (deaths == repair.getDeathAmount()) {
                 win = true;
             }
-            saveData();
+            insertToQueue();
             battleStart = false;
         }
         battleData.clear();
-        enemyName = "";
+        enemyId = 0;
         initialTime = System.currentTimeMillis();
         deaths = repair.getDeathAmount();
         win = false;
     }
 
+    private void insertToQueue() {
+        Map<String, Object> ownInitialData = new HashMap<>();
+        ownInitialData.put("shipId", shipId);
+        ownInitialData.put("maxHp", maxHp);
+        ownInitialData.put("initialHP", initialHP);
+        ownInitialData.put("maxShield", maxShield);
+        ownInitialData.put("initialShield", initialShield);
+        ownInitialData.put("initialHull", initialHull);
+        ownInitialData.put("initialLaser", initialLaser);
+        ownInitialData.put("initialRocket", initialRocket);
+        ownInitialData.put("initialConfig", initialConfig);
+        ownInitialData.put("initialFormation", initialFormation);
+        ownInitialData.put("initialSpeed", initialSpeed);
+        ownInitialData.put("hasPet", hasPet);
+
+        Map<String, Object> enemyInitialData = new HashMap<>();
+        enemyInitialData.put("enemyShipTipe", enemyShipType);
+        enemyInitialData.put("enemyMaxHp", enemyMaxHp);
+        enemyInitialData.put("enemyInitialHP", enemyInitialHP);
+        enemyInitialData.put("enemyMaxShield", enemyMaxShield);
+        enemyInitialData.put("enemyInitialShield", enemyInitialShield);
+        enemyInitialData.put("enemyInitialHull", enemyInitialHull);
+
+        Map<String, Object> globalDetails = new HashMap<>();
+        globalDetails.put("date", initialTime);
+        globalDetails.put("endDate", System.currentTimeMillis());
+        globalDetails.put("mapID", mapID);
+        globalDetails.put("battleWon", win);
+        globalDetails.put("battleData", battleData);
+        globalDetails.put("ownInitialData", ownInitialData);
+        globalDetails.put("enemyInitialData", enemyInitialData);
+
+        saveQueue.add(gson.toJson(globalDetails));
+    }
+
     private void saveData() {
         try {
-            Map<String, Object> ownInitialData = new HashMap<>();
-            ownInitialData.put("shipId", shipId);
-            ownInitialData.put("maxHp", maxHp);
-            ownInitialData.put("initialHP", initialHP);
-            ownInitialData.put("maxShield", maxShield);
-            ownInitialData.put("initialShield", initialShield);
-            ownInitialData.put("initialHull", initialHull);
-            ownInitialData.put("initialLaser", initialLaser);
-            ownInitialData.put("initialRocket", initialRocket);
-            ownInitialData.put("initialConfig", initialConfig);
-            ownInitialData.put("initialFormation", initialFormation);
-            ownInitialData.put("initialSpeed", initialSpeed);
-            ownInitialData.put("hasPet", hasPet);
+            if (saveQueue.size() > 0) {
+                String data = saveQueue.get(0);
+                saveQueue.remove(0);
 
-            Map<String, Object> enemyInitialData = new HashMap<>();
-            enemyInitialData.put("enemyName", enemyName);
-            enemyInitialData.put("enemyMaxHp", enemyMaxHp);
-            enemyInitialData.put("enemyInitialHP", enemyInitialHP);
-            enemyInitialData.put("enemyMaxShield", enemyMaxShield);
-            enemyInitialData.put("enemyInitialShield", enemyInitialShield);
-            enemyInitialData.put("enemyInitialHull", enemyInitialHull);
-
-            Map<String, Object> globalDetails = new HashMap<>();
-            globalDetails.put("date", initialTime);
-            globalDetails.put("mapID", mapID);
-            globalDetails.put("ownInitialData", ownInitialData);
-            globalDetails.put("enemyInitialData", enemyInitialData);
-            globalDetails.put("battleWon", win);
-            globalDetails.put("battleData", battleData);
-
-            File f = new File("battlelog", initialTime + ".json");
-            Writer writer = new FileWriter(f);
-            gson.toJson(globalDetails, writer);
-            writer.close();
+                File f = new File("battlelog", System.currentTimeMillis() + ".json");
+                Writer writer = new FileWriter(f);
+                writer.write(data);
+                writer.close();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 }
