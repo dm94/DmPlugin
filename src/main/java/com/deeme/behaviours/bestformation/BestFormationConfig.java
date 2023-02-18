@@ -12,7 +12,8 @@ import eu.darkbot.api.config.annotations.Number;
 public class BestFormationConfig {
     @Option("general.options")
     @Dropdown(multi = true)
-    public Set<BehaviourOptions> options = EnumSet.allOf(BehaviourOptions.class);
+    public Set<BehaviourOptions> options = EnumSet.of(BehaviourOptions.VS_PLAYERS, BehaviourOptions.VS_NPC,
+            BehaviourOptions.RESPECT_NPC_FORMATION);
 
     @Option("general.next_check_time")
     @Number(max = 300, step = 1)
@@ -21,7 +22,4 @@ public class BestFormationConfig {
     @Option("best_formation.formations_to_use")
     @Dropdown(multi = true)
     public Set<SupportedFormations> formationsToUse = EnumSet.allOf(SupportedFormations.class);
-
-    @Option("general.tick_stopped")
-    public boolean tickStopped = false;
 }

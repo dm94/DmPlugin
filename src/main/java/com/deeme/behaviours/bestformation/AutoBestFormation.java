@@ -80,7 +80,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
 
     @Override
     public void onStoppedBehavior() {
-        if (config.tickStopped) {
+        if (hasOption(BehaviourOptions.TICK_STOPPED)) {
             onTickBehavior();
         }
     }
