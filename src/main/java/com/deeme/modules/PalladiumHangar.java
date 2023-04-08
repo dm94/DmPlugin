@@ -196,7 +196,7 @@ public class PalladiumHangar extends LootCollectorModule implements Configurable
                 this.currentStatus = State.DEPOSIT_FULL_SWITCHING_HANGAR;
                 if (botApi.getModule().getClass() != HangarSwitcher.class) {
                     this.activeHangar = null;
-                    botApi.setModule(new HangarSwitcher(main, api, configPa.sellHangar));
+                    botApi.setModule(new HangarSwitcher(api, configPa.sellHangar));
                 }
             } else {
                 pet.setEnabled(true);
@@ -211,7 +211,7 @@ public class PalladiumHangar extends LootCollectorModule implements Configurable
             this.currentStatus = State.SWITCHING_PALA_HANGAR;
             if (botApi.getModule().getClass() != HangarSwitcher.class) {
                 this.activeHangar = null;
-                botApi.setModule(new HangarSwitcher(main, api, configPa.collectHangar));
+                botApi.setModule(new HangarSwitcher(api, configPa.collectHangar));
             }
         }
     }

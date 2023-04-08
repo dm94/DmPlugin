@@ -31,12 +31,12 @@
         <dependency>
             <groupId>eu.darkbot</groupId>
             <artifactId>DarkBot</artifactId>
-            <version>master-a5fa9a8a26-1</version>
+            <version>master-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>eu.darkbot</groupId>
             <artifactId>DarkBotAPI</artifactId>
-            <version>0.7.0</version>
+            <version>0.7.1</version>
         </dependency>
     </dependencies>
 
