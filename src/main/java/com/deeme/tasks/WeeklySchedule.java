@@ -135,7 +135,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
                 if (!profileToUse.hangarId.equals(activeHangar)) {
                     if (isDisconnect()) {
                         if (botApi.getModule().getClass() != HangarSwitcher.class) {
-                            botApi.setModule(new HangarSwitcher(api, profileToUse.hangarId));
+                            botApi.setModule(new HangarSwitcher(main, api, profileToUse.hangarId));
                         }
                         this.activeHangar = null;
                     } else if (botApi.getModule().getClass() != DisconnectModule.class) {

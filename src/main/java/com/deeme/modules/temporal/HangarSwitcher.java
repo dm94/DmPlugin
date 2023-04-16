@@ -2,14 +2,14 @@ package com.deeme.modules.temporal;
 
 import com.deeme.types.SharedFunctions;
 import com.github.manolo8.darkbot.Main;
+import com.github.manolo8.darkbot.backpage.HangarManager;
+import com.github.manolo8.darkbot.backpage.hangar.Hangar;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.game.other.Gui;
 import eu.darkbot.api.managers.BackpageAPI;
 import eu.darkbot.api.managers.BotAPI;
-import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.GameScreenAPI;
-import eu.darkbot.api.managers.HangarAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.utils.Inject;
 import eu.darkbot.shared.modules.TemporalModule;
@@ -18,14 +18,14 @@ public class HangarSwitcher extends TemporalModule {
     protected final PluginAPI api;
     protected final HeroAPI heroapi;
     protected final BackpageAPI backpageAPI;
-    protected final HangarAPI hangarApi;
-    protected final EntitiesAPI entities;
 
     protected final Gui lostConnectionGUI;
     protected final Gui logout;
 
     private Integer activeHangar = null;
     private Integer hangarToChage = null;
+    private final Main main;
+    private final HangarManager hangarManager;
     private State currentStatus;
 
     private long waitinUntil = 0;
@@ -51,19 +51,19 @@ public class HangarSwitcher extends TemporalModule {
         }
     }
 
-    public HangarSwitcher(PluginAPI api, Integer hangar) {
-        this(api, api.requireAPI(BotAPI.class), hangar);
+    public HangarSwitcher(Main m, PluginAPI api, Integer hangar) {
+        this(m, api, api.requireAPI(BotAPI.class), hangar);
     }
 
     @Inject
-    public HangarSwitcher(PluginAPI api, BotAPI bot, Integer hangar) {
+    public HangarSwitcher(Main m, PluginAPI api, BotAPI bot, Integer hangar) {
         super(bot);
+        this.main = m;
+        this.hangarManager = main.backpage.hangarManager;
 
         this.api = api;
         this.heroapi = api.getAPI(HeroAPI.class);
         this.backpageAPI = api.getAPI(BackpageAPI.class);
-        this.hangarApi = api.getAPI(HangarAPI.class);
-        this.entities = api.getAPI(EntitiesAPI.class);
         this.hangarToChage = hangar;
         this.checkCount = 0;
 
@@ -127,7 +127,7 @@ public class HangarSwitcher extends TemporalModule {
                                 goBack();
                             } else {
                                 this.currentStatus = State.SWITCHING_HANGAR;
-                                if (hangarApi.changeHangar(hangarToChage)) {
+                                if (hangarManager.changeHangar(String.valueOf(hangarToChage))) {
                                     hangarChanged = true;
                                     this.currentStatus = State.HANGAR_CHANGED;
                                     waitinUntil = System.currentTimeMillis() + 10000;
@@ -138,7 +138,7 @@ public class HangarSwitcher extends TemporalModule {
                                 this.activeHangar = null;
                             }
                         }
-                    } else if (!heroapi.isAttacking() && !SharedFunctions.hasAttacker(heroapi, entities, heroapi)) {
+                    } else if (!heroapi.isAttacking() && !SharedFunctions.hasAttacker(heroapi, main)) {
                         disconnect();
                     } else {
                         goBack();
@@ -177,8 +177,12 @@ public class HangarSwitcher extends TemporalModule {
     private void updateHangarActive() {
         this.currentStatus = State.LOADING_HANGARS;
         try {
-            hangarApi.updateHangarList();
-            activeHangar = hangarApi.getCurrentHangarId();
+            hangarManager.updateHangarList();
+            activeHangar = hangarManager.getHangarList().getData().getRet().getHangars().stream()
+                    .filter(Hangar::isActive)
+                    .map(Hangar::getHangarId)
+                    .findFirst()
+                    .orElse(null);
         } catch (Exception ignored) {
             waitinUntil = System.currentTimeMillis() + 20000;
             activeHangar = null;

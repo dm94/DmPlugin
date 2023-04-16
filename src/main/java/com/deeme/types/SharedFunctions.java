@@ -52,11 +52,6 @@ public class SharedFunctions {
         return ship != null;
     }
 
-    public static boolean hasAttacker(Ship assaulted, EntitiesAPI entities, HeroAPI hero) {
-        Ship ship = getAttacker(assaulted, entities.getShips(), hero);
-        return ship != null;
-    }
-
     public static boolean isNpcByName(ConfigAPI config, String name) {
         ConfigSetting<Map<String, NpcInfo>> configSetting = config.requireConfig("loot.npc_infos");
         if (configSetting.getValue() != null) {
