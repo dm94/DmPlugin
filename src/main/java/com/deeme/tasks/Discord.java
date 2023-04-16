@@ -161,7 +161,7 @@ public class Discord implements Task, Configurable<Discord.DiscordConfig>, Instr
         best += "{" +
                 " \"name\": \"Group size\",";
         if (main.guiManager.group.hasGroup()) {
-            best += " \"value\": \"" + main.guiManager.group.group.size + "\",";
+            best += " \"value\": \"" + main.guiManager.group.getMembers().size() + "\",";
         } else {
             best += " \"value\": \" No Group \",";
         }

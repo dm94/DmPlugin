@@ -198,10 +198,6 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
                 return Ability.GOLIATH_X_FROZEN_CLAW;
             } else if (isAvailable(Ability.VENOM)) {
                 return Ability.VENOM;
-            } else if (isAvailable(Ability.SOLARIS_INC)) {
-                return Ability.SOLARIS_INC;
-            } else if (isAvailable(Ability.SOLARIS_PLUS_INCINERATE_PLUS)) {
-                return Ability.SOLARIS_PLUS_INCINERATE_PLUS;
             } else if (isAvailable(Ability.TARTARUS_RAPID_FIRE)) {
                 return Ability.TARTARUS_RAPID_FIRE;
             } else if (isAvailable(Ability.DISRUPTOR_SHIELD_DISARRAY)) {
@@ -214,6 +210,12 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
                 return Ability.ZEPHYR_TBR;
             } else if (isAvailable(Ability.HOLO_ENEMY_REVERSAL)) {
                 return Ability.HOLO_ENEMY_REVERSAL;
+            } else if (isInRange()) {
+                if (isAvailable(Ability.SOLARIS_INC)) {
+                    return Ability.SOLARIS_INC;
+                } else if (isAvailable(Ability.SOLARIS_PLUS_INCINERATE_PLUS)) {
+                    return Ability.SOLARIS_PLUS_INCINERATE_PLUS;
+                }
             }
         }
 
@@ -224,6 +226,11 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
         Lockable target = heroapi.getLocalTarget();
         return (target != null && target.isValid() && heroapi.isAttacking() && target.getHealth() != null
                 && target.getHealth().getHp() >= this.config.minHealthToUseDamage);
+    }
+
+    private boolean isInRange() {
+        Lockable target = heroapi.getLocalTarget();
+        return (target != null && target.isValid() && heroapi.distanceTo(target) < 650);
     }
 
     private boolean shoulFocusSpeed() {

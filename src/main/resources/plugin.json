@@ -1,8 +1,8 @@
 {
   "name": "DmPlugin",
   "author": "Dm94Dani",
-  "version": "1.7.26",
-  "minVersion": "1.13.17 beta 111",
+  "version": "1.7.27",
+  "minVersion": "1.120",
   "supportedVersion": "1.120",
   "basePackage": "com.deeme",
   "features": [
@@ -19,7 +19,6 @@
     "com.deeme.tasks.ExternalChat",
     "com.deeme.behaviours.Others",
     "com.deeme.behaviours.defense.DefenseMode",
-    "com.deeme.behaviours.PVPLog",
     "com.deeme.behaviours.CustomEvents",
     "com.deeme.behaviours.StopButton",
     "com.deeme.behaviours.ProfileChanger",
@@ -30,6 +29,6 @@
   ],
   "donation": "https://www.paypal.com/donate/?business=JR2XWPSKLWN76&amount=5&no_recurring=0&currency_code=EUR",
   "discord": "https://discord.gg/GPRTRRZJPw",
-  "download": "https://github.com/darkbot-reloaded/DmPlugin/releases/download/v1.7.26/DmPlugin.jar",
+  "download": "https://github.com/darkbot-reloaded/DmPlugin/releases/download/v1.7.27/DmPlugin.jar",
   "update": "https://raw.githubusercontent.com/darkbot-reloaded/DmPlugin/master/src/main/resources/plugin.json"
 }
