@@ -224,7 +224,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
 
     private boolean shoulUseBat() {
         return hasFormation(Formation.BAT)
-                && !isFaster();
+                && !isFaster() && !isInRange(500);
     }
 
     private boolean useSelectableReadyWhenReady(Formation formation) {
@@ -277,6 +277,11 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
         }
 
         return false;
+    }
+
+    private boolean isInRange(int range) {
+        Lockable target = heroapi.getLocalTarget();
+        return (target != null && target.isValid() && heroapi.distanceTo(target) < range);
     }
 
     private boolean isFaster() {
