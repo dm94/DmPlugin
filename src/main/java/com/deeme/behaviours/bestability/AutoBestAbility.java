@@ -185,7 +185,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
                 return Ability.SENTINEL;
             } else if (isAvailable(Ability.BERSERKER_BSK)) {
                 return Ability.BERSERKER_BSK;
-            } else if (isAvailable(Ability.ORCUS_ASSIMILATE)) {
+            } else if (shoulUseOrcusAssimilate()) {
                 return Ability.ORCUS_ASSIMILATE;
             }
         }
@@ -293,6 +293,10 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
         }
 
         return false;
+    }
+
+    private boolean shoulUseOrcusAssimilate() {
+        return heroapi.getHealth().hpPercent() < 0.8 && isAvailable(Ability.ORCUS_ASSIMILATE);
     }
 
     private boolean shoulFocusEvade() {

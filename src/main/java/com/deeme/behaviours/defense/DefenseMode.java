@@ -24,6 +24,7 @@ import eu.darkbot.api.managers.GroupAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.MovementAPI;
 import eu.darkbot.api.utils.Inject;
+import eu.darkbot.shared.modules.MapModule;
 import eu.darkbot.shared.modules.TemporalModule;
 
 import java.util.Arrays;
@@ -82,7 +83,8 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
         if (botApi.getModule() != null && botApi.getModule().getClass() != DefenseModule.class
                 && !(botApi.getModule().getClass() == PVPModule.class && heroapi.isAttacking())
                 && !(botApi.getModule().getClass() == SentinelModule.class && heroapi.isAttacking())
-                && !(botApi.getModule() instanceof TemporalModule)
+                && !((botApi.getModule() instanceof TemporalModule)
+                        && botApi.getModule().getClass() != MapModule.class)
                 && isUnderAttack()) {
             botApi.setModule(new DefenseModule(api, defenseConfig, target));
         }

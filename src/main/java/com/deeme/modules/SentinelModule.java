@@ -402,7 +402,9 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         for (eu.darkbot.api.game.group.GroupMember m : group.getMembers()) {
             if (!m.isDead() && m.getId() != heroapi.getId()
                     && ((sConfig.MASTER_ID != 0 && m.getId() == sConfig.MASTER_ID) ||
-                            sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(m.getId())) ||
+                            (sConfig.SENTINEL_TAG != null
+                                    && sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(m.getId())))
+                            ||
                             (sConfig.followGroupLeader && m.isLeader()))) {
                 if (m.isLeader()) {
                     groupLeaderID = m.getId();

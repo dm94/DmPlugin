@@ -132,6 +132,10 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
 
         Entity target = heroapi.getLocalTarget();
         if (target instanceof Npc) {
+            Npc npc = (Npc) target;
+            if (shoulUseDrill() && npc.getHealth().getHp() > 30000) {
+                return Formation.DRILL;
+            }
             if (shoulUseBat()) {
                 return Formation.BAT;
             } else if (hasFormation(Formation.BARRAGE)) {
@@ -141,11 +145,10 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
             return Formation.PINCER;
         }
 
-        if (hasFormation(Formation.STAR)) {
-            return Formation.STAR;
-        } else if (hasFormation(Formation.DRILL) && !shoulFocusSpeed()
-                && !isFaster()) {
+        if (shoulUseDrill()) {
             return Formation.DRILL;
+        } else if (hasFormation(Formation.STAR)) {
+            return Formation.STAR;
         } else if (hasFormation(Formation.DOUBLE_ARROW)) {
             return Formation.DOUBLE_ARROW;
         } else if (hasFormation(Formation.CHEVRON)
@@ -179,6 +182,10 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
         }
 
         return false;
+    }
+
+    private boolean shoulUseDrill() {
+        return hasFormation(Formation.DRILL) && !shoulFocusSpeed() && !isInRange(500);
     }
 
     private boolean shoulUseDiamond() {
@@ -223,8 +230,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     }
 
     private boolean shoulUseBat() {
-        return hasFormation(Formation.BAT)
-                && !isFaster();
+        return hasFormation(Formation.BAT) && !isInRange(500);
     }
 
     private boolean useSelectableReadyWhenReady(Formation formation) {
@@ -277,6 +283,11 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
         }
 
         return false;
+    }
+
+    private boolean isInRange(int range) {
+        Lockable target = heroapi.getLocalTarget();
+        return (target != null && target.isValid() && heroapi.distanceTo(target) < range);
     }
 
     private boolean isFaster() {
