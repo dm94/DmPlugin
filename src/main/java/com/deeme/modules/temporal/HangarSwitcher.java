@@ -32,6 +32,7 @@ public class HangarSwitcher extends TemporalModule {
     private int hangarTry = 0;
     private boolean hangarChanged = false;
     private int checkCount = 0;
+    private int additionalTime = 0;
 
     private enum State {
         WAIT("Waiting"),
@@ -49,6 +50,11 @@ public class HangarSwitcher extends TemporalModule {
         State(String message) {
             this.message = message;
         }
+    }
+
+    public HangarSwitcher(Main m, PluginAPI api, Integer hangar, Integer additionalTime) {
+        this(m, api, api.requireAPI(BotAPI.class), hangar);
+        this.additionalTime = additionalTime;
     }
 
     public HangarSwitcher(Main m, PluginAPI api, Integer hangar) {
@@ -113,10 +119,10 @@ public class HangarSwitcher extends TemporalModule {
                     if (isDisconnect()) {
                         if (!this.backpageAPI.isInstanceValid() || !this.backpageAPI.getSidStatus().contains("OK")) {
                             this.currentStatus = State.SID_KO;
-                            waitinUntil = System.currentTimeMillis() + 60000;
+                            addWaitingTime(60);
                         } else {
                             if (hangarChanged) {
-                                waitinUntil = System.currentTimeMillis() + 10000;
+                                addWaitingTime(10);
                                 activeHangar = null;
                                 checkCount++;
                                 if (checkCount > 6) {
@@ -130,10 +136,10 @@ public class HangarSwitcher extends TemporalModule {
                                 if (hangarManager.changeHangar(String.valueOf(hangarToChage))) {
                                     hangarChanged = true;
                                     this.currentStatus = State.HANGAR_CHANGED;
-                                    waitinUntil = System.currentTimeMillis() + 10000;
+                                    addWaitingTime(10);
                                 } else if (hangarTry < 4) {
                                     hangarTry++;
-                                    waitinUntil = System.currentTimeMillis() + 20000;
+                                    addWaitingTime(20);
                                 }
                                 this.activeHangar = null;
                             }
@@ -152,6 +158,10 @@ public class HangarSwitcher extends TemporalModule {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void addWaitingTime(Integer time) {
+        waitinUntil = System.currentTimeMillis() + ((time + additionalTime) * 1000);
     }
 
     private String waitingTime() {
@@ -184,7 +194,7 @@ public class HangarSwitcher extends TemporalModule {
                     .findFirst()
                     .orElse(null);
         } catch (Exception ignored) {
-            waitinUntil = System.currentTimeMillis() + 20000;
+            addWaitingTime(20);
             activeHangar = null;
         }
     }

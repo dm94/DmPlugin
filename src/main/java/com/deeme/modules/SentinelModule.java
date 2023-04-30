@@ -47,6 +47,7 @@ import eu.darkbot.shared.utils.SafetyFinder;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Random;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -90,7 +91,10 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
     protected long lastTimeAttack = 0;
     protected int groupLeaderID = 0;
 
+    protected long randomWaitTime = 0;
+
     protected Location lastSentinelLocation = null;
+    private Random rnd;
 
     private JLabel label = new JLabel("<html><b>Sentinel Module</b> <br>" +
             "It's important that the main ship is in a group <br>" +
@@ -163,6 +167,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         this.sabSettings = configApi.requireConfig("loot.sab");
 
         this.shipAttacker = new ShipAttacker(api, sabSettings.getValue(), rsbEnabled.getValue());
+        this.rnd = new Random();
     }
 
     @Override
@@ -221,6 +226,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                         moveToMaster();
                     }
                 } else if (sentinel.isValid()) {
+                    addRandomTime();
                     currentStatus = State.FOLLOWING_MASTER;
                     setMode(configRoam.getValue());
                     if (heroapi.distanceTo(sentinel.getLocationInfo().getCurrent()) > sConfig.rangeToLider) {
@@ -263,6 +269,12 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                     }
                 }
             }
+        }
+    }
+
+    private void addRandomTime() {
+        if (sConfig.humanizer.addRandomTime) {
+            randomWaitTime = System.currentTimeMillis() + (rnd.nextInt(sConfig.humanizer.maxRandomTime) * 1000);
         }
     }
 
@@ -356,6 +368,10 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
     }
 
     private Entity getSentinelTarget() {
+        if (randomWaitTime > System.currentTimeMillis()) {
+            return null;
+        }
+
         Entity target = null;
         if (sentinel.getTarget() != null) {
             if (sConfig.autoAttack.helpAttackPlayers || sConfig.autoAttack.helpAttackEnemyPlayers) {

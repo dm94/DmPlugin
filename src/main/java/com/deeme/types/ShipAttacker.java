@@ -113,7 +113,7 @@ public class ShipAttacker {
         fixedTimes = 0;
         laserTime = 0;
         firstAttack = false;
-        if (heroapi.getLocationInfo().distanceTo(target) < 800) {
+        if (heroapi.getLocationInfo().distanceTo(target) < 700) {
             if (System.currentTimeMillis() - clickDelay > 500) {
                 heroapi.setLocalTarget(target);
                 target.trySelect(false);

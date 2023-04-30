@@ -30,7 +30,6 @@ import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.OreAPI;
 import eu.darkbot.api.managers.OreAPI.Ore;
 import eu.darkbot.api.managers.StarSystemAPI;
-import eu.darkbot.api.managers.StarSystemAPI.MapNotFoundException;
 import eu.darkbot.api.managers.StatsAPI;
 import eu.darkbot.api.utils.Inject;
 import eu.darkbot.shared.modules.LootCollectorModule;
@@ -113,12 +112,12 @@ public class PalladiumHangar extends LootCollectorModule implements Configurable
         StarSystemAPI starSystem = api.getAPI(StarSystemAPI.class);
         try {
             this.sellMap = starSystem.getByName("5-2");
-        } catch (MapNotFoundException e) {
+        } catch (Exception e) {
             this.sellMap = main.starManager.byName("5-2");
         }
         try {
             this.activeMap = starSystem.getByName("5-3");
-        } catch (MapNotFoundException e) {
+        } catch (Exception e) {
             this.activeMap = main.starManager.byName("5-3");
         }
 
@@ -194,10 +193,7 @@ public class PalladiumHangar extends LootCollectorModule implements Configurable
             } else if (configPa.sellHangar != null && !configPa.sellHangar.equals(activeHangar)
                     && canBeDisconnected()) {
                 this.currentStatus = State.DEPOSIT_FULL_SWITCHING_HANGAR;
-                if (botApi.getModule().getClass() != HangarSwitcher.class) {
-                    this.activeHangar = null;
-                    botApi.setModule(new HangarSwitcher(main, api, configPa.sellHangar));
-                }
+                setHangarSwitcher(configPa.sellHangar);
             } else {
                 pet.setEnabled(true);
                 super.onTickModule();
@@ -209,10 +205,14 @@ public class PalladiumHangar extends LootCollectorModule implements Configurable
                 && !configPa.collectHangar.equals(
                         activeHangar)) {
             this.currentStatus = State.SWITCHING_PALA_HANGAR;
-            if (botApi.getModule().getClass() != HangarSwitcher.class) {
-                this.activeHangar = null;
-                botApi.setModule(new HangarSwitcher(main, api, configPa.collectHangar));
-            }
+            setHangarSwitcher(configPa.collectHangar);
+        }
+    }
+
+    private void setHangarSwitcher(Integer hangar) {
+        if (botApi.getModule().getClass() != HangarSwitcher.class) {
+            this.activeHangar = null;
+            botApi.setModule(new HangarSwitcher(main, api, hangar, configPa.aditionalWaitingTime));
         }
     }
 
@@ -227,7 +227,7 @@ public class PalladiumHangar extends LootCollectorModule implements Configurable
     private void sell() {
         pet.setEnabled(false);
         if (heroapi.getMap() != sellMap) {
-            this.main.setModule(api.requireInstance(MapModule.class)).setTarget(this.sellMap);
+            this.botApi.setModule(api.requireInstance(MapModule.class)).setTarget(this.sellMap);
         } else {
             Station.Refinery base = bases.stream()
                     .filter(b -> b instanceof Station.Refinery && b.getLocationInfo().isInitialized())
@@ -261,15 +261,15 @@ public class PalladiumHangar extends LootCollectorModule implements Configurable
                 sell();
             } else {
                 hideTradeGui();
-                this.main.setModule(api.requireInstance(MapModule.class)).setTarget(this.activeMap);
+                this.botApi.setModule(api.requireInstance(MapModule.class)).setTarget(this.activeMap);
             }
         }
     }
 
     private void hideTradeGui() {
         if (tradeGui.isVisible()) {
-            oreApi.showTrade(false, null);
             tradeGui.setVisible(false);
+            oreApi.showTrade(false, null);
         }
     }
 
