@@ -1,5 +1,6 @@
 package com.deeme.types.config;
 
+import com.deeme.modules.sentinel.Humanizer;
 import com.github.manolo8.darkbot.config.PlayerTag;
 import com.github.manolo8.darkbot.config.types.Tag;
 import com.github.manolo8.darkbot.config.types.TagDefault;
@@ -51,4 +52,7 @@ public class SentinelConfig {
 
     @Option("general.special_items")
     public SpecialItems specialItems = new SpecialItems();
+
+    @Option("humanizer")
+    public Humanizer humanizer = new Humanizer();
 }
