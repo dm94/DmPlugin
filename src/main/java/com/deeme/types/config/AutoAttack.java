@@ -1,26 +1,27 @@
 package com.deeme.types.config;
 
-import com.github.manolo8.darkbot.config.types.Num;
-import com.github.manolo8.darkbot.config.types.Option;
+import eu.darkbot.api.config.annotations.Number;
+import eu.darkbot.api.config.annotations.Option;
+import eu.darkbot.api.config.annotations.Configuration;
 
-@Option(value = "Auto Attack", description = "Will attack even when the master is not attacking")
+@Configuration("sentinel.auto_attack")
 public class AutoAttack {
-    @Option(value = "Help to attack NPCs", description = "Will help to attack NPCs")
+    @Option("auto_attack.help_attack_npcs")
     public boolean helpAttackNPCs = true;
 
-    @Option(value = "Help to attack Enemy Players", description = "Will help to attack Enemy Players")
+    @Option("auto_attack.help_attack_enemies")
     public boolean helpAttackEnemyPlayers = true;
 
-    @Option(value = "Help attack all players", description = "Will help to attack Players. Ignore whether he is an enemy or not")
+    @Option("auto_attack.help_attack_players")
     public boolean helpAttackPlayers = true;
 
-    @Option(value = "Auto Attack Enemies", description = "Attack enemies in range")
+    @Option("auto_attack.auto_attack_enemies")
     public boolean autoAttackEnemies = false;
 
-    @Option(value = "Maximum range for enemies", description = "Enemies above this range will not be attacked")
-    @Num(min = 0, max = 1000, step = 100)
+    @Option("auto_attack.max_range")
+    @Number(min = 0, max = 1000, step = 100)
     public int rangeForEnemies = 100;
 
-    @Option(value = "Defend against NPCs", description = "It will only attack NPCs if it is not attacking and is being attacked")
+    @Option("auto_attack.defend_from_npcs")
     public boolean defendFromNPCs = false;
 }

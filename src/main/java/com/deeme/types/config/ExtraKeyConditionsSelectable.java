@@ -2,10 +2,12 @@ package com.deeme.types.config;
 
 import com.deeme.types.gui.SelectableItemSupplier;
 
+import eu.darkbot.api.config.annotations.Configuration;
 import eu.darkbot.api.config.annotations.Dropdown;
 import eu.darkbot.api.config.annotations.Option;
 import eu.darkbot.api.config.types.Condition;
 
+@Configuration("extra_condition")
 public class ExtraKeyConditionsSelectable {
 
     @Option("general.enabled")
