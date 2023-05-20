@@ -42,7 +42,24 @@ public class SkylabSender implements Task, Configurable<SkylabSender.SkylabConfi
     private long nextCheck = 0;
     private boolean waitingTransport = true;
 
-    private JLabel label = new JLabel("Loading");
+    private enum State {
+        LOADING("Loading"),
+        SID_KO("Unable to send for values from BackPage (SID KO)"),
+        WAITING("Waiting Transport"),
+        NOTHING("Error nothing to send"),
+        ERROR_SEND("Error when sending the transport"),
+        ERROR_SPACE("Error no space to send anything"),
+        ERROR_CHECK("Error when checking transport"),
+        SUCCESS("Cargo Sent");
+
+        private final String message;
+
+        State(String message) {
+            this.message = message;
+        }
+    }
+
+    private JLabel label = new JLabel(State.LOADING.message);
 
     public SkylabSender(Main main, PluginAPI api) {
         this(main, api, api.requireAPI(AuthAPI.class));
@@ -98,18 +115,18 @@ public class SkylabSender implements Task, Configurable<SkylabSender.SkylabConfi
 
     }
 
-    private void changeStatus(String text) {
-        this.label.setText("Status: " + text);
+    private void changeStatus(State state) {
+        this.label.setText("Status: " + state.message);
     }
 
     private boolean tryToSend() {
         if (!this.backpage.isInstanceValid() || !this.backpage.getSidStatus().contains("OK")) {
-            changeStatus("Unable to send for values from BackPage (SID KO)");
+            changeStatus(State.SID_KO);
             return false;
         }
 
         if (this.config.sepromToSend == 0 && this.config.promeriumToSend == 0) {
-            changeStatus("Error nothing to send");
+            changeStatus(State.NOTHING);
             return false;
         }
 
@@ -119,7 +136,7 @@ public class SkylabSender implements Task, Configurable<SkylabSender.SkylabConfi
                         .getConnection("indexInternal.es?action=internalSkylab", Method.GET)
                         .consumeInputStream(this::checkTransport);
                 if (this.waitingTransport) {
-                    changeStatus("Waiting Transport");
+                    changeStatus(State.WAITING);
                     return false;
                 }
             }
@@ -130,7 +147,7 @@ public class SkylabSender implements Task, Configurable<SkylabSender.SkylabConfi
             }
             return true;
         } catch (Exception e) {
-            changeStatus("Error when sending the transport");
+            changeStatus(State.ERROR_SEND);
         }
 
         return false;
@@ -164,7 +181,7 @@ public class SkylabSender implements Task, Configurable<SkylabSender.SkylabConfi
             promerium = this.config.promeriumToSend;
         }
         if (seprom == 0 && promerium == 0) {
-            changeStatus("Error no space to send anything");
+            changeStatus(State.ERROR_SPACE);
         } else {
             backpageManager.getConnection("indexInternal.es", Method.POST)
                     .setRawParam("reloadToken", token)
@@ -181,7 +198,7 @@ public class SkylabSender implements Task, Configurable<SkylabSender.SkylabConfi
                     .setRawParam("count_promerium", String.valueOf(promerium))
                     .setRawParam("count_seprom", String.valueOf(seprom))
                     .getContent();
-            changeStatus("Cargo Sent");
+            changeStatus(State.SUCCESS);
             this.waitingTransport = true;
         }
     }
@@ -195,7 +212,7 @@ public class SkylabSender implements Task, Configurable<SkylabSender.SkylabConfi
                 }
             }
         } catch (Exception e) {
-            changeStatus("Error when checking transport");
+            changeStatus(State.ERROR_CHECK);
         }
         return false;
     }

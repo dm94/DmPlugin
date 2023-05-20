@@ -24,7 +24,6 @@ import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.RepairAPI;
 import eu.darkbot.api.managers.StarSystemAPI;
 import eu.darkbot.api.managers.StatsAPI;
-import eu.darkbot.api.managers.StarSystemAPI.MapNotFoundException;
 import eu.darkbot.api.utils.Inject;
 
 @Feature(name = "AutoChangeMap", description = "Automatically changes map every x amount of time or deaths")
@@ -152,7 +151,7 @@ public class AutoChangeMap implements Task, Configurable<ChangeMapConfig> {
                 try {
                     map = star.getByName(chosseMap.getKey()).getId();
                     api.requireAPI(ConfigAPI.class).requireConfig("general.working_map").setValue(map);
-                } catch (MapNotFoundException e) {
+                } catch (Exception e) {
                     System.out.println("Map not found" + e.getMessage());
                 }
 

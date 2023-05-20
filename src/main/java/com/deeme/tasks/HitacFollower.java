@@ -25,7 +25,6 @@ import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.GameLogAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.StarSystemAPI;
-import eu.darkbot.api.managers.StarSystemAPI.MapNotFoundException;
 import eu.darkbot.api.utils.Inject;
 
 @Feature(name = "HitacFollower", description = "Change the main map to where the Hitac is located")
@@ -97,7 +96,7 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
                     }
                 } else if (followerConfig.returnToWaitingMap) {
                     api.requireAPI(ConfigAPI.class).requireConfig("general.working_map")
-                            .setValue(followerConfig.WAIT_MAP);
+                            .setValue(followerConfig.waitMap);
                 }
             }
         }
@@ -175,7 +174,7 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
         try {
             int map = star.getByName(mapName).getId();
             api.requireAPI(ConfigAPI.class).requireConfig("general.working_map").setValue(map);
-        } catch (MapNotFoundException e) {
+        } catch (Exception e) {
             System.out.println("Map not found" + e.getMessage());
         }
     }
