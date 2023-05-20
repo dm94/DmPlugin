@@ -173,7 +173,8 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
         if (nextCheck < System.currentTimeMillis()) {
             LocalDateTime da = LocalDateTime.now();
             int currentHour = da.getHour();
-            jLabel.setText(String.format("%02d", da.getHour()) + ":" + String.format("%02d", da.getMinute()));
+            jLabel.setText(
+                    "Last check: " + String.format("%02d", da.getHour()) + ":" + String.format("%02d", da.getMinute()));
             Hour hour = this.weeklyConfig.Hours_Changes.get(String.format("%02d", currentHour));
             String profile = "";
             if (hour != null) {
@@ -212,7 +213,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
                 }
 
                 setProfile();
-                nextCheck = System.currentTimeMillis() + 60000;
+                nextCheck = System.currentTimeMillis() + (weeklyConfig.timeToCheck * 60000);
             }
         }
     }
