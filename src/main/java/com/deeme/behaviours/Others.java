@@ -4,6 +4,7 @@ import java.util.Collection;
 
 import com.deeme.types.backpage.Utils;
 import com.github.manolo8.darkbot.Main;
+import com.github.manolo8.darkbot.modules.DisconnectModule;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -16,9 +17,11 @@ import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
+import eu.darkbot.api.game.other.Gui;
 import eu.darkbot.api.managers.BackpageAPI;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
+import eu.darkbot.api.managers.GameScreenAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
 import eu.darkbot.api.managers.StatsAPI;
@@ -36,6 +39,8 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
     protected final HeroItemsAPI items;
     protected final HeroAPI heroapi;
     protected final BackpageAPI backpage;
+    private final Gui lostConnectionGUI;
+    private long lastLoggedIn = 0;
 
     private Collection<? extends Portal> portals;
 
@@ -58,6 +63,11 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
         this.heroapi = api.getAPI(HeroAPI.class);
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
         this.portals = entities.getPortals();
+
+        GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
+        lostConnectionGUI = gameScreenAPI.getGui("lost_connection");
+
+        this.lastLoggedIn = 0;
     }
 
     @Override
@@ -78,7 +88,29 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
         if (lcConfig.maxMemory > 0 && Main.API.getMemoryUsage() >= lcConfig.maxMemory && bot.getModule().canRefresh()) {
             refresh();
         }
+
         autoBuyLogic();
+        closeBotLogic();
+    }
+
+    @Override
+    public void onStoppedBehavior() {
+        closeBotLogic();
+    }
+
+    private void closeBotLogic() {
+        if (lcConfig.closeBotMinutes > 0 && this.lastLoggedIn > 0 && isDisconnect()
+                && !(bot.getModule() instanceof DisconnectModule)) {
+            if (this.lastLoggedIn < System.currentTimeMillis() - (lcConfig.closeBotMinutes * 60000)) {
+                System.exit(0);
+            }
+        } else {
+            this.lastLoggedIn = System.currentTimeMillis();
+        }
+    }
+
+    private boolean isDisconnect() {
+        return lostConnectionGUI != null && lostConnectionGUI.isVisible();
     }
 
     private void autoBuyLogic() {
@@ -118,6 +150,10 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
 
         @Option("others.reload")
         public boolean reloadIfCrash = false;
+
+        @Option("others.close_bot")
+        @Number(max = 120, step = 1)
+        public int closeBotMinutes = 0;
 
         @Option("others.max_memory")
         @Number(max = 6000, step = 100)
