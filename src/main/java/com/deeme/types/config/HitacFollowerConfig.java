@@ -19,5 +19,5 @@ public class HitacFollowerConfig {
 
     @Option("hitac_follower.waiting_map")
     @Dropdown(options = MapOptions.class)
-    public int WAIT_MAP = 8;
+    public int waitMap = 8;
 }

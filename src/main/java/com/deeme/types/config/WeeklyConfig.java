@@ -7,15 +7,18 @@ import com.deeme.types.gui.JDayChangeTable;
 
 import com.github.manolo8.darkbot.config.types.Editor;
 
+import eu.darkbot.api.config.annotations.Configuration;
+import eu.darkbot.api.config.annotations.Number;
 import eu.darkbot.api.config.annotations.Option;
 
+@Configuration("weekly_schedule")
 public class WeeklyConfig {
     @Option("general.enabled")
     public boolean activate = false;
 
-    @Option()
-    @Editor(value = JDayChangeTable.class, shared = true)
-    public Map<String, Hour> Hours_Changes = new HashMap<>();
+    @Option("general.next_check_time_minutes")
+    @Number(min = 1, max = 60, step = 1)
+    public int timeToCheck = 5;
 
     @Option("weekly_schedule.change_hangar")
     public boolean changeHangar = false;
@@ -31,4 +34,8 @@ public class WeeklyConfig {
 
     @Option("weekly_schedule.p4")
     public Profile profile4 = new Profile();
+
+    @Option()
+    @Editor(value = JDayChangeTable.class, shared = true)
+    public Map<String, Hour> Hours_Changes = new HashMap<>();
 }

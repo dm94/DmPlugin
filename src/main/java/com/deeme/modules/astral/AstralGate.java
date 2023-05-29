@@ -40,7 +40,6 @@ import eu.darkbot.api.managers.HeroItemsAPI;
 import eu.darkbot.api.managers.MovementAPI;
 import eu.darkbot.api.managers.PetAPI;
 import eu.darkbot.api.managers.StarSystemAPI;
-import eu.darkbot.api.managers.StarSystemAPI.MapNotFoundException;
 import eu.darkbot.api.utils.Inject;
 import eu.darkbot.shared.modules.MapModule;
 import eu.darkbot.shared.utils.SafetyFinder;
@@ -565,7 +564,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                     this.bot.setModule(api.requireInstance(MapModule.class)).setTarget(map);
                 }
             }
-        } catch (MapNotFoundException e) {
+        } catch (Exception e) {
             System.out.println("Map not found" + e.getMessage());
         }
     }
