@@ -7,13 +7,12 @@ import java.util.Collection;
 import com.deeme.types.SharedFunctions;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
+import com.github.manolo8.darkbot.config.Config;
 import com.github.manolo8.darkbot.config.NpcExtraFlag;
 import com.github.manolo8.darkbot.core.itf.NpcExtraProvider;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
-import eu.darkbot.api.config.types.ShipMode;
-import eu.darkbot.api.config.types.ShipMode.ShipModeImpl;
 import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
@@ -48,7 +47,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     private Collection<? extends Portal> allPortals;
     private long nextCheck = 0;
 
-    protected final ConfigSetting<ShipMode> configOffensive;
+    protected final ConfigSetting<Config.ShipConfig> configOffensive;
 
     private ArrayList<Formation> availableFormations = new ArrayList<>();
 
@@ -249,14 +248,20 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     }
 
     private boolean useSelectableReadyWhenReady(Formation formation) {
-        changeOffensiveConfig(formation);
-        return (formation != null && !heroapi.isInFormation(formation)
-                && items.useItem(formation, 1000, ItemFlag.USABLE, ItemFlag.READY).isSuccessful());
+
+        if (formation != null && !heroapi.isInFormation(formation)
+                && items.useItem(formation, 1000, ItemFlag.USABLE, ItemFlag.READY).isSuccessful()) {
+            changeOffensiveConfig(formation);
+            return true;
+        }
+        return false;
     }
 
     private void changeOffensiveConfig(Formation formation) {
-        ShipModeImpl mode = new ShipModeImpl(configOffensive.getValue().getConfiguration(), formation);
-        configOffensive.setValue(mode);
+        Character key = items.getKeyBind(formation);
+        if (configOffensive.getValue().getLegacyFormation().equals(key)) {
+            configOffensive.setValue(new Config.ShipConfig(configOffensive.getValue().CONFIG, key));
+        }
     }
 
     private boolean hasTag(Enum<?> tag) {
