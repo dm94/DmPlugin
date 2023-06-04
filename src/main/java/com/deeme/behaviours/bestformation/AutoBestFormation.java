@@ -258,9 +258,13 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     }
 
     private void changeOffensiveConfig(Formation formation) {
-        Character key = items.getKeyBind(formation);
-        if (configOffensive.getValue().getLegacyFormation().equals(key)) {
-            configOffensive.setValue(new Config.ShipConfig(configOffensive.getValue().CONFIG, key));
+        try {
+            Character key = items.getKeyBind(formation);
+            if (key == null || configOffensive.getValue().getLegacyFormation() == null
+                    || configOffensive.getValue().getLegacyFormation().equals(key)) {
+                configOffensive.setValue(new Config.ShipConfig(configOffensive.getValue().CONFIG, key));
+            }
+        } catch (Exception e) {
         }
     }
 
