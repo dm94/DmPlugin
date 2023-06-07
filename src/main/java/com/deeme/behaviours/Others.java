@@ -110,7 +110,8 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
     }
 
     private boolean isDisconnect() {
-        return lostConnectionGUI != null && lostConnectionGUI.isVisible();
+        return heroapi.getMap() == null || heroapi.getMap().getId() == -1
+                || (lostConnectionGUI != null && lostConnectionGUI.isVisible());
     }
 
     private void autoBuyLogic() {
