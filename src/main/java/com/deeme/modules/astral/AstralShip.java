@@ -44,8 +44,10 @@ public class AstralShip {
                 + getMaxWeapons() + " | G: " + getGenerators() + "/" + getMaxGenerators();
     }
 
-    public boolean isValid() {
-        return this.shipType != null;
+    public boolean isValid(String ship) {
+        return this.shipType != null
+                && (ship.equals("ship_sentinel") || ship.equals("ship_diminisher") || ship.equals("ship_zephyr")
+                        || ship.equals("ship_pusat"));
     }
 
     public ShipType getShipType() {

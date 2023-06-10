@@ -208,7 +208,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
             if (astralShip == null) {
                 astralShip = new AstralShip(heroapi.getShipType());
             }
-            if (astralShip.isValid()) {
+            if (astralShip.isValid(heroapi.getShipType())) {
                 activeAutoRocketCPU();
                 repairShield = repairShield && heroapi.getHealth().shieldPercent() < 0.9
                         || heroapi.getHealth().shieldPercent() < 0.2;
@@ -227,14 +227,12 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                         nextWaveCheck = System.currentTimeMillis() + 30000;
                         goToTheMiddle();
 
-                        if (astralGui != null && (astralConfig.autoChoosePortal || astralConfig.autoChooseItem)) {
+                        if (astralConfig.autoChoosePortal || astralConfig.autoChooseItem) {
                             autoChooseLogic();
-                        } else if (!portals.isEmpty()) {
-                            if (astralGui != null && astralGui.isVisible()) {
-                                this.currentStatus = State.WAITING_HUMAN;
-                                this.showDialog = true;
-                                this.bot.setRunning(false);
-                            }
+                        } else if (!portals.isEmpty() || (astralGui != null && astralGui.isVisible())) {
+                            this.currentStatus = State.WAITING_HUMAN;
+                            this.showDialog = true;
+                            this.bot.setRunning(false);
                         } else {
                             this.currentStatus = State.WAITING_WAVE;
                         }
