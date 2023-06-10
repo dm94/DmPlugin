@@ -239,7 +239,6 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                             this.currentStatus = State.WAITING_WAVE;
                         }
                     }
-                    this.showDialog = true;
                     waitingSign = true;
                 }
             } else {
