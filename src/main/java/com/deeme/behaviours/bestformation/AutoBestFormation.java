@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
+import com.deeme.types.SharedFunctions;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
+import com.github.manolo8.darkbot.config.Config;
 import com.github.manolo8.darkbot.config.NpcExtraFlag;
 import com.github.manolo8.darkbot.core.itf.NpcExtraProvider;
 
@@ -19,11 +21,13 @@ import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.entities.Player;
 import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.items.ItemFlag;
+import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.game.items.SelectableItem.Formation;
 import eu.darkbot.api.game.items.SelectableItem.Laser;
 import eu.darkbot.api.game.other.Lockable;
 import eu.darkbot.api.game.other.Movable;
 import eu.darkbot.api.managers.AuthAPI;
+import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
@@ -42,6 +46,8 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     private Collection<? extends Npc> allNpcs;
     private Collection<? extends Portal> allPortals;
     private long nextCheck = 0;
+
+    protected final ConfigSetting<Config.ShipConfig> configOffensive;
 
     private ArrayList<Formation> availableFormations = new ArrayList<>();
 
@@ -66,6 +72,9 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
         this.allNpcs = entities.getNpcs();
         this.allPortals = entities.getPortals();
+
+        ConfigAPI configApi = api.getAPI(ConfigAPI.class);
+        this.configOffensive = configApi.requireConfig("general.offensive");
     }
 
     @Override
@@ -156,6 +165,11 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
             return Formation.CHEVRON;
         }
 
+        if (isAttacking()) {
+            SelectableItem formation = SharedFunctions.getItemById(config.defaultFormation);
+            return (Formation) formation;
+        }
+
         return null;
     }
 
@@ -234,8 +248,24 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     }
 
     private boolean useSelectableReadyWhenReady(Formation formation) {
-        return (formation != null && !heroapi.isInFormation(formation)
-                && items.useItem(formation, 1000, ItemFlag.USABLE, ItemFlag.READY).isSuccessful());
+
+        if (formation != null && !heroapi.isInFormation(formation)
+                && items.useItem(formation, 1000, ItemFlag.USABLE, ItemFlag.READY).isSuccessful()) {
+            changeOffensiveConfig(formation);
+            return true;
+        }
+        return false;
+    }
+
+    private void changeOffensiveConfig(Formation formation) {
+        try {
+            Character key = items.getKeyBind(formation);
+            if (key == null || configOffensive.getValue().getLegacyFormation() == null
+                    || configOffensive.getValue().getLegacyFormation().equals(key)) {
+                configOffensive.setValue(new Config.ShipConfig(configOffensive.getValue().CONFIG, key));
+            }
+        } catch (Exception e) {
+        }
     }
 
     private boolean hasTag(Enum<?> tag) {

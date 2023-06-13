@@ -19,6 +19,10 @@ public class BestFormationConfig {
     @Number(max = 300, step = 1)
     public int timeToCheck = 5;
 
+    @Option("best_formation.default_formation")
+    @Dropdown(options = FormationSupplier.class)
+    public String defaultFormation = "";
+
     @Option("best_formation.formations_to_use")
     @Dropdown(multi = true)
     public Set<SupportedFormations> formationsToUse = EnumSet.allOf(SupportedFormations.class);

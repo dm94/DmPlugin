@@ -43,11 +43,16 @@ import eu.darkbot.api.managers.StarSystemAPI;
 import eu.darkbot.api.utils.Inject;
 import eu.darkbot.shared.modules.MapModule;
 import eu.darkbot.shared.utils.SafetyFinder;
+import eu.darkbot.util.Popups;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Random;
+
+import javax.swing.JButton;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 @Feature(name = "Astral Gate", description = "For the astral gate and another GGs")
 public class AstralGate implements Module, InstructionProvider, Configurable<AstralConfig>, NpcExtraProvider {
@@ -92,6 +97,8 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     private int lastPortal = 0;
     private State currentStatus;
     private int guiOffset = 100;
+    private boolean showDialog = false;
+    private boolean warningDisplayed = false;
 
     private double lastRadius = 0;
 
@@ -153,6 +160,8 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         this.astralPortalSupplier = new AstralPortalSupplier(api, astralShip);
 
         this.currentStatus = State.WAIT;
+        this.showDialog = false;
+        this.warningDisplayed = false;
     }
 
     @Override
@@ -194,11 +203,12 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     @Override
     public void onTickModule() {
         pet.setEnabled(false);
+        showWarningDialog();
         if (isAstral() || heroapi.getMap().isGG()) {
             if (astralShip == null) {
                 astralShip = new AstralShip(heroapi.getShipType());
             }
-            if (astralShip.isValid()) {
+            if (astralShip.isValid(heroapi.getShipType())) {
                 activeAutoRocketCPU();
                 repairShield = repairShield && heroapi.getHealth().shieldPercent() < 0.9
                         || heroapi.getHealth().shieldPercent() < 0.2;
@@ -217,13 +227,12 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                         nextWaveCheck = System.currentTimeMillis() + 30000;
                         goToTheMiddle();
 
-                        if (astralGui != null && (astralConfig.autoChoosePortal || astralConfig.autoChooseItem)) {
+                        if (astralConfig.autoChoosePortal || astralConfig.autoChooseItem) {
                             autoChooseLogic();
-                        } else if (!portals.isEmpty()) {
-                            if (astralGui != null && astralGui.isVisible()) {
-                                this.currentStatus = State.WAITING_HUMAN;
-                                this.bot.setRunning(false);
-                            }
+                        } else if (!portals.isEmpty() || (astralGui != null && astralGui.isVisible())) {
+                            this.currentStatus = State.WAITING_HUMAN;
+                            this.showDialog = true;
+                            this.bot.setRunning(false);
                         } else {
                             this.currentStatus = State.WAITING_WAVE;
                         }
@@ -231,6 +240,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                     waitingSign = true;
                 }
             } else {
+                this.showDialog = true;
                 this.currentStatus = State.WAITING_SHIP;
                 this.astralShip = null;
                 this.bot.setRunning(false);
@@ -243,6 +253,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     @Override
     public void onTickStopped() {
         if (isAstral()) {
+            showWarningDialog();
             countItems();
         }
     }
@@ -629,6 +640,27 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                 }
             }
         }
+    }
+
+    private void showWarningDialog() {
+        if (!showDialog || warningDisplayed) {
+            return;
+        }
+
+        this.warningDisplayed = true;
+
+        JButton closeBtn = new JButton("Close");
+        closeBtn.addActionListener(e -> {
+            SwingUtilities.getWindowAncestor(closeBtn).setVisible(false);
+            warningDisplayed = false;
+            showDialog = false;
+        });
+        Popups.of("Astral Gate",
+                new JOptionPane(
+                        "Manual action is needed",
+                        JOptionPane.INFORMATION_MESSAGE,
+                        JOptionPane.DEFAULT_OPTION, null, new Object[] { closeBtn }))
+                .showAsync();
     }
 
     enum CPUPLUS implements SelectableItem {
