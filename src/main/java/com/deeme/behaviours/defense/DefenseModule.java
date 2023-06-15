@@ -18,6 +18,7 @@ import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.MovementAPI;
+import eu.darkbot.api.managers.PetAPI;
 import eu.darkbot.api.utils.Inject;
 import eu.darkbot.shared.modules.TemporalModule;
 import eu.darkbot.shared.utils.SafetyFinder;
@@ -32,6 +33,7 @@ public class DefenseModule extends TemporalModule {
     protected final ConfigSetting<ShipMode> configOffensive;
     protected final ConfigSetting<ShipMode> configRun;
     protected final ConfigSetting<PercentRange> repairHpRange;
+    protected final PetAPI pet;
     private ShipAttacker shipAttacker;
     private DefenseConfig defenseConfig;
     private boolean attackConfigLost = false;
@@ -55,6 +57,7 @@ public class DefenseModule extends TemporalModule {
         this.heroapi = hero;
         this.movement = api.requireAPI(MovementAPI.class);
         this.safetyFinder = api.requireInstance(SafetyFinder.class);
+        this.pet = api.getAPI(PetAPI.class);
         EntitiesAPI entities = api.requireAPI(EntitiesAPI.class);
         ConfigAPI configApi = api.requireAPI(ConfigAPI.class);
         this.players = entities.getPlayers();
@@ -81,6 +84,7 @@ public class DefenseModule extends TemporalModule {
 
     @Override
     public void onTickModule() {
+        pet.setEnabled(true);
         try {
             if (isUnderAttack()) {
                 timeOutCheck();
