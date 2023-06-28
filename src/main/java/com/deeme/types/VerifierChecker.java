@@ -26,17 +26,22 @@ public class VerifierChecker {
     private static final byte[] POPCORN_PUB = Base64.getDecoder().decode(
             "MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAzqOpdk4bdoMlk3IkDaHFSOpwyYmpfACHCuhNDiml13Wf9J4D9g4kszOV3Qz+FT1jdYO36pWCxI01Mr03dPLky9COwD//dQM/KRFBe7Z0wRsC91n5fprgWIkwdKs79en6vmynyyPi5hAgwpifKm4o9DP5xR0YP/KRoPH8ZekS+STBxPsLdy/BeBiFFFgNQ0usRNIkLBKYWFJ3A3br4QkVicOLvycHKrfsN9K2Ly25VXyYo/GJdeEY30ixKhsCdo9xc50ERVuEVkzqlqLUSFDgHyFAO1o91QIhG+G0GURlI8iSt/b5cn39DM0OtkL+1TqqwT4NJqBH8nHSok8lReu1o/iMu9VbrFyJTUK0qUjVhnySJQV3i5oV0oxwqPodDihvmNUhMUel5gM/yRnloKKEYk+74MLdClgcFWmbEYFUQF32vxdkKpGYYRmzH0Y8+pGKE8nBbe1/eKg2HVu42vStb/yKp7DpxQ05UovJ5nrXA7lUfwCwBOwzOmCjn3AKNhH+Hbg/tutwZn5KNU4zJCRUEM4FLkCCJMEDJTGnpjxNO/vUMEm+Co6RgrD1vBIgRzNxaYh1BInbDdlKncXhysHNR5b6Et2POyCrlrM4flvFvTg42/zbI1ElKgEFNbhujdP5fBtxeD1hkc5UUa8JtYHsHa0LBrTUfnr3F29rRwHFpFUCAwEAAQ==");
 
+    private VerifierChecker() {
+        throw new IllegalStateException("Utility class");
+    }
+
     public static void checkAuthenticity() {
         AuthAPI api = VerifierChecker.getAuthApi();
-        if (!api.isAuthenticated() || api.getAuthId() == null)
+        if (!api.isAuthenticated() || api.getAuthId() == null) {
             api.setupAuth();
+        }
     }
 
     public static void checkAuthenticity(eu.darkbot.api.managers.AuthAPI auth) {
         verifyAuthApi(auth);
-        if (!auth.isAuthenticated())
+        if (!auth.isAuthenticated() || auth.getAuthId() == null) {
             auth.setupAuth();
-        auth.getAuthId();
+        }
     }
 
     public static void verifyAuthApi(eu.darkbot.api.managers.AuthAPI auth) {
@@ -50,11 +55,8 @@ public class VerifierChecker {
                 entriesVec.addElement(je);
 
                 try (InputStream is = jf.getInputStream(je)) {
-                    // noinspection StatementWithEmptyBody
                     while (is.read(buffer, 0, buffer.length) != -1)
                         ;
-                    // we just read. this will throw a SecurityException
-                    // if a signature/digest check fails.
                 }
             }
 
@@ -64,8 +66,6 @@ public class VerifierChecker {
                 throw new SecurityException("Verifier not signed");
             Enumeration<JarEntry> e = entriesVec.elements();
 
-            // Used to cache allowed certs, no longer needing to check pub byte array for
-            // them
             Set<Certificate> allowedCerts = new HashSet<>();
 
             while (e.hasMoreElements()) {
@@ -95,11 +95,8 @@ public class VerifierChecker {
                 entriesVec.addElement(je);
 
                 try (InputStream is = jf.getInputStream(je)) {
-                    // noinspection StatementWithEmptyBody
                     while (is.read(buffer, 0, buffer.length) != -1)
                         ;
-                    // we just read. this will throw a SecurityException
-                    // if a signature/digest check fails.
                 }
             }
 
@@ -109,8 +106,6 @@ public class VerifierChecker {
                 throw new SecurityException("Verifier not signed");
             Enumeration<JarEntry> e = entriesVec.elements();
 
-            // Used to cache allowed certs, no longer needing to check pub byte array for
-            // them
             Set<Certificate> allowedCerts = new HashSet<>();
 
             while (e.hasMoreElements()) {
@@ -158,14 +153,10 @@ public class VerifierChecker {
                 && (ucName.indexOf("/") == ucName.lastIndexOf("/"));
     }
 
-    // https://stackoverflow.com/a/1983875
     private static String findPathJar(Class<?> context) throws IllegalStateException {
         String rawName = context.getName();
         String classFileName;
-        /*
-         * rawName is something like package.name.ContainingClass$ClassName. We need to
-         * turn this into ContainingClass$ClassName.class.
-         */ {
+        {
             int idx = rawName.lastIndexOf('.');
             classFileName = (idx == -1 ? rawName : rawName.substring(idx + 1)) + ".class";
         }
@@ -181,8 +172,6 @@ public class VerifierChecker {
         }
 
         int idx = uri.indexOf('!');
-        // As far as I know, the if statement below can't ever trigger, so it's more of
-        // a sanity check thing.
         if (idx == -1)
             throw new IllegalStateException(
                     "You appear to have loaded this class from a local jar file, but I can't make sense of the URL!");

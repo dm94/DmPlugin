@@ -122,7 +122,7 @@ public class Utils {
     }
 
     public static synchronized void discordCheck(FeatureInfo featureInfo, String authID) {
-        if (!isInDiscord(authID)) {
+        if (authID == null || !isInDiscord(authID)) {
             showDiscordDialog();
             featureInfo
                     .addFailure("To use this option you need to be on my discord", "Log in to my discord and reload");

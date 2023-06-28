@@ -14,7 +14,7 @@ public class ProfileChangerConfig {
     public boolean active = false;
 
     @Option("general.next_check_time")
-    @Number(max = 300, step = 1, min = 5)
+    @Number(max = 300, step = 1, min = 1)
     public int timeToCheck = 60;
 
     @Option("general.bot_profile")

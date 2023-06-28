@@ -203,8 +203,8 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
 
     @Override
     public void onTickModule() {
+        pet.setEnabled(true);
         if ((sConfig.ignoreSecurity || safety.tick()) && (!sConfig.collectorActive || collectorModule.canRefresh())) {
-            pet.setEnabled(true);
             if (shipAround()) {
                 lastMap = heroapi.getMap() != null ? heroapi.getMap().getId() : null;
                 if (isAttacking()) {

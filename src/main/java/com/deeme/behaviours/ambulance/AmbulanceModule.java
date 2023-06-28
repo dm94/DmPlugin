@@ -14,6 +14,7 @@ import eu.darkbot.api.managers.GroupAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
 import eu.darkbot.api.managers.MovementAPI;
+import eu.darkbot.api.managers.PetAPI;
 import eu.darkbot.api.utils.Inject;
 import eu.darkbot.shared.modules.TemporalModule;
 
@@ -24,6 +25,7 @@ public class AmbulanceModule extends TemporalModule {
     protected final GroupAPI groupAPI;
     protected final HeroItemsAPI items;
     protected final Collection<? extends Player> players;
+    protected final PetAPI pet;
 
     private int idMember = 0;
     private Ability abilityToUse = null;
@@ -64,6 +66,7 @@ public class AmbulanceModule extends TemporalModule {
         this.groupAPI = api.getAPI(GroupAPI.class);
         this.heroapi = api.getAPI(HeroAPI.class);
         this.items = api.getAPI(HeroItemsAPI.class);
+        this.pet = api.getAPI(PetAPI.class);
 
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
         this.idMember = idMember;
@@ -87,6 +90,7 @@ public class AmbulanceModule extends TemporalModule {
 
     @Override
     public void onTickModule() {
+        pet.setEnabled(true);
         try {
             if (idMember == 0 || abilityToUse == null) {
                 super.goBack();

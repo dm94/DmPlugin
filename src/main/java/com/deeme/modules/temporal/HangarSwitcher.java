@@ -11,6 +11,7 @@ import eu.darkbot.api.managers.BackpageAPI;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.GameScreenAPI;
 import eu.darkbot.api.managers.HeroAPI;
+import eu.darkbot.api.managers.PetAPI;
 import eu.darkbot.api.utils.Inject;
 import eu.darkbot.shared.modules.TemporalModule;
 
@@ -18,6 +19,7 @@ public class HangarSwitcher extends TemporalModule {
     protected final PluginAPI api;
     protected final HeroAPI heroapi;
     protected final BackpageAPI backpageAPI;
+    protected final PetAPI pet;
 
     protected final Gui lostConnectionGUI;
     protected final Gui logout;
@@ -70,6 +72,7 @@ public class HangarSwitcher extends TemporalModule {
         this.api = api;
         this.heroapi = api.getAPI(HeroAPI.class);
         this.backpageAPI = api.getAPI(BackpageAPI.class);
+        this.pet = api.getAPI(PetAPI.class);
         this.hangarToChage = hangar;
         this.checkCount = 0;
 
@@ -104,6 +107,7 @@ public class HangarSwitcher extends TemporalModule {
 
     @Override
     public void onTickModule() {
+        pet.setEnabled(false);
         try {
             if (hangarToChage == null) {
                 this.currentStatus = State.NO_HANGAR_ERROR;
