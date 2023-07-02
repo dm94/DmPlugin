@@ -21,6 +21,9 @@ public class ProfileChangerConfig {
     @Dropdown(options = ConfigSupplier.class)
     public String BOT_PROFILE = ConfigManager.DEFAULT;
 
+    @Option("profile_changer.close_bot")
+    public boolean closeBot = false;
+
     @Option("profile_changer.only_one_condition")
     public boolean orConditional = false;
 
