@@ -174,7 +174,8 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     }
 
     private boolean isReadyNormalCondtion(NormalCondition condition) {
-        return !condition.active || condition.condition.get(api).toBoolean() || condition.condition.get(api).allows();
+        return condition == null || !condition.active ||
+                condition.condition == null || condition.condition.get(api).allows();
     }
 
     private boolean isReadyNpcCondition(NpcCounterCondition npcCondition) {
