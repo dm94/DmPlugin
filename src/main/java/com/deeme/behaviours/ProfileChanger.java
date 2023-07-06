@@ -14,6 +14,7 @@ import com.deeme.behaviours.profilechanger.ResourceSupplier;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 import com.github.manolo8.darkbot.Main;
+import com.github.manolo8.darkbot.modules.DisconnectModule;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -23,12 +24,14 @@ import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.game.entities.Box;
 import eu.darkbot.api.game.enums.EntityEffect;
+import eu.darkbot.api.game.other.Gui;
 import eu.darkbot.api.game.other.Lockable;
 import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.ExtensionsAPI;
+import eu.darkbot.api.managers.GameScreenAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.RepairAPI;
 import eu.darkbot.api.utils.Inject;
@@ -48,6 +51,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
 
     private boolean resourceListUpdated = false;
     private final ConfigSetting<Map<String, BoxInfo>> boxInfos;
+    private final Gui lostConnectionGUI;
     protected Collection<? extends Box> boxes;
 
     public ProfileChanger(Main main, PluginAPI api) {
@@ -76,6 +80,9 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
 
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
         this.boxes = entities.getBoxes();
+
+        GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
+        lostConnectionGUI = gameScreenAPI.getGui("lost_connection");
 
         this.resourceListUpdated = false;
         this.nextCheck = 0;
@@ -113,6 +120,33 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     public void onStoppedBehavior() {
         updateResourceList();
         config.mapTimerCondition.mapTimeStart = 0;
+        if (config.closeBot) {
+            stopCheck();
+        }
+    }
+
+    private void changeAction() {
+        if (config.closeBot) {
+            if (!hero.getMap().isGG() && bot.getModule().canRefresh()) {
+                resetCounters();
+                if (!isDisconnect() && !(bot.getModule() instanceof DisconnectModule)) {
+                    bot.setModule(new DisconnectModule(null, "Profile Changer"));
+                }
+            }
+        } else {
+            resetCounters();
+            main.setConfig(config.BOT_PROFILE);
+        }
+    }
+
+    private void stopCheck() {
+        if (isDisconnect()) {
+            System.exit(0);
+        }
+    }
+
+    private boolean isDisconnect() {
+        return lostConnectionGUI != null && lostConnectionGUI.isVisible();
     }
 
     private void orConditional() {
@@ -123,8 +157,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
                 || isReadyResourceCondition() || isReadyMapCondition()
                 || isReadyTimeCondition()
                 || isReadyDeathCondition()) {
-            resetCounters();
-            main.setConfig(config.BOT_PROFILE);
+            changeAction();
         }
     }
 
@@ -136,13 +169,13 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
                 && isReadyResourceCondition() && isReadyMapCondition()
                 && isReadyTimeCondition()
                 && isReadyDeathCondition()) {
-            resetCounters();
-            main.setConfig(config.BOT_PROFILE);
+            changeAction();
         }
     }
 
     private boolean isReadyNormalCondtion(NormalCondition condition) {
-        return !condition.active || condition.condition.get(api).toBoolean() || condition.condition.get(api).allows();
+        return condition == null || !condition.active ||
+                condition.condition == null || condition.condition.get(api).allows();
     }
 
     private boolean isReadyNpcCondition(NpcCounterCondition npcCondition) {

@@ -333,6 +333,10 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     }
 
     private boolean changeAmmo() {
+        if (System.currentTimeMillis() < laserTime) {
+            return false;
+        }
+
         if (astralConfig.useBestAmmoLogic == BestAmmoConfig.ALWAYS || attacker.hasExtraFlag(ExtraNpcFlags.BEST_AMMO)
                 || useSpecialLogic()) {
             changeLaser(true);
@@ -351,9 +355,15 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
         if (astralConfig.ammoKey == null) {
             astralConfig.ammoKey = ammoKey.getValue();
-        } else if (!ammoKey.getValue().equals(astralConfig.ammoKey)) {
+        }
+        if (!ammoKey.getValue().equals(astralConfig.ammoKey)) {
             ammoKey.setValue(astralConfig.ammoKey);
         }
+        Item defaultLaser = items.getItem(ammoKey.getValue());
+        if (defaultLaser == null || defaultLaser.getQuantity() > 100) {
+            changeLaser(false);
+        }
+
         return false;
     }
 
@@ -524,9 +534,6 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     }
 
     public void changeLaser(boolean bestLaser) {
-        if (System.currentTimeMillis() < laserTime) {
-            return;
-        }
         SelectableItem laser = null;
         if (bestLaser) {
             laser = ammoSupplier.get();
@@ -538,10 +545,10 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
             if (currentLaser != null && !currentLaser.getId().equals(laser.getId())
                     && useSelectableReadyWhenReady(laser)) {
                 Character key = items.getKeyBind(laser);
-                if (key != null) {
+                if (key != null && !ammoKey.getValue().equals(key)) {
                     ammoKey.setValue(key);
                 }
-                laserTime = System.currentTimeMillis() + 2000;
+                laserTime = System.currentTimeMillis() + 500;
             }
         }
     }
@@ -586,6 +593,10 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
     private boolean useSpecialLogic() {
         if (astralConfig.useBestAmmoLogic == BestAmmoConfig.SPECIAL_LOGIC) {
+            if (heroapi.getHealth().hpPercent() <= 0.20) {
+                return true;
+            }
+
             Entity target = heroapi.getLocalTarget();
             if (target != null && target.isValid()) {
                 double speed = target instanceof Movable ? ((Movable) target).getSpeed() : 0;

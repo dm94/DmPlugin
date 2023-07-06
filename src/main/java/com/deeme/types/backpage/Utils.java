@@ -1,7 +1,5 @@
 package com.deeme.types.backpage;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -18,6 +16,7 @@ import eu.darkbot.util.SystemUtils;
 
 public class Utils {
     private static boolean discordChecked = false;
+    protected final static String BASE_URL = "https://checkdiscord.stiletto.live";
 
     private Utils() {
         throw new IllegalStateException("Utility class");
@@ -58,22 +57,21 @@ public class Utils {
     }
 
     private static boolean checkDiscordApi(String id) {
-        String baseURL = "https://checkdiscord.stiletto.live/users/";
-        String allData = "";
+        if (id == null) {
+            return false;
+        }
+
+        int code = 401;
         try {
-            HttpURLConnection conn = (HttpURLConnection) new URL(baseURL + id).openConnection();
+            HttpURLConnection conn = (HttpURLConnection) new URL(BASE_URL + "/users/" + id).openConnection();
             conn.setConnectTimeout(5000);
             conn.setRequestProperty("User-Agent",
                     "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.4; en-US; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2");
             conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
             conn.setRequestMethod("GET");
 
-            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            String inputLine;
-            while ((inputLine = in.readLine()) != null) {
-                allData += inputLine;
-            }
-            in.close();
+            conn.connect();
+            code = conn.getResponseCode();
             conn.disconnect();
         } catch (Exception ex) {
             return false;
@@ -81,7 +79,7 @@ public class Utils {
 
         setDiscordCheck();
 
-        if (allData.contains("true")) {
+        if (code == 200) {
             saveCheckDiscord();
             return true;
         }
@@ -122,7 +120,7 @@ public class Utils {
     }
 
     public static synchronized void discordCheck(FeatureInfo featureInfo, String authID) {
-        if (authID == null || !isInDiscord(authID)) {
+        if (!isInDiscord(authID)) {
             showDiscordDialog();
             featureInfo
                     .addFailure("To use this option you need to be on my discord", "Log in to my discord and reload");
