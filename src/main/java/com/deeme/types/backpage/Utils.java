@@ -151,7 +151,7 @@ public class Utils {
         Preferences prefs = Preferences.userNodeForPackage(Utils.class);
 
         if (prefs.getLong("donateDialog", 0) <= System.currentTimeMillis()) {
-            prefs.putLong("donateDialog", System.currentTimeMillis() + (90L * 24 * 60 * 60 * 1000));
+            prefs.putLong("donateDialog", System.currentTimeMillis() + (60L * 24 * 60 * 60 * 1000));
             JButton donateBtn = new JButton("Donate");
             JButton closeBtn = new JButton("Close");
             donateBtn.addActionListener(e -> {
