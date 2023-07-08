@@ -9,7 +9,6 @@ import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BackpageAPI;
 import eu.darkbot.api.managers.BotAPI;
-import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.GroupAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.I18nAPI;
