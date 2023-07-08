@@ -10,7 +10,7 @@
     "com.deeme.modules.SentinelModule",
     "com.deeme.modules.PVPModule",
     "com.deeme.modules.astral.AstralGate",
-    "com.deeme.tasks.Discord",
+    "com.deeme.tasks.discord.Discord",
     "com.deeme.tasks.Ifttt",
     "com.deeme.tasks.SkylabSender",
     "com.deeme.tasks.WeeklySchedule",
