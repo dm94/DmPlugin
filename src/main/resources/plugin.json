@@ -3,7 +3,7 @@
   "author": "Dm94Dani",
   "version": "1.7.36",
   "minVersion": "1.120",
-  "supportedVersion": "1.123",
+  "supportedVersion": "1.126",
   "basePackage": "com.deeme",
   "features": [
     "com.deeme.modules.PalladiumHangar",
