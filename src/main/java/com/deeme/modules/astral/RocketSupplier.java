@@ -70,7 +70,7 @@ public class RocketSupplier implements PrioritizedSupplier<SelectableItem> {
         double distance = heroapi.getLocationInfo().getCurrent().distanceTo(target.getLocationInfo());
         double speed = target instanceof Movable ? ((Movable) target).getSpeed() : 0;
 
-        return distance < 600 && speed > heroapi.getSpeed();
+        return distance <= 600 || speed > heroapi.getSpeed();
     }
 
     private boolean shoulUsePLD() {

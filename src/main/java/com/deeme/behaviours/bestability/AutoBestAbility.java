@@ -43,7 +43,8 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     protected final HeroItemsAPI items;
     protected final SafetyFinder safety;
     private BestAbilityConfig config;
-    private Collection<? extends Ship> allShips;
+    private Collection<? extends Ship> allPlayers;
+    private Collection<? extends Ship> allNPCs;
 
     private long nextCheck = 0;
 
@@ -68,7 +69,8 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
         this.safety = api.requireInstance(SafetyFinder.class);
 
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
-        this.allShips = entities.getShips();
+        this.allPlayers = entities.getPlayers();
+        this.allNPCs = entities.getNpcs();
     }
 
     @Override
@@ -87,14 +89,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     public void onTickBehavior() {
         if (nextCheck < System.currentTimeMillis()) {
             nextCheck = System.currentTimeMillis() + (config.timeToCheck * 1000);
-            Entity target = heroapi.getLocalTarget();
-            if (target != null && target.isValid() && heroapi.isAttacking()) {
-                if (config.npcEnabled || !(target instanceof Npc)) {
-                    useSelectableReadyWhenReady(getBestAbility());
-                }
-            } else if (safety.state() == Escaping.ENEMY) {
-                useSelectableReadyWhenReady(getBestAbility());
-            }
+            useSelectableReadyWhenReady(getBestAbility());
             useSelectableReadyWhenReady(getAbilityAlwaysToUse());
         }
     }
@@ -113,11 +108,9 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     }
 
     private Ability getBestAbility() {
-        if (shoulFocusHealth()) {
+        if (shoulFocusHealth(false)) {
             if (isAvailable(Ability.AEGIS_REPAIR_POD)) {
                 return Ability.AEGIS_REPAIR_POD;
-            } else if (isAvailable(Ability.AEGIS_HP_REPAIR)) {
-                return Ability.AEGIS_HP_REPAIR;
             } else if (isAvailable(Ability.LIBERATOR_PLUS_SELF_REPAIR)) {
                 return Ability.LIBERATOR_PLUS_SELF_REPAIR;
             } else if (isAvailable(Ability.SOLACE)) {
@@ -126,6 +119,11 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
                 return Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS;
             }
         }
+
+        if (isAvailable(Ability.AEGIS_HP_REPAIR) && shoulFocusHealth(true)) {
+            return Ability.AEGIS_HP_REPAIR;
+        }
+
         if (shoulFocusShield()) {
             if (isAvailable(Ability.AEGIS_SHIELD_REPAIR)) {
                 return Ability.AEGIS_SHIELD_REPAIR;
@@ -133,6 +131,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
                 return Ability.SENTINEL;
             }
         }
+
         if (shoulFocusSpeed()) {
             if (isAvailable(Ability.CITADEL_TRAVEL)) {
                 return Ability.CITADEL_TRAVEL;
@@ -152,6 +151,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
                 return Ability.PUSAT_PLUS_SPEED_SAP;
             }
         }
+
         if (shoulFocusEvade()) {
             if (isAvailable(Ability.SPEARHEAD_JAM_X)) {
                 return Ability.SPEARHEAD_JAM_X;
@@ -165,6 +165,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
                 return Ability.DISRUPTOR_DDOL;
             }
         }
+
         if (shouldFocusHelpTank()) {
             if (isAvailable(Ability.CITADEL_DRAW_FIRE)) {
                 return Ability.CITADEL_DRAW_FIRE;
@@ -172,6 +173,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
                 return Ability.CITADEL_PROTECTION;
             }
         }
+
         if (shoulFocusEvade()) {
             if (isAvailable(Ability.CITADEL_PLUS_PRISMATIC_ENDURANCE)) {
                 return Ability.CITADEL_PLUS_PRISMATIC_ENDURANCE;
@@ -189,6 +191,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
                 return Ability.ORCUS_ASSIMILATE;
             }
         }
+
         if (shoulFocusDamage()) {
             if (isAvailable(Ability.SPEARHEAD_TARGET_MARKER)) {
                 return Ability.SPEARHEAD_TARGET_MARKER;
@@ -224,8 +227,15 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
 
     private boolean shoulFocusDamage() {
         Lockable target = heroapi.getLocalTarget();
-        return (target != null && target.isValid() && heroapi.isAttacking() && target.getHealth() != null
-                && target.getHealth().getHp() >= this.config.minHealthToUseDamage);
+        if (target != null && target.isValid()) {
+            if (!config.npcEnabled && heroapi.getLocalTarget() instanceof Npc) {
+                return false;
+            }
+            return (heroapi.isAttacking() && target.getHealth() != null
+                    && target.getHealth().getHp() >= this.config.minHealthToUseDamage);
+        }
+
+        return false;
     }
 
     private boolean isInRange() {
@@ -237,16 +247,21 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
         if (safety.state() == Escaping.ENEMY) {
             return true;
         }
+
         Lockable target = heroapi.getLocalTarget();
+
         if (target != null && target.isValid()) {
-            double distance = heroapi.getLocationInfo().getCurrent().distanceTo(target.getLocationInfo());
+            if (!config.npcEnabled && heroapi.getLocalTarget() instanceof Npc) {
+                return false;
+            }
+
             double speed = target instanceof Movable ? ((Movable) target).getSpeed() : 0;
-            return distance > 600 && speed > heroapi.getSpeed();
+            return heroapi.distanceTo(target) >= 650 || speed > heroapi.getSpeed();
         }
         return false;
     }
 
-    private boolean shoulFocusHealth() {
+    private boolean shoulFocusHealth(boolean needLock) {
         if (bot.getModule() != null && bot.getModule().getClass() == AmbulanceModule.class) {
             return false;
         } else if (heroapi.getEffects() != null
@@ -256,7 +271,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
             return true;
         } else if (group.hasGroup()) {
             for (GroupMember member : group.getMembers()) {
-                if (!member.isDead() && member.isAttacked() && member.isLocked()
+                if (!member.isDead() && member.isAttacked() && (!needLock || member.isLocked())
                         && member.getMemberInfo().hpPercent() <= this.config.minHealthToUseHealth) {
                     return true;
                 }
@@ -296,14 +311,30 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     }
 
     private boolean shoulUseOrcusAssimilate() {
-        return heroapi.getHealth().hpPercent() < 0.8 && isAvailable(Ability.ORCUS_ASSIMILATE);
+        if (!isAvailable(Ability.ORCUS_ASSIMILATE)) {
+            return false;
+        }
+        if (allNPCs == null || allNPCs.isEmpty()) {
+            return false;
+        }
+
+        if (heroapi.getHealth().hpPercent() > 0.8) {
+            return false;
+        }
+
+        Entity target = SharedFunctions.getAttacker(heroapi, allNPCs, heroapi);
+        return target != null;
     }
 
     private boolean shoulFocusEvade() {
-        if (allShips == null || allShips.isEmpty()) {
+        if (allPlayers == null || allPlayers.isEmpty()) {
             return false;
         }
-        Entity target = SharedFunctions.getAttacker(heroapi, allShips, heroapi);
+        Entity target = SharedFunctions.getAttacker(heroapi, allPlayers, heroapi);
+
+        if (config.npcEnabled && target == null) {
+            target = SharedFunctions.getAttacker(heroapi, allNPCs, heroapi);
+        }
         return target != null;
     }
 

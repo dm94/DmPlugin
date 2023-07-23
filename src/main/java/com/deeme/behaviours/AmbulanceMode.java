@@ -18,7 +18,6 @@ import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem.Ability;
 import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BotAPI;
-import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.GroupAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
@@ -48,7 +47,6 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.discordCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
         Utils.showDonateDialog();
 
         this.api = api;
