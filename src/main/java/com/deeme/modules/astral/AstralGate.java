@@ -573,10 +573,13 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                 if (isHomeMap()) {
                     if (portals.stream().anyMatch(p -> p.getTargetMap().isPresent() && p.getTargetMap().get() == map)) {
                         this.bot.setModule(api.requireInstance(MapModule.class)).setTarget(map);
-                    } else if (items
-                            .getItem(CPUPLUS.ASTRAL_CPU, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.POSITIVE_QUANTITY)
-                            .isPresent()) {
-                        useSelectableReadyWhenReady(CPUPLUS.ASTRAL_CPU);
+                    } else {
+                        items.getItem(CPUPLUS.ASTRAL_CPU, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.POSITIVE_QUANTITY)
+                                .ifPresent(i -> {
+                                    if (i.getQuantity() > astralConfig.minCPUs) {
+                                        useSelectableReadyWhenReady(CPUPLUS.ASTRAL_CPU);
+                                    }
+                                });
                     }
                 } else {
                     this.bot.setModule(api.requireInstance(MapModule.class)).setTarget(map);
