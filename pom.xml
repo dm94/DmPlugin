@@ -30,6 +30,13 @@
             <artifactId>DarkBotAPI</artifactId>
             <version>0.7.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.deemetool</groupId>
+            <artifactId>DmPluginPlus</artifactId>
+            <version>1.0.13</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/private/private.jar</systemPath>
+        </dependency>
     </dependencies>
     <build>
         <finalName>${project.artifactId}</finalName>

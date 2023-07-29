@@ -10,6 +10,7 @@
     "com.deeme.modules.SentinelModule",
     "com.deeme.modules.PVPModule",
     "com.deeme.modules.astral.AstralGate",
+    "com.deeme.modules.genericgate.GenericGateDummy",
     "com.deeme.tasks.discord.Discord",
     "com.deeme.tasks.Ifttt",
     "com.deeme.tasks.SkylabSender",
@@ -25,10 +26,13 @@
     "com.deeme.behaviours.AmbulanceMode",
     "com.deeme.behaviours.bestrocket.AutoBestRocket",
     "com.deeme.behaviours.bestability.AutoBestAbility",
-    "com.deeme.behaviours.bestformation.AutoBestFormation"
+    "com.deeme.behaviours.bestformation.AutoBestFormation",
+    "com.deeme.behaviours.bestammo.AutoBestAmmoDummy",
+    "com.deeme.behaviours.bestrocketlauncher.AutoBestRocketLauncherDummy",
+    "com.deeme.behaviours.pvplog.PVPLogDummy"
   ],
   "donation": "https://www.paypal.com/donate/?business=JR2XWPSKLWN76&amount=5&no_recurring=0&currency_code=EUR",
   "discord": "https://discord.gg/GPRTRRZJPw",
-  "download": "https://github.com/darkbot-reloaded/DmPlugin/releases/download/v1.7.36/DmPlugin.jar",
+  "download": "https://github.com/darkbot-reloaded/DmPlugin/releases/download/v1.7.37/DmPlugin.jar",
   "update": "https://raw.githubusercontent.com/darkbot-reloaded/DmPlugin/master/src/main/resources/plugin.json"
 }
