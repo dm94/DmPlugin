@@ -281,6 +281,10 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     }
 
     private boolean hasFormation(Formation formation) {
+        if (config.formationsToUse == null) {
+            return false;
+        }
+
         if (config.formationsToUse.stream().anyMatch(s -> s.name().equals(formation.name()))) {
             if (availableFormations.contains(formation)) {
                 return true;
