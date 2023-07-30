@@ -95,6 +95,10 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     }
 
     private Ability getAbilityAlwaysToUse() {
+        if (config.abilitiesToUseEverytime == null) {
+            return null;
+        }
+
         try {
             return items.getItems(ItemCategory.SHIP_ABILITIES).stream()
                     .filter(Item::isReadyToUse)
@@ -339,7 +343,8 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     }
 
     private boolean isAvailable(Ability ability) {
-        return ability != null && config.supportedAbilities.stream().anyMatch(s -> s.name().equals(ability.name()))
+        return ability != null && config.supportedAbilities != null
+                && config.supportedAbilities.stream().anyMatch(s -> s.name().equals(ability.name()))
                 && items.getItem(ability, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE).isPresent();
     }
 

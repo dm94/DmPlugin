@@ -291,7 +291,6 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
             if (distance > 500 && distance > lastDistanceTarget && target.getSpeed() >= heroapi.getSpeed()) {
                 heroapi.setMode(configRun.getValue());
                 lastDistanceTarget = distance;
-                return;
             } else {
                 heroapi.setMode(configOffensive.getValue());
                 lastDistanceTarget = 1000;

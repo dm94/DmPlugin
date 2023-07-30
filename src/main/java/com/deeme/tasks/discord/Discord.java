@@ -2,6 +2,7 @@ package com.deeme.tasks.discord;
 
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
+import com.deemetool.utils.Backpage;
 import com.github.manolo8.darkbot.utils.Time;
 
 import eu.darkbot.api.PluginAPI;
@@ -104,7 +105,7 @@ public class Discord implements Task, Configurable<DiscordConfig> {
         if (discordConfig.discordWebHook == null || discordConfig.discordWebHook.isEmpty()) {
             return;
         }
-        Utils.sendMessage(help, discordConfig.discordWebHook);
+        Backpage.sendMessage(help, discordConfig.discordWebHook);
     }
 
     private void sendStatistics() {
@@ -220,7 +221,7 @@ public class Discord implements Task, Configurable<DiscordConfig> {
         if (discordConfig.discordWebHook == null || discordConfig.discordWebHook.isEmpty()) {
             return;
         }
-        Utils.sendMessage(best, discordConfig.discordWebHook);
+        Backpage.sendMessage(best, discordConfig.discordWebHook);
 
     }
 

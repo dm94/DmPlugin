@@ -13,6 +13,10 @@ public class AstralConfig {
     @Number(min = 300, max = 800, step = 10)
     public int radioMin = 560;
 
+    @Option("astral.min_cpus")
+    @Number(min = 0, step = 1)
+    public int minCPUs = 0;
+
     @Option("general.default_ammo")
     public Character ammoKey;
 
