@@ -62,7 +62,7 @@ public class StopButton implements Behavior, ExtraMenus {
 
     @Override
     public void onTickBehavior() {
-        if (stopBot) {
+        if (!stopBot) {
             return;
         }
 
