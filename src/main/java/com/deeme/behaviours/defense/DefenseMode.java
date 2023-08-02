@@ -90,7 +90,7 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
         }
     }
 
-    public boolean inGroupAttacked(int id) {
+    private boolean inGroupAttacked(int id) {
         if (group.hasGroup()) {
             for (GroupMember member : group.getMembers()) {
                 if (!member.isDead() && member.getId() == id && member.isAttacked()) {
@@ -125,22 +125,7 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
                                         && !s.getEntityInfo().isEnemy())))
                 .collect(Collectors.toList());
 
-        if (!ships.isEmpty()) {
-            for (Player ship : ships) {
-                if (defenseConfig.helpAttack && ship.isAttacking() && ship.getTarget() != null) {
-                    Entity tar = ship.getTarget();
-                    if (!(tar instanceof Npc)) {
-                        target = tar;
-                        return true;
-                    }
-                }
-
-                target = SharedFunctions.getAttacker(ship, players, heroapi);
-                if (target != null) {
-                    return true;
-                }
-            }
-        }
+        target = getTarget(ships);
 
         if (defenseConfig.goToGroup) {
             goToMemberAttacked();
@@ -149,7 +134,26 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
         return target != null && target.isValid();
     }
 
-    public void goToMemberAttacked() {
+    private Entity getTarget(List<Player> ships) {
+        if (!ships.isEmpty()) {
+            for (Player ship : ships) {
+                if (defenseConfig.helpAttack && ship.isAttacking() && ship.getTarget() != null) {
+                    Entity tar = ship.getTarget();
+                    if (!(tar instanceof Npc)) {
+                        return tar;
+                    }
+                }
+
+                Entity tar = SharedFunctions.getAttacker(ship, players, heroapi);
+                if (tar != null && tar.isValid()) {
+                    return tar;
+                }
+            }
+        }
+        return null;
+    }
+
+    private void goToMemberAttacked() {
         GroupMember member = SharedFunctions.getMemberGroupAttacked(group, heroapi, configApi);
         if (member != null) {
             movement.moveTo(member.getLocation());
