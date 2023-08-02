@@ -59,7 +59,7 @@ public class Utils {
             JButton closeBtn = new JButton("Close");
             donateBtn.addActionListener(e -> {
                 SystemUtils.openUrl(
-                        "https://www.paypal.com/donate/?business=JR2XWPSKLWN76&amount=5&no_recurring=0&currency_code=EUR");
+                        "https://ko-fi.com/deeme");
                 SwingUtilities.getWindowAncestor(donateBtn).setVisible(false);
             });
             closeBtn.addActionListener(e -> SwingUtilities.getWindowAncestor(closeBtn).setVisible(false));
