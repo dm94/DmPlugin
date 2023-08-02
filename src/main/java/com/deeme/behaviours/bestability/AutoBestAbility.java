@@ -112,16 +112,9 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     }
 
     private Ability getBestAbility() {
-        if (shoulFocusHealth(false)) {
-            if (isAvailable(Ability.AEGIS_REPAIR_POD)) {
-                return Ability.AEGIS_REPAIR_POD;
-            } else if (isAvailable(Ability.LIBERATOR_PLUS_SELF_REPAIR)) {
-                return Ability.LIBERATOR_PLUS_SELF_REPAIR;
-            } else if (isAvailable(Ability.SOLACE)) {
-                return Ability.SOLACE;
-            } else if (isAvailable(Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS)) {
-                return Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS;
-            }
+        Ability healthAbility = getHealthAbility();
+        if (healthAbility == null) {
+            return healthAbility;
         }
 
         if (isAvailable(Ability.AEGIS_HP_REPAIR) && shoulFocusHealth(true)) {
@@ -136,38 +129,14 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
             }
         }
 
-        if (shoulFocusSpeed()) {
-            if (isAvailable(Ability.CITADEL_TRAVEL)) {
-                return Ability.CITADEL_TRAVEL;
-            } else if (isAvailable(Ability.LIGHTNING)) {
-                return Ability.LIGHTNING;
-            } else if (isAvailable(Ability.TARTARUS_SPEED_BOOST)) {
-                return Ability.TARTARUS_SPEED_BOOST;
-            } else if (isAvailable(Ability.KERES_SPR)) {
-                return Ability.KERES_SPR;
-            } else if (isAvailable(Ability.RETIARUS_SPC)) {
-                return Ability.RETIARUS_SPC;
-            } else if (isAvailable(Ability.MIMESIS_PHASE_OUT)) {
-                return Ability.MIMESIS_PHASE_OUT;
-            } else if (isAvailable(Ability.ZEPHYR_MMT)) {
-                return Ability.ZEPHYR_MMT;
-            } else if (isAvailable(Ability.PUSAT_PLUS_SPEED_SAP)) {
-                return Ability.PUSAT_PLUS_SPEED_SAP;
-            }
+        Ability speedAbility = getSpeedAbility();
+        if (speedAbility == null) {
+            return speedAbility;
         }
 
-        if (shoulFocusEvade()) {
-            if (isAvailable(Ability.SPEARHEAD_JAM_X)) {
-                return Ability.SPEARHEAD_JAM_X;
-            } else if (isAvailable(Ability.SPEARHEAD_ULTIMATE_CLOAK)) {
-                return Ability.SPEARHEAD_ULTIMATE_CLOAK;
-            } else if (isAvailable(Ability.BERSERKER_RVG)) {
-                return Ability.BERSERKER_RVG;
-            } else if (isAvailable(Ability.MIMESIS_SCRAMBLE)) {
-                return Ability.MIMESIS_SCRAMBLE;
-            } else if (isAvailable(Ability.DISRUPTOR_DDOL)) {
-                return Ability.DISRUPTOR_DDOL;
-            }
+        Ability evadeAbility = getEvadeAbility();
+        if (evadeAbility == null) {
+            return evadeAbility;
         }
 
         if (shouldFocusHelpTank()) {
@@ -178,51 +147,131 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
             }
         }
 
-        if (shoulFocusEvade()) {
-            if (isAvailable(Ability.CITADEL_PLUS_PRISMATIC_ENDURANCE)) {
-                return Ability.CITADEL_PLUS_PRISMATIC_ENDURANCE;
-            } else if (isAvailable(Ability.CITADEL_FORTIFY)) {
-                return Ability.CITADEL_FORTIFY;
-            } else if (isAvailable(Ability.DISRUPTOR_REDIRECT)) {
-                return Ability.DISRUPTOR_REDIRECT;
-            } else if (isAvailable(Ability.SPECTRUM)) {
-                return Ability.SPECTRUM;
-            } else if (isAvailable(Ability.SENTINEL)) {
-                return Ability.SENTINEL;
-            } else if (isAvailable(Ability.BERSERKER_BSK)) {
-                return Ability.BERSERKER_BSK;
-            } else if (shoulUseOrcusAssimilate()) {
-                return Ability.ORCUS_ASSIMILATE;
-            }
+        Ability evadeAbilityLastInstance = getEvadeAbilityLastInstance();
+        if (evadeAbilityLastInstance == null) {
+            return evadeAbilityLastInstance;
         }
 
-        if (shoulFocusDamage()) {
-            if (isAvailable(Ability.SPEARHEAD_TARGET_MARKER)) {
-                return Ability.SPEARHEAD_TARGET_MARKER;
-            } else if (isAvailable(Ability.DIMINISHER)) {
-                return Ability.DIMINISHER;
-            } else if (isAvailable(Ability.GOLIATH_X_FROZEN_CLAW)) {
-                return Ability.GOLIATH_X_FROZEN_CLAW;
-            } else if (isAvailable(Ability.VENOM)) {
-                return Ability.VENOM;
-            } else if (isAvailable(Ability.TARTARUS_RAPID_FIRE)) {
-                return Ability.TARTARUS_RAPID_FIRE;
-            } else if (isAvailable(Ability.DISRUPTOR_SHIELD_DISARRAY)) {
-                return Ability.DISRUPTOR_SHIELD_DISARRAY;
-            } else if (isAvailable(Ability.HECATE_PARTICLE_BEAM)) {
-                return Ability.HECATE_PARTICLE_BEAM;
-            } else if (isAvailable(Ability.KERES_SPR)) {
-                return Ability.KERES_SPR;
-            } else if (isAvailable(Ability.ZEPHYR_TBR)) {
-                return Ability.ZEPHYR_TBR;
-            } else if (isAvailable(Ability.HOLO_ENEMY_REVERSAL)) {
-                return Ability.HOLO_ENEMY_REVERSAL;
-            } else if (isInRange()) {
-                if (isAvailable(Ability.SOLARIS_INC)) {
-                    return Ability.SOLARIS_INC;
-                } else if (isAvailable(Ability.SOLARIS_PLUS_INCINERATE_PLUS)) {
-                    return Ability.SOLARIS_PLUS_INCINERATE_PLUS;
-                }
+        return getDamageAbility();
+    }
+
+    private Ability getHealthAbility() {
+        if (!shoulFocusHealth(false)) {
+            return null;
+        }
+
+        if (isAvailable(Ability.AEGIS_REPAIR_POD)) {
+            return Ability.AEGIS_REPAIR_POD;
+        } else if (isAvailable(Ability.LIBERATOR_PLUS_SELF_REPAIR)) {
+            return Ability.LIBERATOR_PLUS_SELF_REPAIR;
+        } else if (isAvailable(Ability.SOLACE)) {
+            return Ability.SOLACE;
+        } else if (isAvailable(Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS)) {
+            return Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS;
+        }
+
+        return null;
+    }
+
+    private Ability getSpeedAbility() {
+        if (!shoulFocusSpeed()) {
+            return null;
+        }
+
+        if (isAvailable(Ability.CITADEL_TRAVEL)) {
+            return Ability.CITADEL_TRAVEL;
+        } else if (isAvailable(Ability.LIGHTNING)) {
+            return Ability.LIGHTNING;
+        } else if (isAvailable(Ability.TARTARUS_SPEED_BOOST)) {
+            return Ability.TARTARUS_SPEED_BOOST;
+        } else if (isAvailable(Ability.KERES_SPR)) {
+            return Ability.KERES_SPR;
+        } else if (isAvailable(Ability.RETIARUS_SPC)) {
+            return Ability.RETIARUS_SPC;
+        } else if (isAvailable(Ability.MIMESIS_PHASE_OUT)) {
+            return Ability.MIMESIS_PHASE_OUT;
+        } else if (isAvailable(Ability.ZEPHYR_MMT)) {
+            return Ability.ZEPHYR_MMT;
+        } else if (isAvailable(Ability.PUSAT_PLUS_SPEED_SAP)) {
+            return Ability.PUSAT_PLUS_SPEED_SAP;
+        }
+
+        return null;
+    }
+
+    private Ability getEvadeAbility() {
+        if (!shoulFocusEvade()) {
+            return null;
+        }
+        if (isAvailable(Ability.SPEARHEAD_JAM_X)) {
+            return Ability.SPEARHEAD_JAM_X;
+        } else if (isAvailable(Ability.SPEARHEAD_ULTIMATE_CLOAK)) {
+            return Ability.SPEARHEAD_ULTIMATE_CLOAK;
+        } else if (isAvailable(Ability.BERSERKER_RVG)) {
+            return Ability.BERSERKER_RVG;
+        } else if (isAvailable(Ability.MIMESIS_SCRAMBLE)) {
+            return Ability.MIMESIS_SCRAMBLE;
+        } else if (isAvailable(Ability.DISRUPTOR_DDOL)) {
+            return Ability.DISRUPTOR_DDOL;
+        }
+
+        return null;
+    }
+
+    private Ability getEvadeAbilityLastInstance() {
+        if (!shoulFocusEvade()) {
+            return null;
+        }
+
+        if (isAvailable(Ability.CITADEL_PLUS_PRISMATIC_ENDURANCE)) {
+            return Ability.CITADEL_PLUS_PRISMATIC_ENDURANCE;
+        } else if (isAvailable(Ability.CITADEL_FORTIFY)) {
+            return Ability.CITADEL_FORTIFY;
+        } else if (isAvailable(Ability.DISRUPTOR_REDIRECT)) {
+            return Ability.DISRUPTOR_REDIRECT;
+        } else if (isAvailable(Ability.SPECTRUM)) {
+            return Ability.SPECTRUM;
+        } else if (isAvailable(Ability.SENTINEL)) {
+            return Ability.SENTINEL;
+        } else if (isAvailable(Ability.BERSERKER_BSK)) {
+            return Ability.BERSERKER_BSK;
+        } else if (shoulUseOrcusAssimilate()) {
+            return Ability.ORCUS_ASSIMILATE;
+        }
+
+        return null;
+    }
+
+    private Ability getDamageAbility() {
+        if (!shoulFocusDamage()) {
+            return null;
+        }
+
+        if (isAvailable(Ability.SPEARHEAD_TARGET_MARKER)) {
+            return Ability.SPEARHEAD_TARGET_MARKER;
+        } else if (isAvailable(Ability.DIMINISHER)) {
+            return Ability.DIMINISHER;
+        } else if (isAvailable(Ability.GOLIATH_X_FROZEN_CLAW)) {
+            return Ability.GOLIATH_X_FROZEN_CLAW;
+        } else if (isAvailable(Ability.VENOM)) {
+            return Ability.VENOM;
+        } else if (isAvailable(Ability.TARTARUS_RAPID_FIRE)) {
+            return Ability.TARTARUS_RAPID_FIRE;
+        } else if (isAvailable(Ability.DISRUPTOR_SHIELD_DISARRAY)) {
+            return Ability.DISRUPTOR_SHIELD_DISARRAY;
+        } else if (isAvailable(Ability.HECATE_PARTICLE_BEAM)) {
+            return Ability.HECATE_PARTICLE_BEAM;
+        } else if (isAvailable(Ability.KERES_SPR)) {
+            return Ability.KERES_SPR;
+        } else if (isAvailable(Ability.ZEPHYR_TBR)) {
+            return Ability.ZEPHYR_TBR;
+        } else if (isAvailable(Ability.HOLO_ENEMY_REVERSAL)) {
+            return Ability.HOLO_ENEMY_REVERSAL;
+        } else if (isInRange()) {
+            if (isAvailable(Ability.SOLARIS_INC)) {
+                return Ability.SOLARIS_INC;
+            } else if (isAvailable(Ability.SOLARIS_PLUS_INCINERATE_PLUS)) {
+                return Ability.SOLARIS_PLUS_INCINERATE_PLUS;
             }
         }
 
