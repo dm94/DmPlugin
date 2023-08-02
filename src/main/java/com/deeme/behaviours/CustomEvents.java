@@ -8,7 +8,6 @@ import com.deeme.types.backpage.Utils;
 import com.deeme.types.config.CustomEventsConfig;
 import com.deeme.types.config.ExtraKeyConditionsKey;
 import com.deeme.types.config.ExtraKeyConditionsSelectable;
-import com.github.manolo8.darkbot.config.Config;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -27,8 +26,6 @@ import eu.darkbot.api.utils.Inject;
 public class CustomEvents implements Behavior, Configurable<CustomEventsConfig> {
 
     protected final PluginAPI api;
-    protected final ConfigSetting<Boolean> rsbEnabled;
-    protected final ConfigSetting<Config.Loot.Sab> sabSettings;
     private CustomEventsConfig config;
     protected long clickDelay;
     protected final HeroItemsAPI items;
@@ -49,8 +46,6 @@ public class CustomEvents implements Behavior, Configurable<CustomEventsConfig> 
         Utils.showDonateDialog();
 
         this.api = api;
-        this.rsbEnabled = configApi.requireConfig("loot.rsb.enabled");
-        this.sabSettings = configApi.requireConfig("loot.sab");
         this.items = heroItems;
     }
 
@@ -93,20 +88,20 @@ public class CustomEvents implements Behavior, Configurable<CustomEventsConfig> 
     }
 
     public boolean useKeyWithConditions(ExtraKeyConditionsSelectable extra) {
-        if (extra.enable) {
-            return useKeyWithConditions(extra.condition, SharedFunctions.getItemById(extra.item));
+        if (!extra.enable) {
+            return false;
         }
-        return false;
+
+        return useKeyWithConditions(extra.condition, SharedFunctions.getItemById(extra.item));
     }
 
     public boolean useKeyWithConditions(ExtraKeyConditionsKey extra) {
-        if (extra.enable) {
-            SelectableItem selectableItem = items.getItem(extra.Key);
-            if (selectableItem != null && extra.condition != null && extra.condition.get(api).allows()) {
-                return useSelectableReadyWhenReady(selectableItem);
-            }
+        if (!extra.enable) {
+            return false;
         }
-        return false;
+
+        SelectableItem selectableItem = items.getItem(extra.Key);
+        return useKeyWithConditions(extra.condition, selectableItem);
     }
 
     public boolean useSelectableReadyWhenReady(SelectableItem selectableItem) {
