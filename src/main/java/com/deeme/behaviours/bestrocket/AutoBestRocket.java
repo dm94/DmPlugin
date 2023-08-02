@@ -90,7 +90,7 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
                 items.useItem(rocket, 500, ItemFlag.USABLE, ItemFlag.READY);
             }
         } catch (Exception e) {
-            System.err.println(e.getMessage());
+            /* Nothing here */
         }
     }
 
