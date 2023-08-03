@@ -19,7 +19,7 @@ import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
 
-@Feature(name = "Generic Gate", description = "For any map, event")
+@Feature(name = "Generic Gate [PLUS]", description = "For any map, event")
 public class GenericGateDummy implements Module, Configurable<Config>, NpcExtraProvider {
 
     private GenericGate privateModule;

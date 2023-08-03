@@ -18,6 +18,7 @@ import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.extensions.Task;
+import eu.darkbot.api.game.other.GameMap;
 import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.HeroAPI;
@@ -94,10 +95,11 @@ public class AutoChangeMap implements Task, Configurable<ChangeMapConfig> {
     }
 
     private void setup() {
-        if (star == null || changeMapConfig == null)
+        if (star == null || changeMapConfig == null) {
             return;
+        }
 
-        List<String> accessibleMaps = star.getMaps().stream().filter(m -> !m.isGG()).map(m -> m.getName())
+        List<String> accessibleMaps = star.getMaps().stream().filter(m -> !m.isGG()).map(GameMap::getName)
                 .collect(Collectors.toList());
 
         for (String map : accessibleMaps) {
@@ -114,7 +116,6 @@ public class AutoChangeMap implements Task, Configurable<ChangeMapConfig> {
 
     private void goNextMap() {
         HashMap<String, MapData> avaibleMaps = new HashMap<>();
-        int map;
 
         for (Map.Entry<String, MapData> oneMap : changeMapConfig.Maps_Changes.entrySet()) {
             if ((oneMap.getValue().time > 0 || oneMap.getValue().deaths > 0)
@@ -127,39 +128,50 @@ public class AutoChangeMap implements Task, Configurable<ChangeMapConfig> {
         } else {
             avaibleMaps.entrySet().removeIf(oneMap -> mapsAlreadyUsed.contains(oneMap.getKey()));
         }
-        int mapChosse = 0;
-        if (avaibleMaps.size() > 1) {
-            mapChosse = rand.nextInt(avaibleMaps.size());
-        }
+
+        int mapChosse = avaibleMaps.size() > 1 ? rand.nextInt(avaibleMaps.size()) : 0;
         int i = 0;
+
         for (Map.Entry<String, MapData> chosseMap : avaibleMaps.entrySet()) {
             if (i == mapChosse) {
-                if (chosseMap.getValue().time > 0) {
-                    waitingTimeNextMap = System.currentTimeMillis() +
-                            (chosseMap.getValue().time + (changeMapConfig.addRandomTime ? rand.nextInt(5) : 0))
-                                    * 60000L;
-                } else {
-                    waitingTimeNextMap = 0;
-                }
-
-                if (chosseMap.getValue().deaths > 0) {
-                    mapMaxDeaths = repair.getDeathAmount() + chosseMap.getValue().deaths;
-                } else {
-                    mapMaxDeaths = 0;
-                }
-
-                try {
-                    map = star.getByName(chosseMap.getKey()).getId();
-                    api.requireAPI(ConfigAPI.class).requireConfig("general.working_map").setValue(map);
-                } catch (Exception e) {
-                    System.out.println("Map not found" + e.getMessage());
-                }
-
-                mapsAlreadyUsed.add(chosseMap.getKey());
-
+                selectMap(chosseMap);
                 break;
             }
             i++;
+        }
+    }
+
+    private void selectMap(Map.Entry<String, MapData> chosseMap) {
+        if (chosseMap.getValue().time > 0) {
+            waitingTimeNextMap = System.currentTimeMillis() +
+                    (chosseMap.getValue().time + (changeMapConfig.addRandomTime ? rand.nextInt(5) : 0))
+                            * 60000L;
+        } else {
+            waitingTimeNextMap = 0;
+        }
+
+        if (chosseMap.getValue().deaths > 0) {
+            mapMaxDeaths = repair.getDeathAmount() + chosseMap.getValue().deaths;
+        } else {
+            mapMaxDeaths = 0;
+        }
+
+        updateWorkingMap(chosseMap.getKey());
+    }
+
+    private void updateWorkingMap(String mapName) {
+        try {
+            GameMap map = star.getByName(mapName);
+            if (map == null) {
+                return;
+            }
+
+            int mapId = map.getId();
+
+            api.requireAPI(ConfigAPI.class).requireConfig("general.working_map").setValue(mapId);
+            mapsAlreadyUsed.add(mapName);
+        } catch (Exception e) {
+            /* Nothing here */
         }
     }
 }

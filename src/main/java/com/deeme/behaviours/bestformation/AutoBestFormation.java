@@ -109,14 +109,9 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
             return null;
         }
 
-        if (hasOption(BehaviourOptions.COPY_PLAYER_FORMATION)) {
-            Player target = heroapi.getLocalTargetAs(Player.class);
-            if (target != null) {
-                Formation targetFormation = target.getFormation();
-                if (hasFormation(targetFormation)) {
-                    return targetFormation;
-                }
-            }
+        Formation playerFormation = getPlayerTargetFormation();
+        if (playerFormation != null) {
+            return playerFormation;
         }
 
         if (shoulUseVeteran()) {
@@ -139,10 +134,33 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
             return Formation.DIAMOND;
         }
 
+        Formation damageFormation = getDamageFormation();
+        if (damageFormation != null) {
+            return damageFormation;
+        }
+
+        return getDefaultFormation();
+    }
+
+    private Formation getPlayerTargetFormation() {
+        if (hasOption(BehaviourOptions.COPY_PLAYER_FORMATION)) {
+            Player target = heroapi.getLocalTargetAs(Player.class);
+            if (target != null && target.isValid()) {
+                Formation targetFormation = target.getFormation();
+                if (targetFormation != null && hasFormation(targetFormation)) {
+                    return targetFormation;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private Formation getDamageFormation() {
         Entity target = heroapi.getLocalTarget();
         if (target instanceof Npc) {
             Npc npc = (Npc) target;
-            if (shoulUseDrill() && npc.getHealth().getHp() > 30000) {
+            if (npc.getHealth().getHp() > 30000 && shoulUseDrill()) {
                 return Formation.DRILL;
             }
             if (shoulUseBat()) {
@@ -165,6 +183,10 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
             return Formation.CHEVRON;
         }
 
+        return null;
+    }
+
+    private Formation getDefaultFormation() {
         if (isAttacking()) {
             SelectableItem formation = SharedFunctions.getItemById(config.defaultFormation);
             return (Formation) formation;
@@ -175,12 +197,11 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
 
     private boolean shoulFocusPenetration() {
         Lockable target = heroapi.getLocalTarget();
-        if (target != null && target.isValid()) {
-            return target.getHealth() != null && target.getHealth().getShield() > 100000
-                    && target.getHealth().shieldPercent() > 0.5
-                    && (target.getHealth().hpPercent() < 0.2 || heroapi.getHealth().getMaxShield() < 1000);
-        }
-        return false;
+
+        return target != null && target.isValid() && target.getHealth() != null
+                && target.getHealth().getShield() > 100000
+                && target.getHealth().shieldPercent() > 0.5
+                && (target.getHealth().hpPercent() < 0.2 || heroapi.getHealth().getMaxShield() < 1000);
     }
 
     private boolean shoulFocusSpeed() {
@@ -189,13 +210,15 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
         }
 
         Entity target = heroapi.getLocalTarget();
-        if (target != null && target.isValid()) {
-            double distance = heroapi.getLocationInfo().getCurrent().distanceTo(target.getLocationInfo());
-            double speed = target instanceof Movable ? ((Movable) target).getSpeed() : 0;
-            return distance > 500 && (speed >= heroapi.getSpeed() || heroapi.isInFormation(Formation.WHEEL));
+
+        if (target == null || !target.isValid()) {
+            return false;
         }
 
-        return false;
+        double distance = heroapi.getLocationInfo().getCurrent().distanceTo(target.getLocationInfo());
+        double speed = target instanceof Movable ? ((Movable) target).getSpeed() : 0;
+        return distance > 500 && (speed >= heroapi.getSpeed() || heroapi.isInFormation(Formation.WHEEL));
+
     }
 
     private boolean shoulUseDrill() {
@@ -223,24 +246,24 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
                 return true;
             }
         } catch (Exception e) {
-            System.err.println(e.getMessage());
+            /* Nothing here */
         }
         return false;
     }
 
     private boolean shoulUseVeteran() {
-        if (hasFormation(Formation.VETERAN)) {
-            if (hasTag(ExtraNpcFlags.USE_VETERAN) || hasOption(BehaviourOptions.USE_VETERAN)) {
-                Lockable target = heroapi.getLocalTarget();
-                if (target != null && target.isValid() && target instanceof Npc && target.getHealth() != null
-                        && (target.getHealth().hpPercent() <= 0.15 && target.getHealth().getHp() < 200000)) {
-                    return true;
-                }
-            }
-            return heroapi.getMap() != null && heroapi.getMap().isGG() && allNpcs.isEmpty()
-                    && allPortals.isEmpty();
+        if (!hasFormation(Formation.VETERAN)) {
+            return false;
         }
-        return false;
+        if (hasTag(ExtraNpcFlags.USE_VETERAN) || hasOption(BehaviourOptions.USE_VETERAN)) {
+            Lockable target = heroapi.getLocalTarget();
+            if (target != null && target.isValid() && target instanceof Npc && target.getHealth() != null
+                    && (target.getHealth().hpPercent() <= 0.15 && target.getHealth().getHp() < 200000)) {
+                return true;
+            }
+        }
+        return heroapi.getMap() != null && heroapi.getMap().isGG() && allNpcs.isEmpty()
+                && allPortals.isEmpty();
     }
 
     private boolean shoulUseBat() {
@@ -248,9 +271,15 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     }
 
     private boolean useSelectableReadyWhenReady(Formation formation) {
+        if (formation == null) {
+            return false;
+        }
 
-        if (formation != null && !heroapi.isInFormation(formation)
-                && items.useItem(formation, 1000, ItemFlag.USABLE, ItemFlag.READY).isSuccessful()) {
+        if (heroapi.isInFormation(formation)) {
+            return false;
+        }
+
+        if (items.useItem(formation, 1000, ItemFlag.USABLE, ItemFlag.READY).isSuccessful()) {
             changeOffensiveConfig(formation);
             return true;
         }
@@ -265,6 +294,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
                 configOffensive.setValue(new Config.ShipConfig(configOffensive.getValue().CONFIG, key));
             }
         } catch (Exception e) {
+            /* Nothing here */
         }
     }
 
@@ -285,7 +315,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
             return false;
         }
 
-        if (config.formationsToUse.stream().anyMatch(s -> s.name().equals(formation.name()))) {
+        if (config.formationsToUse.stream().anyMatch(s -> s.name() != null && s.name().equals(formation.name()))) {
             if (availableFormations.contains(formation)) {
                 return true;
             } else if (items.getItem(formation, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE).isPresent()) {
@@ -298,11 +328,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     }
 
     private boolean hasOption(BehaviourOptions option) {
-        if (config.options.stream().anyMatch(s -> s.name().equals(option.name()))) {
-            return true;
-        }
-
-        return false;
+        return config.options.stream().anyMatch(s -> s.name() != null && s.name().equals(option.name()));
     }
 
     private boolean isAttacking() {
@@ -326,10 +352,12 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
 
     private boolean isFaster() {
         Lockable target = heroapi.getLocalTarget();
-        if (target != null && target.isValid()) {
-            double speed = target instanceof Movable ? ((Movable) target).getSpeed() : 0;
-            return speed > heroapi.getSpeed();
+
+        if (target == null || !target.isValid()) {
+            return false;
         }
-        return false;
+
+        double speed = target instanceof Movable ? ((Movable) target).getSpeed() : 0;
+        return speed > heroapi.getSpeed();
     }
 }

@@ -109,32 +109,39 @@ public class AmbulanceModule extends TemporalModule {
                 return;
             }
             this.currentStatus = State.SEARCHING_MEMBER;
-            Player player = getPlayerIfIsClosed();
-            if (player != null && player.isValid()) {
-                if (abilityToUse == Ability.AEGIS_REPAIR_POD) {
-                    useAbilityReadyWhenReady();
-                } else {
-                    if (heroapi.getTarget() != null && heroapi.getTarget().getId() != player.getId()) {
-                        oldTarget = heroapi.getLocalTarget();
-                    }
-                    this.currentStatus = State.TARGET_MEMBER;
-                    movement.moveTo(player);
-                    if (heroapi.getLocationInfo().distanceTo(player) <= 700) {
-                        if (heroapi.getTarget() != null && heroapi.getTarget().getId() == player.getId()) {
-                            useAbilityReadyWhenReady();
-                        } else if (System.currentTimeMillis() - clickDelay > 500) {
-                            heroapi.setLocalTarget(player);
-                            player.trySelect(false);
-                            clickDelay = System.currentTimeMillis();
-                        }
-                    }
-                }
-            } else {
-                goToMemberAttacked();
-            }
+            useAbilityLogic();
         } catch (Exception e) {
-            System.err.println(e);
             super.goBack();
+        }
+    }
+
+    private void useAbilityLogic() {
+        Player player = getPlayerIfIsClosed();
+        if (player != null && player.isValid()) {
+            if (abilityToUse == Ability.AEGIS_REPAIR_POD) {
+                useAbilityReadyWhenReady();
+            } else {
+                targetAndUseAbility(player);
+            }
+        } else {
+            goToMemberAttacked();
+        }
+    }
+
+    private void targetAndUseAbility(Player player) {
+        if (heroapi.getTarget() != null && heroapi.getTarget().getId() != player.getId()) {
+            oldTarget = heroapi.getLocalTarget();
+        }
+        this.currentStatus = State.TARGET_MEMBER;
+        movement.moveTo(player);
+        if (heroapi.getLocationInfo().distanceTo(player) <= 700) {
+            if (heroapi.getTarget() != null && heroapi.getTarget().getId() == player.getId()) {
+                useAbilityReadyWhenReady();
+            } else if (System.currentTimeMillis() - clickDelay > 500) {
+                heroapi.setLocalTarget(player);
+                player.trySelect(false);
+                clickDelay = System.currentTimeMillis();
+            }
         }
     }
 

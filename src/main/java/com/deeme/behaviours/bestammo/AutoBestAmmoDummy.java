@@ -18,7 +18,7 @@ import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.utils.Inject;
 
-@Feature(name = "Auto Best Ammo", description = "Auto use the best ammo")
+@Feature(name = "Auto Best Ammo [PLUS]", description = "Auto use the best ammo")
 public class AutoBestAmmoDummy implements Behavior, Configurable<BestAmmoConfig>, NpcExtraProvider {
 
     private AutoBestAmmo privateBehaviour;

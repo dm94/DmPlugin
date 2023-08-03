@@ -62,23 +62,18 @@ public class StopButton implements Behavior, ExtraMenus {
 
     @Override
     public void onTickBehavior() {
-        if (stopBot) {
-            if (!heroapi.getMap().isGG() && bot.getModule().canRefresh()) {
-                if (!isDisconnect() && !(bot.getModule() instanceof DisconnectModule)) {
-                    bot.setModule(new DisconnectModule(null, "Stop Button"));
-                }
-            } else if (heroapi.getMap() != null && heroapi.getMap().isGG() && !portals.isEmpty()) {
-                Portal p = portals.stream().filter(m -> m.getTargetMap().isPresent() && !m.getTargetMap().get().isGG())
-                        .findFirst().orElse(null);
-                if (p != null && !p.isJumping()) {
-                    if (heroapi.distanceTo(p) < 200) {
-                        movement.jumpPortal(p);
-                    } else {
-                        movement.moveTo(p);
-                    }
-                }
-            }
+        if (!stopBot) {
+            return;
         }
+
+        if (!heroapi.getMap().isGG() && bot.getModule().canRefresh()) {
+            if (!isDisconnect() && !(bot.getModule() instanceof DisconnectModule)) {
+                bot.setModule(new DisconnectModule(null, "Stop Button"));
+            }
+        } else if (heroapi.getMap() != null && heroapi.getMap().isGG() && !portals.isEmpty()) {
+            goOutFromGG();
+        }
+
         stopCheck();
     }
 
@@ -97,6 +92,20 @@ public class StopButton implements Behavior, ExtraMenus {
                     stopBot = true;
                     closeBot = true;
                 }));
+    }
+
+    private void goOutFromGG() {
+        Portal p = portals.stream().filter(m -> m.getTargetMap().isPresent() && !m.getTargetMap().get().isGG())
+                .findFirst().orElse(null);
+        if (p == null || p.isJumping()) {
+            return;
+        }
+
+        if (heroapi.distanceTo(p) < 200) {
+            movement.jumpPortal(p);
+        } else {
+            movement.moveTo(p);
+        }
     }
 
     private void stopCheck() {

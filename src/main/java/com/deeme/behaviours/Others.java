@@ -42,6 +42,9 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
     private final Gui lostConnectionGUI;
     private long lastLoggedIn = 0;
 
+    private static final int ROCKETS_CREDITS_COST = 50000;
+    private static final int AMMO_CREDITS_COST = 100000;
+
     private Collection<? extends Portal> portals;
 
     public Others(Main main, PluginAPI api) {
@@ -115,17 +118,17 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
     }
 
     private void autoBuyLogic() {
-        if (lcConfig.autoBuyLcb10 && this.stats.getTotalCredits() >= 100000) {
-            this.items.getItem(SelectableItem.Laser.LCB_10, ItemFlag.USABLE).ifPresent(i -> {
-                if (i.getQuantity() <= 1000) {
+        if (lcConfig.autoBuyLcb10 && this.stats.getTotalCredits() >= AMMO_CREDITS_COST) {
+            this.items.getItem(SelectableItem.Laser.LCB_10).ifPresent(i -> {
+                if (i.getQuantity() <= 10000) {
                     items.useItem(SelectableItem.AutoBuy.LCB_10, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE);
                 }
             });
         }
 
-        if (lcConfig.autoBuyPlt2026 && this.stats.getTotalCredits() >= 50000) {
-            this.items.getItem(SelectableItem.Rocket.PLT_2026, ItemFlag.USABLE).ifPresent(i -> {
-                if (i.getQuantity() <= 100) {
+        if (lcConfig.autoBuyPlt2026 && this.stats.getTotalCredits() >= ROCKETS_CREDITS_COST) {
+            this.items.getItem(SelectableItem.Rocket.PLT_2026).ifPresent(i -> {
+                if (i.getQuantity() <= 1000) {
                     items.useItem(SelectableItem.AutoBuy.PLT_2026, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE);
                 }
             });
