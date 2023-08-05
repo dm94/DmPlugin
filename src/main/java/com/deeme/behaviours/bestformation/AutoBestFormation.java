@@ -100,6 +100,8 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
             nextCheck = System.currentTimeMillis() + (config.timeToCheck * 1000);
             if (isAttacking() || safety.state() == Escaping.ENEMY) {
                 useSelectableReadyWhenReady(getBestFormation());
+            } else if (shoulUseVeteran()) {
+                useSelectableReadyWhenReady(Formation.VETERAN);
             }
         }
     }
