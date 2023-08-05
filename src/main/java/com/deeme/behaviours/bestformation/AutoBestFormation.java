@@ -100,7 +100,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
             nextCheck = System.currentTimeMillis() + (config.timeToCheck * 1000);
             if (isAttacking() || safety.state() == Escaping.ENEMY) {
                 useSelectableReadyWhenReady(getBestFormation());
-            } else if (shoulUseVeteran()) {
+            } else if (shouldUseVeteran()) {
                 useSelectableReadyWhenReady(Formation.VETERAN);
             }
         }
@@ -116,13 +116,13 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
             return playerFormation;
         }
 
-        if (shoulUseVeteran()) {
+        if (shouldUseVeteran()) {
             return Formation.VETERAN;
         }
-        if (hasFormation(Formation.WHEEL) && shoulFocusSpeed()) {
+        if (hasFormation(Formation.WHEEL) && shouldFocusSpeed()) {
             return Formation.WHEEL;
         }
-        if (shoulFocusPenetration()) {
+        if (shouldFocusPenetration()) {
             if (hasFormation(Formation.MOTH)) {
                 return Formation.MOTH;
             } else if (hasFormation(Formation.DOUBLE_ARROW)) {
@@ -130,9 +130,9 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
             }
         }
 
-        if (shoulUseCrab()) {
+        if (shouldUseCrab()) {
             return Formation.CRAB;
-        } else if (shoulUseDiamond()) {
+        } else if (shouldUseDiamond()) {
             return Formation.DIAMOND;
         }
 
@@ -162,10 +162,10 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
         Entity target = heroapi.getLocalTarget();
         if (target instanceof Npc) {
             Npc npc = (Npc) target;
-            if (npc.getHealth().getHp() > 30000 && shoulUseDrill()) {
+            if (npc.getHealth().getHp() > 30000 && shouldUseDrill()) {
                 return Formation.DRILL;
             }
-            if (shoulUseBat()) {
+            if (shouldUseBat()) {
                 return Formation.BAT;
             } else if (hasFormation(Formation.BARRAGE)) {
                 return Formation.BARRAGE;
@@ -174,7 +174,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
             return Formation.PINCER;
         }
 
-        if (shoulUseDrill()) {
+        if (shouldUseDrill()) {
             return Formation.DRILL;
         } else if (hasFormation(Formation.STAR)) {
             return Formation.STAR;
@@ -197,7 +197,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
         return null;
     }
 
-    private boolean shoulFocusPenetration() {
+    private boolean shouldFocusPenetration() {
         Lockable target = heroapi.getLocalTarget();
 
         return target != null && target.isValid() && target.getHealth() != null
@@ -206,7 +206,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
                 && (target.getHealth().hpPercent() < 0.2 || heroapi.getHealth().getMaxShield() < 1000);
     }
 
-    private boolean shoulFocusSpeed() {
+    private boolean shouldFocusSpeed() {
         if (safety.state() == Escaping.ENEMY) {
             return true;
         }
@@ -223,11 +223,11 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
 
     }
 
-    private boolean shoulUseDrill() {
-        return hasFormation(Formation.DRILL) && !shoulFocusSpeed() && !isInRange(500);
+    private boolean shouldUseDrill() {
+        return hasFormation(Formation.DRILL) && !shouldFocusSpeed() && !isInRange(500);
     }
 
-    private boolean shoulUseDiamond() {
+    private boolean shouldUseDiamond() {
         return hasFormation(Formation.DIAMOND)
                 && (heroapi.getHealth().hpPercent() < 0.7
                         || (heroapi.isInFormation(Formation.DIAMOND) && heroapi.getHealth().hpPercent() > 0.99))
@@ -235,7 +235,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
                 && heroapi.getHealth().getMaxShield() > 50000;
     }
 
-    private boolean shoulUseCrab() {
+    private boolean shouldUseCrab() {
         if (!hasFormation(Formation.CRAB)
                 || isFaster()) {
             return false;
@@ -253,7 +253,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
         return false;
     }
 
-    private boolean shoulUseVeteran() {
+    private boolean shouldUseVeteran() {
         if (!hasFormation(Formation.VETERAN)) {
             return false;
         }
@@ -268,7 +268,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
                 && allPortals.isEmpty();
     }
 
-    private boolean shoulUseBat() {
+    private boolean shouldUseBat() {
         return hasFormation(Formation.BAT) && !isInRange(500);
     }
 
