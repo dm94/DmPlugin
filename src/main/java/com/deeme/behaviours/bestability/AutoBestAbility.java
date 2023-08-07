@@ -161,7 +161,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
             return evadeAbility;
         }
 
-        if (shoulddFocusHelpTank()) {
+        if (shouldFocusHelpTank()) {
             if (isAvailable(Ability.CITADEL_DRAW_FIRE)) {
                 return Ability.CITADEL_DRAW_FIRE;
             } else if (isAvailable(Ability.CITADEL_PROTECTION)) {
