@@ -139,11 +139,11 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
             return healthAbility;
         }
 
-        if (isAvailable(Ability.AEGIS_HP_REPAIR) && shoulFocusHealth(true)) {
+        if (isAvailable(Ability.AEGIS_HP_REPAIR) && shouldFocusHealth(true)) {
             return Ability.AEGIS_HP_REPAIR;
         }
 
-        if (shoulFocusShield()) {
+        if (shouldFocusShield()) {
             if (isAvailable(Ability.AEGIS_SHIELD_REPAIR)) {
                 return Ability.AEGIS_SHIELD_REPAIR;
             } else if (isAvailable(Ability.SENTINEL)) {
@@ -178,7 +178,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     }
 
     private Ability getHealthAbility() {
-        if (!shoulFocusHealth(false)) {
+        if (!shouldFocusHealth(false)) {
             return null;
         }
 
@@ -186,7 +186,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     }
 
     private Ability getSpeedAbility() {
-        if (!shoulFocusSpeed()) {
+        if (!shouldFocusSpeed()) {
             return null;
         }
 
@@ -194,7 +194,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     }
 
     private Ability getEvadeAbility() {
-        if (!shoulFocusEvade()) {
+        if (!shouldFocusEvade()) {
             return null;
         }
 
@@ -202,11 +202,11 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     }
 
     private Ability getEvadeAbilityLastInstance() {
-        if (!shoulFocusEvade()) {
+        if (!shouldFocusEvade()) {
             return null;
         }
 
-        if (shoulUseOrcusAssimilate()) {
+        if (shouldUseOrcusAssimilate()) {
             return Ability.ORCUS_ASSIMILATE;
         }
 
@@ -214,7 +214,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     }
 
     private Ability getDamageAbility() {
-        if (!shoulFocusDamage()) {
+        if (!shouldFocusDamage()) {
             return null;
         }
 
@@ -229,7 +229,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
         return getAbilityAvailableFromList(damageAbilities);
     }
 
-    private boolean shoulFocusDamage() {
+    private boolean shouldFocusDamage() {
         Lockable target = heroapi.getLocalTarget();
         if (target != null && target.isValid()) {
             if (!config.npcEnabled && heroapi.getLocalTarget() instanceof Npc) {
@@ -251,7 +251,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
         return (target != null && target.isValid() && heroapi.distanceTo(target) < 650);
     }
 
-    private boolean shoulFocusSpeed() {
+    private boolean shouldFocusSpeed() {
         if (safety.state() == Escaping.ENEMY) {
             return true;
         }
@@ -269,7 +269,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
         return false;
     }
 
-    private boolean shoulFocusHealth(boolean needLock) {
+    private boolean shouldFocusHealth(boolean needLock) {
         if (bot.getModule() != null && bot.getModule().getClass() == AmbulanceModule.class) {
             return false;
         } else if (heroapi.getEffects() != null
@@ -303,7 +303,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
         return false;
     }
 
-    private boolean shoulFocusShield() {
+    private boolean shouldFocusShield() {
         if (heroapi.getHealth().shieldPercent() < 0.5) {
             return true;
         } else if (group.hasGroup()) {
@@ -318,7 +318,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
         return false;
     }
 
-    private boolean shoulUseOrcusAssimilate() {
+    private boolean shouldUseOrcusAssimilate() {
         if (!isAvailable(Ability.ORCUS_ASSIMILATE)) {
             return false;
         }
@@ -334,7 +334,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
         return target != null;
     }
 
-    private boolean shoulFocusEvade() {
+    private boolean shouldFocusEvade() {
         if (allPlayers == null || allPlayers.isEmpty()) {
             return false;
         }

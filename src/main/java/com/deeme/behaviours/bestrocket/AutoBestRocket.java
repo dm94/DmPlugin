@@ -95,14 +95,14 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
     }
 
     private Rocket getBestRocketPVP(Lockable target) {
-        if (config.useICRorDCR && shoulFocusSpeed(target)) {
+        if (config.useICRorDCR && shouldFocusSpeed(target)) {
             if (isAvailable(Rocket.R_IC3)) {
                 return Rocket.R_IC3;
             } else if (isAvailable(Rocket.DCR_250)) {
                 return Rocket.DCR_250;
             }
         }
-        if (config.usePLD && isAvailable(Rocket.PLD_8) && shoulUsePLD(target)) {
+        if (config.usePLD && isAvailable(Rocket.PLD_8) && shouldUsePLD(target)) {
             return Rocket.PLD_8;
         }
         if (isAvailable(Rocket.PLT_3030)) {
@@ -117,7 +117,7 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
         return null;
     }
 
-    private boolean shoulFocusSpeed(Lockable target) {
+    private boolean shouldFocusSpeed(Lockable target) {
         double distance = heroapi.getLocationInfo().getCurrent().distanceTo(target.getLocationInfo());
         double speed = target instanceof Movable ? ((Movable) target).getSpeed() : 0;
 
@@ -126,7 +126,7 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
                         && heroapi.getHealth().hpPercent() < repairHpRange.getValue().getMin());
     }
 
-    private boolean shoulUsePLD(Lockable target) {
+    private boolean shouldUsePLD(Lockable target) {
         return target instanceof Movable && ((Movable) target).isAiming(heroapi)
                 && heroapi.getHealth().hpPercent() < 0.5;
     }
