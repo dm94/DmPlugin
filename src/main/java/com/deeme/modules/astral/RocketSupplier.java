@@ -30,7 +30,7 @@ public class RocketSupplier implements PrioritizedSupplier<SelectableItem> {
     public SelectableItem get() {
         Lockable target = heroapi.getLocalTarget();
         if (target != null && target.isValid()) {
-            if (shoulFocusSpeed(target)) {
+            if (shouldFocusSpeed(target)) {
                 if (isAvailable(Rocket.R_IC3)) {
                     return Rocket.R_IC3;
                 }
@@ -39,7 +39,7 @@ public class RocketSupplier implements PrioritizedSupplier<SelectableItem> {
                 }
             }
 
-            if (shoulUsePLD() && isAvailable(Rocket.PLD_8)) {
+            if (shouldUsePLD() && isAvailable(Rocket.PLD_8)) {
                 return Rocket.PLD_8;
             }
 
@@ -66,14 +66,14 @@ public class RocketSupplier implements PrioritizedSupplier<SelectableItem> {
         }
     }
 
-    private boolean shoulFocusSpeed(Lockable target) {
+    private boolean shouldFocusSpeed(Lockable target) {
         double distance = heroapi.getLocationInfo().getCurrent().distanceTo(target.getLocationInfo());
         double speed = target instanceof Movable ? ((Movable) target).getSpeed() : 0;
 
         return distance <= 600 || speed > heroapi.getSpeed();
     }
 
-    private boolean shoulUsePLD() {
+    private boolean shouldUsePLD() {
         return heroapi.getHealth().shieldPercent() < 0.8;
     }
 
