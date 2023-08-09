@@ -330,7 +330,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     }
 
     private boolean hasOption(BehaviourOptions option) {
-        return config.options.stream().anyMatch(s -> s.name() != null && s.name().equals(option.name()));
+        return config.options.stream().anyMatch(s -> s != null && s.name() != null && s.name().equals(option.name()));
     }
 
     private boolean isAttacking() {
