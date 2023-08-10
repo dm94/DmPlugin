@@ -129,21 +129,21 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
     }
 
     private boolean isUnderAttack() {
+        goToMemberAttacked();
+
+        return hasPreviusTarget() || hasAttacker() || friendUnderAttack();
+    }
+
+    private boolean hasPreviusTarget() {
         if (target != null && target.isValid() && target.getId() != heroapi.getId()
                 && target.getLocationInfo().distanceTo(heroapi) < 2000) {
             return true;
         }
 
-        if (defenseConfig.respondAttacks) {
-            target = SharedFunctions.getAttacker(heroapi, players, heroapi);
-            if (target != null && target.isValid()) {
-                if (!getIgnoredPlayers().contains(target.getId())) {
-                    return true;
-                }
-                target = null;
-            }
-        }
+        return false;
+    }
 
+    private boolean friendUnderAttack() {
         List<Player> ships = players.stream()
                 .filter(Player::isValid)
                 .filter(s -> (defenseConfig.helpList.contains(HelpList.CLAN)
@@ -157,11 +157,22 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
 
         target = getTarget(ships);
 
-        if (defenseConfig.goToGroup) {
-            goToMemberAttacked();
+        return target != null && target.isValid();
+    }
+
+    private boolean hasAttacker() {
+        if (!defenseConfig.respondAttacks) {
+            return false;
         }
 
-        return target != null && target.isValid();
+        target = SharedFunctions.getAttacker(heroapi, players, heroapi);
+        if (target != null && target.isValid()) {
+            if (!getIgnoredPlayers().contains(target.getId())) {
+                return true;
+            }
+            target = null;
+        }
+        return false;
     }
 
     private Ship getTarget(List<Player> ships) {
@@ -184,6 +195,10 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
     }
 
     private void goToMemberAttacked() {
+        if (!defenseConfig.goToGroup) {
+            return;
+        }
+
         GroupMember member = SharedFunctions.getMemberGroupAttacked(group, heroapi, configApi);
         if (member != null) {
             movement.moveTo(member.getLocation());
