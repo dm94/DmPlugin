@@ -34,6 +34,7 @@ public class DefenseModule extends TemporalModule {
     protected final ConfigSetting<ShipMode> configRun;
     protected final ConfigSetting<PercentRange> repairHpRange;
     protected final PetAPI pet;
+
     private ShipAttacker shipAttacker;
     private DefenseConfig defenseConfig;
     private boolean attackConfigLost = false;
@@ -95,6 +96,11 @@ public class DefenseModule extends TemporalModule {
                 shipAttacker.useKeyWithConditions(defenseConfig.ISH, Special.ISH_01);
                 shipAttacker.useKeyWithConditions(defenseConfig.SMB, Special.SMB_01);
                 shipAttacker.useKeyWithConditions(defenseConfig.PEM, Special.EMP_01);
+                shipAttacker.useKeyWithConditions(defenseConfig.selectable1);
+                shipAttacker.useKeyWithConditions(defenseConfig.selectable2);
+                shipAttacker.useKeyWithConditions(defenseConfig.selectable3);
+                shipAttacker.useKeyWithConditions(defenseConfig.selectable4);
+                shipAttacker.useKeyWithConditions(defenseConfig.selectable5);
                 shipAttacker.tryAttackOrFix();
                 movementLogic();
             } else {

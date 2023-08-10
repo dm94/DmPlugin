@@ -4,6 +4,7 @@ import java.util.EnumSet;
 import java.util.Set;
 
 import com.deeme.types.config.ExtraKeyConditions;
+import com.deeme.types.config.ExtraKeyConditionsSelectable;
 import com.github.manolo8.darkbot.config.Config.Loot.Sab;
 
 import eu.darkbot.api.config.annotations.Configuration;
@@ -58,4 +59,19 @@ public class DefenseConfig {
 
     @Option("general.pem")
     public ExtraKeyConditions PEM = new ExtraKeyConditions();
+
+    @Option("general.item_condition")
+    public ExtraKeyConditionsSelectable selectable1 = new ExtraKeyConditionsSelectable();
+
+    @Option("general.item_condition")
+    public ExtraKeyConditionsSelectable selectable2 = new ExtraKeyConditionsSelectable();
+
+    @Option("general.item_condition")
+    public ExtraKeyConditionsSelectable selectable3 = new ExtraKeyConditionsSelectable();
+
+    @Option("general.item_condition")
+    public ExtraKeyConditionsSelectable selectable4 = new ExtraKeyConditionsSelectable();
+
+    @Option("general.item_condition")
+    public ExtraKeyConditionsSelectable selectable5 = new ExtraKeyConditionsSelectable();
 }
