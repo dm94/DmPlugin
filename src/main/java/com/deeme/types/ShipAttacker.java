@@ -2,6 +2,7 @@ package com.deeme.types;
 
 import com.deeme.behaviours.defense.DefenseConfig;
 import com.deeme.types.config.ExtraKeyConditions;
+import com.deeme.types.config.ExtraKeyConditionsSelectable;
 import com.deeme.types.suppliers.DefenseLaserSupplier;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.Config.Loot.Sab;
@@ -49,8 +50,9 @@ public class ShipAttacker {
     protected final ConfigSetting<Character> ammoKey;
     protected final Collection<? extends Player> allShips;
     protected final Collection<? extends Portal> allPortals;
-    private DefenseLaserSupplier laserSupplier;
 
+    private DefenseLaserSupplier laserSupplier;
+    private ConditionsManagement conditionsManagement;
     private Ship target;
 
     protected long laserTime;
@@ -86,6 +88,8 @@ public class ShipAttacker {
 
         this.repairHpRange = configAPI.requireConfig("general.safety.repair_hp_range");
         this.ammoKey = configAPI.requireConfig("loot.ammo_key");
+
+        this.conditionsManagement = new ConditionsManagement(api, items);
     }
 
     public ShipAttacker(PluginAPI api, DefenseConfig defense) {
@@ -225,26 +229,31 @@ public class ShipAttacker {
                     && heroapi.getHealth().hpPercent() > extra.healthRange.min
                     && heroapi.getLocalTarget() != null
                     && heroapi.getLocalTarget().getHealth().hpPercent() < extra.healthEnemyRange.max
-                    && heroapi.getLocalTarget().getHealth().hpPercent() > extra.healthEnemyRange.min
-                    && (extra.condition == null || extra.condition.get(api).allows())) {
-                return useSelectableReadyWhenReady(selectableItem);
+                    && heroapi.getLocalTarget().getHealth().hpPercent() > extra.healthEnemyRange.min) {
+
+                if (System.currentTimeMillis() - keyDelay < 500) {
+                    return false;
+                }
+
+                if (conditionsManagement.useSelectableReadyWhenReady(selectableItem)) {
+                    keyDelay = System.currentTimeMillis();
+                    return true;
+                }
             }
         }
         return false;
     }
 
     public boolean useSelectableReadyWhenReady(SelectableItem selectableItem) {
-        if (System.currentTimeMillis() - keyDelay < 500)
-            return false;
-        if (selectableItem == null)
-            return false;
-
-        if (items.useItem(selectableItem, ItemFlag.USABLE, ItemFlag.READY).isSuccessful()) {
+        if (conditionsManagement.useSelectableReadyWhenReady(selectableItem)) {
             keyDelay = System.currentTimeMillis();
             return true;
         }
-
         return false;
+    }
+
+    public boolean useKeyWithConditions(ExtraKeyConditionsSelectable extra) {
+        return conditionsManagement.useKeyWithConditions(extra);
     }
 
     public boolean inGroupAttacked(int id) {

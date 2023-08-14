@@ -1,7 +1,5 @@
 package com.deeme.modules.pvp;
 
-import java.util.ArrayList;
-
 import eu.darkbot.api.config.annotations.Configuration;
 import eu.darkbot.api.config.annotations.Option;
 import eu.darkbot.api.config.annotations.Number;
