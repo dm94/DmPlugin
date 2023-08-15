@@ -31,11 +31,12 @@ public class AstralConfig {
     @Dropdown
     public BestAmmoConfig useBestAmmoLogic = BestAmmoConfig.ONLY_MARKED;
 
-    @Option("astral.choose_portal")
-    public boolean autoChoosePortal = false;
+    @Option("astral.ship_to_choose")
+    @Dropdown
+    public AvailableShips shipType = AvailableShips.ZEPHYR;
 
-    @Option("astral.choose_item")
-    public boolean autoChooseItem = false;
+    @Option("astral.auto_choose")
+    public boolean autoChoose = false;
 
     @Option("astral.display_warning")
     public boolean displayWarning = false;
