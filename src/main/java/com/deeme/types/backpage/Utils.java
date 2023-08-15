@@ -18,6 +18,10 @@ public class Utils {
         throw new IllegalStateException("Utility class");
     }
 
+    public static String getDisordUrl() {
+        return "https://discord.gg/GPRTRRZJPw";
+    }
+
     public static synchronized void discordCheck(FeatureInfo featureInfo, String authID) {
         if (!Backpage.isInDiscord(authID)) {
             showDiscordDialog();
@@ -39,7 +43,7 @@ public class Utils {
         JButton discordBtn = new JButton("Discord");
         JButton closeBtn = new JButton("Close");
         discordBtn.addActionListener(e -> {
-            SystemUtils.openUrl("https://discord.gg/GPRTRRZJPw");
+            SystemUtils.openUrl(getDisordUrl());
             SwingUtilities.getWindowAncestor(discordBtn).setVisible(false);
         });
         closeBtn.addActionListener(e -> SwingUtilities.getWindowAncestor(closeBtn).setVisible(false));
@@ -77,7 +81,7 @@ public class Utils {
         JButton discordBtn = new JButton("Discord");
         JButton closeBtn = new JButton("Close");
         discordBtn.addActionListener(e -> {
-            SystemUtils.openUrl("https://discord.gg/GPRTRRZJPw");
+            SystemUtils.openUrl(getDisordUrl());
             SwingUtilities.getWindowAncestor(discordBtn).setVisible(false);
         });
         closeBtn.addActionListener(e -> SwingUtilities.getWindowAncestor(closeBtn).setVisible(false));
