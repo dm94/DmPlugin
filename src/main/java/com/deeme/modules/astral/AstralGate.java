@@ -186,7 +186,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     @Override
     public String instructions() {
         return "Instructions for those who do not have access to PLUS functions: \n" +
-                "- You need to manually enter the gate and select the ship. \n" +
+                "- You need to manually select the ship. \n" +
                 "- Place the quick bar with everything you want to be used. \n" +
                 "- The bot will wait until you choose an item and portal. He does not jump through the gates!!";
     }
@@ -251,10 +251,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     }
 
     private void stopBot(State stateToSet) {
-        if (astralConfig.displayWarning) {
-            this.showDialog = true;
-        }
-
+        this.showDialog = true;
         this.currentStatus = stateToSet;
         this.bot.setRunning(false);
     }

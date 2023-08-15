@@ -37,7 +37,4 @@ public class AstralConfig {
 
     @Option("astral.auto_choose")
     public boolean autoChoose = false;
-
-    @Option("astral.display_warning")
-    public boolean displayWarning = false;
 }
