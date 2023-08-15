@@ -1,6 +1,7 @@
 package com.deeme.modules.astral;
 
 import com.deeme.behaviours.bestrocket.RocketSupplier;
+import com.deemetool.gui.suppliers.LaserSupplier;
 
 import eu.darkbot.api.config.annotations.Configuration;
 import eu.darkbot.api.config.annotations.Dropdown;
@@ -18,11 +19,12 @@ public class AstralConfig {
     public int minCPUs = 0;
 
     @Option("general.default_ammo")
-    public Character ammoKey;
+    @Dropdown(options = LaserSupplier.class)
+    public String defaultLaser = "ammunition_laser_lcb-10";
 
     @Option("general.default_rocket")
     @Dropdown(options = RocketSupplier.class)
-    public String defaultRocket = "";
+    public String defaultRocket = "ammunition_rocket_plt-2026";
 
     @Option("astral.attack_closest")
     public boolean alwaysTheClosestNPC = false;

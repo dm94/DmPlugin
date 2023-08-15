@@ -77,7 +77,6 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     protected long maximumWaitingTime = 0;
     protected long lastTimeAttack = 0;
     protected long rocketTime;
-    protected long laserTime;
     protected long clickDelay;
     protected long chooseClickDelay = 0;
     protected long nextCPUCheck = 0;
@@ -262,10 +261,6 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     }
 
     private boolean changeAmmo() {
-        if (System.currentTimeMillis() < laserTime) {
-            return false;
-        }
-
         if (astralConfig.useBestAmmoLogic == BestAmmoConfig.ALWAYS || attacker.hasExtraFlag(ExtraNpcFlags.BEST_AMMO)
                 || useSpecialLogic()) {
             changeLaser(true);
@@ -282,15 +277,17 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
             return true;
         }
 
-        if (astralConfig.ammoKey == null) {
-            astralConfig.ammoKey = ammoKey.getValue();
+        Item currentRocket = items.getItems(ItemCategory.ROCKETS).stream().filter(Item::isSelected).findFirst()
+                .orElse(null);
+        if (currentRocket == null || currentRocket.getQuantity() <= 2) {
+            changeRocket(false);
         }
-        if (!ammoKey.getValue().equals(astralConfig.ammoKey)) {
-            ammoKey.setValue(astralConfig.ammoKey);
-        }
-        Item defaultLaser = items.getItem(ammoKey.getValue());
-        if (defaultLaser == null || defaultLaser.getQuantity() > 100) {
-            changeLaser(false);
+
+        Item defaultLaser = items.getItems(ItemCategory.LASERS).stream()
+                .filter(i -> i.getId().equals(astralConfig.defaultLaser)).findFirst()
+                .orElse(null);
+        if (defaultLaser != null && defaultLaser.getQuantity() > 100) {
+            changeLaser(defaultLaser);
         }
 
         return false;
@@ -462,6 +459,24 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         }
     }
 
+    private void changeLaser(SelectableItem laser) {
+        try {
+            if (laser != null && heroapi.getLaser() != null && !heroapi.getLaser().getId().equals(laser.getId())
+                    && items.useItem(laser, ItemFlag.USABLE, ItemFlag.READY).isSuccessful()) {
+                changeAmmoKey(laser);
+            }
+        } catch (Exception e) {
+            // HeroApi getLaser Error
+        }
+    }
+
+    private void changeAmmoKey(SelectableItem laser) {
+        Character key = items.getKeyBind(laser);
+        if (ammoKey.getValue() != key) {
+            ammoKey.setValue(key);
+        }
+    }
+
     public void changeLaser(boolean bestLaser) {
         SelectableItem laser = null;
         if (bestLaser) {
@@ -471,19 +486,10 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         }
 
         if (laser == null) {
-            return;
+            laser = SharedFunctions.getItemById(astralConfig.defaultLaser);
         }
 
-        Laser currentLaser = heroapi.getLaser();
-        if (currentLaser != null && !currentLaser.getId().equals(laser.getId())
-                && useSelectableReadyWhenReady(laser)) {
-            Character key = items.getKeyBind(laser);
-            if (key != null && !ammoKey.getValue().equals(key)) {
-                ammoKey.setValue(key);
-            }
-            laserTime = System.currentTimeMillis() + 500;
-        }
-
+        changeLaser(laser);
     }
 
     public boolean useSelectableReadyWhenReady(SelectableItem selectableItem) {
