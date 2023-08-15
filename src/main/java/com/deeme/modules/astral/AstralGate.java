@@ -3,6 +3,7 @@ package com.deeme.modules.astral;
 import com.deeme.types.SharedFunctions;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
+import com.deemetool.modules.astral.AstralPlus;
 import com.github.manolo8.darkbot.config.NpcExtraFlag;
 import com.github.manolo8.darkbot.core.itf.NpcExtraProvider;
 
@@ -22,7 +23,6 @@ import eu.darkbot.api.game.items.ItemCategory;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.game.items.SelectableItem.Cpu;
-import eu.darkbot.api.game.items.SelectableItem.Laser;
 import eu.darkbot.api.game.other.GameMap;
 import eu.darkbot.api.game.other.Locatable;
 import eu.darkbot.api.game.other.Location;
@@ -76,7 +76,6 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     protected boolean backwards = false;
     protected long maximumWaitingTime = 0;
     protected long lastTimeAttack = 0;
-    protected long rocketTime;
     protected long clickDelay;
     protected long chooseClickDelay = 0;
     protected long nextCPUCheck = 0;
@@ -147,9 +146,11 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         this.runConfigInCircle = configApi.requireConfig("loot.run_config_in_circle");
         this.ammoKey = configApi.requireConfig("loot.ammo_key");
 
+        ConfigSetting<Boolean> devStuff = configApi.requireConfig("bot_settings.other.dev_stuff");
+
         this.rocketSupplier = new RocketSupplier(heroapi, items);
         this.ammoSupplier = new AmmoSupplier(items);
-        this.astralPlus = new AstralPlus(api);
+        this.astralPlus = new AstralPlus(api, devStuff.getValue());
 
         this.currentStatus = State.WAIT;
         this.showDialog = false;
@@ -440,9 +441,6 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     }
 
     public void changeRocket(boolean bestRocket) {
-        if (System.currentTimeMillis() < rocketTime) {
-            return;
-        }
         SelectableItem rocket = null;
         if (bestRocket) {
             rocket = rocketSupplier.get();
@@ -453,9 +451,8 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
             }
         }
 
-        if (rocket != null && heroapi.getRocket() != null && !heroapi.getRocket().getId().equals(rocket.getId())
-                && useSelectableReadyWhenReady(rocket)) {
-            rocketTime = System.currentTimeMillis() + 2000;
+        if (rocket != null && heroapi.getRocket() != null && !heroapi.getRocket().getId().equals(rocket.getId())) {
+            useSelectableReadyWhenReady(rocket);
         }
     }
 
@@ -493,10 +490,12 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     }
 
     public boolean useSelectableReadyWhenReady(SelectableItem selectableItem) {
-        if (System.currentTimeMillis() - clickDelay < 1000)
+        if (System.currentTimeMillis() - clickDelay < 1000) {
             return false;
-        if (selectableItem == null)
+        }
+        if (selectableItem == null) {
             return false;
+        }
 
         if (items.useItem(selectableItem, ItemFlag.USABLE, ItemFlag.READY).isSuccessful()) {
             clickDelay = System.currentTimeMillis();
@@ -546,10 +545,6 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         }
 
         if (heroapi.getHealth().hpPercent() <= 0.20) {
-            return true;
-        }
-
-        if (astralPlus.getActualRift() == 45) {
             return true;
         }
 
