@@ -17,6 +17,7 @@ import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.extensions.Task;
 import eu.darkbot.api.game.entities.Npc;
+import eu.darkbot.api.game.other.GameMap;
 import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.ConfigAPI;
@@ -171,11 +172,10 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
     }
 
     private void changeMap(String mapName) {
-        try {
-            int map = star.getByName(mapName).getId();
-            api.requireAPI(ConfigAPI.class).requireConfig("general.working_map").setValue(map);
-        } catch (Exception e) {
-            System.out.println("Map not found" + e.getMessage());
+        GameMap nextMap = star.findMap(mapName).orElse(null);
+        if (nextMap == null) {
+            return;
         }
+        api.requireAPI(ConfigAPI.class).requireConfig("general.working_map").setValue(nextMap.getId());
     }
 }
