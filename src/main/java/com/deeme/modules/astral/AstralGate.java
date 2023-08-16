@@ -545,6 +545,10 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
             return false;
         }
 
+        if (astralPlus.getRift() >= 15) {
+            return true;
+        }
+
         if (heroapi.getHealth().hpPercent() <= 0.20) {
             return true;
         }
