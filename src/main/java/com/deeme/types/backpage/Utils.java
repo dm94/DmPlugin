@@ -13,7 +13,7 @@ import eu.darkbot.util.Popups;
 import eu.darkbot.util.SystemUtils;
 
 public class Utils {
-    public static String discordUrl = "https://discord.gg/GPRTRRZJPw";
+    public static final String DISCORD_URL = "https://discord.gg/GPRTRRZJPw";
 
     private Utils() {
         throw new IllegalStateException("Utility class");
@@ -40,7 +40,7 @@ public class Utils {
         JButton discordBtn = new JButton("Discord");
         JButton closeBtn = new JButton("Close");
         discordBtn.addActionListener(e -> {
-            SystemUtils.openUrl(discordUrl);
+            SystemUtils.openUrl(DISCORD_URL);
             SwingUtilities.getWindowAncestor(discordBtn).setVisible(false);
         });
         closeBtn.addActionListener(e -> SwingUtilities.getWindowAncestor(closeBtn).setVisible(false));
@@ -78,7 +78,7 @@ public class Utils {
         JButton discordBtn = new JButton("Discord");
         JButton closeBtn = new JButton("Close");
         discordBtn.addActionListener(e -> {
-            SystemUtils.openUrl(discordUrl);
+            SystemUtils.openUrl(DISCORD_URL);
             SwingUtilities.getWindowAncestor(discordBtn).setVisible(false);
         });
         closeBtn.addActionListener(e -> SwingUtilities.getWindowAncestor(closeBtn).setVisible(false));

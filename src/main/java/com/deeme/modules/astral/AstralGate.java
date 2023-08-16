@@ -592,7 +592,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
         JButton discordBtn = new JButton("+Info");
         discordBtn.addActionListener(e -> {
-            SystemUtils.openUrl(Utils.discordUrl);
+            SystemUtils.openUrl(Utils.DISCORD_URL);
         });
 
         Popups.of("Astral Gate",
