@@ -85,7 +85,7 @@ public class Discord implements Task, Configurable<DiscordConfig> {
         String help = "";
         help += "\"author\": {";
         help += "\"name\": \"Dm94Dani's Projects Discord\",";
-        help += "\"url\": \"" + Utils.getDisordUrl() + "\",";
+        help += "\"url\": \"" + Utils.discordUrl + "\",";
         help += "\"icon_url\": \"https://raw.githubusercontent.com/dm94/dm94/master/FENIX-dm94dani.png\"";
         help += "}";
 
