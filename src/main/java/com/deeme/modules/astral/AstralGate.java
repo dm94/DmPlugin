@@ -446,7 +446,8 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
             rocket = rocketSupplier.get();
         } else {
             rocket = SharedFunctions.getItemById(astralConfig.defaultRocket);
-            if (rocket == null || items.getItem(rocket, ItemFlag.USABLE, ItemFlag.READY).isEmpty()) {
+            if (rocket == null
+                    || items.getItem(rocket, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.POSITIVE_QUANTITY).isEmpty()) {
                 rocket = rocketSupplier.getReverse();
             }
         }
