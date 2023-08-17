@@ -24,6 +24,9 @@ public class ProfileChangerConfig {
     @Option("profile_changer.close_bot")
     public boolean closeBot = false;
 
+    @Option("profile_changer.reload_bot")
+    public boolean reloadBot = false;
+
     @Option("profile_changer.only_one_condition")
     public boolean orConditional = false;
 

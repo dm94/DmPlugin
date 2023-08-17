@@ -81,7 +81,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     protected long nextCPUCheck = 0;
     protected long nextWaveCheck = 0;
 
-    protected int waitTime = 10000;
+    protected int waitTime = 20000;
 
     protected boolean repairShield = false;
     protected boolean waveHasBeenAwaited = false;
@@ -231,6 +231,9 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     }
 
     private void preparingWaveLogic() {
+        if (astralPlus.allowedToEquip()) {
+            nextWaveCheck = 0;
+        }
         if (nextWaveCheck > System.currentTimeMillis()) {
             return;
         }
