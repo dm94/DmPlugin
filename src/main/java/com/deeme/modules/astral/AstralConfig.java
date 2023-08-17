@@ -1,12 +1,17 @@
 package com.deeme.modules.astral;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.deeme.behaviours.bestrocket.RocketSupplier;
 import com.deemetool.gui.suppliers.LaserSupplier;
+import com.deemetool.modules.astral.PortalInfo;
 
 import eu.darkbot.api.config.annotations.Configuration;
 import eu.darkbot.api.config.annotations.Dropdown;
 import eu.darkbot.api.config.annotations.Number;
 import eu.darkbot.api.config.annotations.Option;
+import eu.darkbot.api.config.annotations.Table;
 
 @Configuration("astral")
 public class AstralConfig {
@@ -39,4 +44,6 @@ public class AstralConfig {
 
     @Option("astral.auto_choose")
     public boolean autoChoose = false;
+
+    public @Option @Table Map<String, PortalInfo> portalInfos = new HashMap<>();
 }

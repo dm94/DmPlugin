@@ -4,6 +4,7 @@ import com.deeme.types.SharedFunctions;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 import com.deemetool.modules.astral.AstralPlus;
+import com.deemetool.modules.astral.PortalInfo;
 import com.github.manolo8.darkbot.config.NpcExtraFlag;
 import com.github.manolo8.darkbot.core.itf.NpcExtraProvider;
 
@@ -18,6 +19,7 @@ import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.enums.EntityEffect;
+import eu.darkbot.api.game.enums.PortalType;
 import eu.darkbot.api.game.items.Item;
 import eu.darkbot.api.game.items.ItemCategory;
 import eu.darkbot.api.game.items.ItemFlag;
@@ -48,6 +50,8 @@ import eu.darkbot.util.SystemUtils;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
@@ -160,6 +164,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     @Override
     public void setConfig(ConfigSetting<AstralConfig> arg0) {
         this.astralConfig = arg0.getValue();
+        fillPortalInfo();
     }
 
     @Override
@@ -220,6 +225,26 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         }
     }
 
+    private void fillPortalInfo() {
+        if (astralConfig.portalInfos.size() > 0) {
+            return;
+        }
+        Map<String, PortalInfo> defaultPortals = new HashMap<>();
+        defaultPortals.put(PortalType.ROUGE_LITE_HP_RECOVER.name(), new PortalInfo(0));
+        defaultPortals.put(PortalType.ROUGE_LITE_AMMUNITION.name(), new PortalInfo(1));
+        defaultPortals.put(PortalType.ROUGE_LITE_MODULE.name(), new PortalInfo(2));
+        defaultPortals.put(PortalType.ROUGE_LITE_GENERATOR.name(), new PortalInfo(3));
+        defaultPortals.put(PortalType.ROUGE_LITE_WEAPON.name(), new PortalInfo(4));
+        defaultPortals.put(PortalType.ROUGE_LITE_RESOURCE.name(), new PortalInfo(5));
+        defaultPortals.put(PortalType.ROUGE_LITE_AMMUNITION_BRUTAL.name(), new PortalInfo(6));
+        defaultPortals.put(PortalType.ROUGE_LITE_MODULE_BRUTAL.name(), new PortalInfo(7));
+        defaultPortals.put(PortalType.ROUGE_LITE_GENERATOR_BRUTAL.name(), new PortalInfo(8));
+        defaultPortals.put(PortalType.ROUGE_LITE_WEAPON_BRUTAL.name(), new PortalInfo(9));
+        defaultPortals.put(PortalType.ROUGE_LITE_RESOURCE_BRUTAL.name(), new PortalInfo(10));
+
+        astralConfig.portalInfos.putAll(defaultPortals);
+    }
+
     private void waveLogic() {
         nextWaveCheck = System.currentTimeMillis() + waitTime;
         waveHasBeenAwaited = false;
@@ -244,7 +269,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
         goToTheMiddle();
 
-        if (astralConfig.autoChoose && astralPlus.autoChoose()) {
+        if (astralConfig.autoChoose && astralPlus.autoChoose(astralConfig.portalInfos)) {
             this.currentStatus = State.CHOOSING_BEST_OPTION;
         } else if (!portals.isEmpty() || astralPlus.hasOptionsToChoose()) {
             stopBot(State.WAITING_HUMAN);
