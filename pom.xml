@@ -35,7 +35,7 @@
             <artifactId>DmPluginPlus</artifactId>
             <version>2.0.0</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/private/private.jar</systemPath>
+            <systemPath>${project.basedir}/private.jar</systemPath>
         </dependency>
     </dependencies>
     <build>

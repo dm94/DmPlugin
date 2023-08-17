@@ -107,8 +107,7 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
     public void onLogMessage(GameLogAPI.LogMessageEvent message) {
         if (followerConfig.enable && extensionsAPI.getFeatureInfo(this.getClass()).isEnabled()) {
             String msg = message.getMessage();
-            if ((!msg.isEmpty() && msg.contains("Hitac")
-                    && ((followerConfig.goToPVP && msg.contains("PvP")) || !msg.contains("PvP")))) {
+            if (!msg.isEmpty() && msg.contains("Hitac") && titleFilter(msg) && pvpFilter(msg)) {
                 Matcher matcher = pattern.matcher(msg);
                 if (matcher.find()) {
                     lastHitacMap = matcher.group(0);
@@ -119,6 +118,15 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
 
             }
         }
+    }
+
+    private boolean pvpFilter(String message) {
+        return (followerConfig.goToPVP && message.contains("PvP")) || !message.contains("PvP");
+    }
+
+    private boolean titleFilter(String message) {
+        return followerConfig.goForTheTitle || (!message.contains("Hitac-Underling")
+                && !message.contains("Hitac-Underboss"));
     }
 
     private void goToNextMap() {

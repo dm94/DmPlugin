@@ -14,6 +14,9 @@ public class HitacFollowerConfig {
     @Option("hitac_follower.go_pvp")
     public boolean goToPVP = true;
 
+    @Option("hitac_follower.go_for_the_title")
+    public boolean goForTheTitle = false;
+
     @Option("hitac_follower.return_waiting_map")
     public boolean returnToWaitingMap = true;
 
