@@ -165,10 +165,11 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
             return false;
         }
         return npcs.stream()
-                .filter(s -> (s.getInfo() != null && s.getEntityInfo() != null
+                .anyMatch(s -> (s.getEntityInfo() != null
                         && s.getEntityInfo().getUsername() != null
-                        && s.getEntityInfo().getUsername().contains("Hitac")))
-                .findAny().orElse(null) != null;
+                        && s.getEntityInfo().getUsername().contains("Hitac")
+                        && !s.getEntityInfo().getUsername().contains("Hitac-Underling")
+                        && !s.getEntityInfo().getUsername().contains("Hitac-Underboss")));
     }
 
     private void changeMap(String mapName) {
