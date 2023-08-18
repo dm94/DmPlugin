@@ -2,6 +2,8 @@ package com.deeme.tasks;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -42,9 +44,10 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
 
     private HitacFollowerConfig followerConfig;
 
-    private String lastHitacMap = "";
     private long nextCheck = 0;
     private boolean mapHasHitac = false;
+
+    private final Deque<String> hitacAliensMaps = new LinkedList<>();
 
     public HitacFollower(PluginAPI api) {
         this(api, api.requireAPI(AuthAPI.class),
@@ -57,7 +60,7 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
 
     @Inject
     public HitacFollower(PluginAPI api, AuthAPI auth, BotAPI bot, HeroAPI hero, StarSystemAPI star,
-            GameLogAPI log, EntitiesAPI entities) {
+                         GameLogAPI log, EntitiesAPI entities) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
@@ -89,15 +92,17 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
                 if (mapHasHitac) {
                     mapHasHitac = false;
                     goToNextMap();
-                } else if (!lastHitacMap.isEmpty()) {
-                    changeMap(lastHitacMap);
-                    if (hero.getMap().getName().equals(lastHitacMap)) {
-                        lastHitacMap = "";
-                    }
+                } else if (!hitacAliensMaps.isEmpty()) {
+                    changeMap(hitacAliensMaps.getFirst());
                 } else if (followerConfig.returnToWaitingMap) {
                     api.requireAPI(ConfigAPI.class).requireConfig("general.working_map")
                             .setValue(followerConfig.waitMap);
                 }
+            }
+
+            //remove if current map is the map next map visit
+            if(hitacAliensMaps.getFirst().equalsIgnoreCase(star.getCurrentMap().getShortName())){
+                hitacAliensMaps.removeFirst();
             }
         }
     }
@@ -106,23 +111,60 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
     public void onLogMessage(GameLogAPI.LogMessageEvent message) {
         if (followerConfig.enable && extensionsAPI.getFeatureInfo(this.getClass()).isEnabled()) {
             String msg = message.getMessage();
-            if ((!msg.isEmpty() && msg.contains("Hitac")
-                    && ((followerConfig.goToPVP && msg.contains("PvP")) || !msg.contains("PvP")))) {
-                Matcher matcher = pattern.matcher(msg);
-                if (matcher.find()) {
-                    lastHitacMap = matcher.group(0);
-                    if (!hasHitac()) {
-                        changeMap(matcher.group(0));
+            if (msg.contains("Hitac")) {
+                if (followerConfig.goToPVP || !msg.contains("PvP")) {
+                    Matcher matcher = pattern.matcher(msg);
+                    if (matcher.find()) {
+                        addSpawnHitac(matcher.group(0));
                     }
                 }
-
             }
         }
     }
 
+    private void addSpawnHitac(String map) {
+        //add map if not in list
+        if (hitacAliensMaps.stream().noneMatch(alien -> alien.equalsIgnoreCase(this.star.getCurrentMap().getName()))) {
+            hitacAliensMaps.add(map);
+        }
+        //add next map it will jump to
+        switch (map) {
+            case "1-3":
+                hitacAliensMaps.add("1-4");
+                break;
+            case "1-4":
+                hitacAliensMaps.add("3-4");
+                break;
+            case "3-4":
+                hitacAliensMaps.add("3-3");
+                break;
+            case "3-3":
+                hitacAliensMaps.add("2-4");
+                break;
+            case "2-4":
+                hitacAliensMaps.add("2-3");
+                break;
+            case "2-3":
+                hitacAliensMaps.add("1-3");
+                break;
+            case "4-1":
+                hitacAliensMaps.add("4-3");
+                break;
+            case "4-2":
+                hitacAliensMaps.add("4-1");
+                break;
+            case "4-3":
+                hitacAliensMaps.add("4-2");
+                break;
+            default:
+                break;
+        }
+    }
+
+
     private void goToNextMap() {
         String currentMap = hero.getMap().getName();
-        String nextMap = null;
+        String nextMap;
         switch (currentMap) {
             case "1-3":
                 nextMap = "1-4";
