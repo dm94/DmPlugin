@@ -2,6 +2,8 @@ package com.deeme.tasks;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,7 +45,8 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
 
     private HitacFollowerConfig followerConfig;
 
-    private String lastHitacMap = "";
+    private final Deque<String> hitacAliensMaps = new LinkedList<>();
+
     private long nextCheck = 0;
     private boolean mapHasHitac = false;
 
@@ -58,7 +61,7 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
 
     @Inject
     public HitacFollower(PluginAPI api, AuthAPI auth, BotAPI bot, HeroAPI hero, StarSystemAPI star,
-            GameLogAPI log, EntitiesAPI entities) {
+                         GameLogAPI log, EntitiesAPI entities) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
@@ -90,15 +93,17 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
                 if (mapHasHitac) {
                     mapHasHitac = false;
                     goToNextMap();
-                } else if (!lastHitacMap.isEmpty()) {
-                    changeMap(lastHitacMap);
-                    if (hero.getMap().getName().equals(lastHitacMap)) {
-                        lastHitacMap = "";
-                    }
+                } else if (!hitacAliensMaps.isEmpty()) {
+                    changeMap(hitacAliensMaps.getFirst());
                 } else if (followerConfig.returnToWaitingMap) {
                     api.requireAPI(ConfigAPI.class).requireConfig("general.working_map")
                             .setValue(followerConfig.waitMap);
                 }
+            }
+
+            //remove if current map is the map next map visit
+            if (hitacAliensMaps.getFirst().equalsIgnoreCase(star.getCurrentMap().getShortName())) {
+                hitacAliensMaps.removeFirst();
             }
         }
     }
@@ -107,32 +112,48 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
     public void onLogMessage(GameLogAPI.LogMessageEvent message) {
         if (followerConfig.enable && extensionsAPI.getFeatureInfo(this.getClass()).isEnabled()) {
             String msg = message.getMessage();
-            if (!msg.isEmpty() && msg.contains("Hitac") && titleFilter(msg) && pvpFilter(msg)) {
+
+            if (msg.contains("Hitac") && titleFilter(msg) && pvpFilter(msg)) {
                 Matcher matcher = pattern.matcher(msg);
                 if (matcher.find()) {
-                    lastHitacMap = matcher.group(0);
-                    if (!hasHitac()) {
-                        changeMap(matcher.group(0));
-                    }
+                    addSpawnHitac(matcher.group(0));
                 }
-
             }
         }
     }
 
     private boolean pvpFilter(String message) {
-        return (followerConfig.goToPVP && message.contains("PvP")) || !message.contains("PvP");
+        return followerConfig.goToPVP || !message.contains("PvP");
     }
 
     private boolean titleFilter(String message) {
-        return followerConfig.goForTheTitle || (!message.contains("Hitac-Underling")
-                && !message.contains("Hitac-Underboss"));
+        return followerConfig.goForTheTitle || !(message.contains("Hitac-Underling")
+                && message.contains("Hitac-Underboss"));
+    }
+
+    private void addSpawnHitac(String map) {
+        //add map if not in list
+        if (hitacAliensMaps.stream().noneMatch(alien -> alien.equalsIgnoreCase(this.star.getCurrentMap().getName()))) {
+            hitacAliensMaps.add(map);
+        }
+        //add next map it will jump to
+
+        String nextMap;
+        if ((nextMap = getNextMap(map)) != null) {
+            hitacAliensMaps.add(nextMap);
+        }
     }
 
     private void goToNextMap() {
-        String currentMap = hero.getMap().getName();
-        String nextMap = null;
-        switch (currentMap) {
+        String nextMap;
+        if ((nextMap = getNextMap(hero.getMap().getName())) != null) {
+            changeMap(nextMap);
+        }
+    }
+
+    private String getNextMap(String givenMap) {
+        String nextMap;
+        switch (givenMap) {
             case "1-3":
                 nextMap = "1-4";
                 break;
@@ -163,9 +184,7 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
             default:
                 nextMap = null;
         }
-        if (nextMap != null) {
-            changeMap(nextMap);
-        }
+        return nextMap;
     }
 
     private boolean hasHitac() {
@@ -181,6 +200,24 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
     }
 
     private void changeMap(String mapName) {
+        if (mapName.contains("-3") || mapName.contains("-4")) {
+            if (!followerConfig.lowers || (!followerConfig.lowerEnemy && !mapName.contains(this.hero.getEntityInfo().getFaction().ordinal() + "-"))) {
+                if (hitacAliensMaps.getFirst().equalsIgnoreCase(mapName)) {
+                    hitacAliensMaps.removeFirst();
+                }
+                return;
+            }
+        }
+
+        if (mapName.contains("-5") || mapName.contains("-6") || mapName.contains("-7") || mapName.contains("-8")) {
+            if (!followerConfig.uppers || (!followerConfig.upperEnemy && !mapName.contains(this.hero.getEntityInfo().getFaction().ordinal() + "-"))) {
+                if (hitacAliensMaps.getFirst().equalsIgnoreCase(mapName)) {
+                    hitacAliensMaps.removeFirst();
+                }
+                return;
+            }
+        }
+
         GameMap nextMap = star.findMap(mapName).orElse(null);
         if (nextMap == null) {
             return;
