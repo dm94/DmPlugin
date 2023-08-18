@@ -128,8 +128,8 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
     }
 
     private boolean titleFilter(String message) {
-        return followerConfig.goForTheTitle || !(message.contains("Hitac-Underling")
-                && message.contains("Hitac-Underboss"));
+        return followerConfig.goForTheTitle
+                || !(message.contains("Hitac-Underling") || message.contains("Hitac-Underboss"));
     }
 
     private void addSpawnHitac(String map) {
