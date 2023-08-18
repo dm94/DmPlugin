@@ -1,11 +1,17 @@
 package com.deeme.modules.astral;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.deeme.behaviours.bestrocket.RocketSupplier;
+import com.deemetool.gui.suppliers.LaserSupplier;
+import com.deemetool.modules.astral.PortalInfo;
 
 import eu.darkbot.api.config.annotations.Configuration;
 import eu.darkbot.api.config.annotations.Dropdown;
 import eu.darkbot.api.config.annotations.Number;
 import eu.darkbot.api.config.annotations.Option;
+import eu.darkbot.api.config.annotations.Table;
 
 @Configuration("astral")
 public class AstralConfig {
@@ -18,11 +24,12 @@ public class AstralConfig {
     public int minCPUs = 0;
 
     @Option("general.default_ammo")
-    public Character ammoKey;
+    @Dropdown(options = LaserSupplier.class)
+    public String defaultLaser = "ammunition_laser_lcb-10";
 
     @Option("general.default_rocket")
     @Dropdown(options = RocketSupplier.class)
-    public String defaultRocket = "";
+    public String defaultRocket = "ammunition_rocket_plt-2026";
 
     @Option("astral.attack_closest")
     public boolean alwaysTheClosestNPC = false;
@@ -31,12 +38,12 @@ public class AstralConfig {
     @Dropdown
     public BestAmmoConfig useBestAmmoLogic = BestAmmoConfig.ONLY_MARKED;
 
-    @Option("astral.choose_portal")
-    public boolean autoChoosePortal = false;
+    @Option("astral.ship_to_choose")
+    @Dropdown
+    public AvailableShips shipType = AvailableShips.ZEPHYR;
 
-    @Option("astral.choose_item")
-    public boolean autoChooseItem = false;
+    @Option("astral.auto_choose")
+    public boolean autoChoose = false;
 
-    @Option("astral.display_warning")
-    public boolean displayWarning = false;
+    public @Option @Table Map<String, PortalInfo> portalInfos = new HashMap<>();
 }
