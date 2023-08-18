@@ -137,43 +137,23 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
             hitacAliensMaps.add(map);
         }
         //add next map it will jump to
-        switch (map) {
-            case "1-3":
-                hitacAliensMaps.add("1-4");
-                break;
-            case "1-4":
-                hitacAliensMaps.add("3-4");
-                break;
-            case "3-4":
-                hitacAliensMaps.add("3-3");
-                break;
-            case "3-3":
-                hitacAliensMaps.add("2-4");
-                break;
-            case "2-4":
-                hitacAliensMaps.add("2-3");
-                break;
-            case "2-3":
-                hitacAliensMaps.add("1-3");
-                break;
-            case "4-1":
-                hitacAliensMaps.add("4-3");
-                break;
-            case "4-2":
-                hitacAliensMaps.add("4-1");
-                break;
-            case "4-3":
-                hitacAliensMaps.add("4-2");
-                break;
-            default:
-                break;
+
+        String nextMap;
+        if ((nextMap = getNextMap(map)) != null) {
+            hitacAliensMaps.add(nextMap);
         }
     }
 
     private void goToNextMap() {
-        String currentMap = hero.getMap().getName();
         String nextMap;
-        switch (currentMap) {
+        if ((nextMap = getNextMap(hero.getMap().getName())) != null) {
+            changeMap(nextMap);
+        }
+    }
+
+    private String getNextMap(String givenMap) {
+        String nextMap;
+        switch (givenMap) {
             case "1-3":
                 nextMap = "1-4";
                 break;
@@ -204,9 +184,7 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
             default:
                 nextMap = null;
         }
-        if (nextMap != null) {
-            changeMap(nextMap);
-        }
+        return nextMap;
     }
 
     private boolean hasHitac() {
