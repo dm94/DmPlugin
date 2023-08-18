@@ -160,18 +160,12 @@ public class AutoChangeMap implements Task, Configurable<ChangeMapConfig> {
     }
 
     private void updateWorkingMap(String mapName) {
-        try {
-            GameMap map = star.getByName(mapName);
-            if (map == null) {
-                return;
-            }
-
-            int mapId = map.getId();
-
-            api.requireAPI(ConfigAPI.class).requireConfig("general.working_map").setValue(mapId);
-            mapsAlreadyUsed.add(mapName);
-        } catch (Exception e) {
-            /* Nothing here */
+        GameMap map = star.findMap(mapName).orElse(null);
+        if (map == null) {
+            return;
         }
+
+        api.requireAPI(ConfigAPI.class).requireConfig("general.working_map").setValue(map.getId());
+        mapsAlreadyUsed.add(mapName);
     }
 }

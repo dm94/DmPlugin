@@ -110,16 +110,8 @@ public class PalladiumHangar extends LootCollectorModule implements Configurable
         this.bases = entities.getStations();
 
         StarSystemAPI starSystem = api.getAPI(StarSystemAPI.class);
-        try {
-            this.sellMap = starSystem.getByName("5-2");
-        } catch (Exception e) {
-            this.sellMap = main.starManager.byName("5-2");
-        }
-        try {
-            this.activeMap = starSystem.getByName("5-3");
-        } catch (Exception e) {
-            this.activeMap = main.starManager.byName("5-3");
-        }
+        this.sellMap = starSystem.findMap("5-2").orElse(starSystem.findMap(92).orElse(null));
+        this.activeMap = starSystem.findMap("5-3").orElse(starSystem.findMap(93).orElse(null));
 
         this.currentStatus = State.WAIT;
         this.lastStatus = State.WAIT;

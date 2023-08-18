@@ -133,6 +133,9 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
             }
         } else {
             resetCounters();
+            if (config.reloadBot) {
+                Main.API.handleRefresh();
+            }
             main.setConfig(config.BOT_PROFILE);
         }
     }
