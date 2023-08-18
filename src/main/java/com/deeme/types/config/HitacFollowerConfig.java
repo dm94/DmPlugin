@@ -14,6 +14,15 @@ public class HitacFollowerConfig {
     @Option("hitac_follower.go_pvp")
     public boolean goToPVP = true;
 
+    @Option("hitac_follower.lowers")
+    public boolean lowers = true;
+
+    @Option("hitac_follower.uppers")
+    public boolean uppers = false;
+
+    @Option("hitac_follower.enemy")
+    public boolean enemy = true;
+
     @Option("hitac_follower.return_waiting_map")
     public boolean returnToWaitingMap = true;
 

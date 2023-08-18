@@ -101,7 +101,7 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
             }
 
             //remove if current map is the map next map visit
-            if(hitacAliensMaps.getFirst().equalsIgnoreCase(star.getCurrentMap().getShortName())){
+            if (hitacAliensMaps.getFirst().equalsIgnoreCase(star.getCurrentMap().getShortName())) {
                 hitacAliensMaps.removeFirst();
             }
         }
@@ -123,6 +123,26 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
     }
 
     private void addSpawnHitac(String map) {
+        if (!followerConfig.lowers) {
+            //if visit lower maps not selected dont go
+            if (map.contains("-3") || map.contains("-4")) {
+                return;
+            }
+        }
+        if (!followerConfig.uppers) {
+            //if visit upper maps not selected dont go
+            if (map.contains("-5") || map.contains("-6") || map.contains("-7")) {
+                return;
+            }
+        }
+        if(!followerConfig.enemy){
+            //if visit enemy maps not selected dont go
+            if(!map.contains(this.hero.getEntityInfo().getFaction().ordinal()+"-")){
+                return;
+            }
+        }
+
+
         //add map if not in list
         if (hitacAliensMaps.stream().noneMatch(alien -> alien.equalsIgnoreCase(this.star.getCurrentMap().getName()))) {
             hitacAliensMaps.add(map);
