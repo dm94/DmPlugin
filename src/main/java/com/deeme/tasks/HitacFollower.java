@@ -102,7 +102,8 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
             }
 
             // remove if current map is the map next map visit
-            if (hitacAliensMaps.getFirst().equalsIgnoreCase(star.getCurrentMap().getShortName())) {
+            if (!hitacAliensMaps.isEmpty()
+                    && hitacAliensMaps.getFirst().equalsIgnoreCase(star.getCurrentMap().getShortName())) {
                 hitacAliensMaps.removeFirst();
             }
         }
@@ -211,7 +212,7 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
     }
 
     private void changeMap(String mapName) {
-        if (hitacAliensMaps.getFirst().equalsIgnoreCase(mapName)
+        if (!hitacAliensMaps.isEmpty() && hitacAliensMaps.getFirst().equalsIgnoreCase(mapName)
                 && (lowerMapFilter(mapName) || upperMapFilter(mapName))) {
             hitacAliensMaps.removeFirst();
             return;
