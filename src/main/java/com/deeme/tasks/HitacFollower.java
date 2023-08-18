@@ -61,7 +61,7 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
 
     @Inject
     public HitacFollower(PluginAPI api, AuthAPI auth, BotAPI bot, HeroAPI hero, StarSystemAPI star,
-                         GameLogAPI log, EntitiesAPI entities) {
+            GameLogAPI log, EntitiesAPI entities) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
@@ -101,7 +101,7 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
                 }
             }
 
-            //remove if current map is the map next map visit
+            // remove if current map is the map next map visit
             if (hitacAliensMaps.getFirst().equalsIgnoreCase(star.getCurrentMap().getShortName())) {
                 hitacAliensMaps.removeFirst();
             }
@@ -132,59 +132,48 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
     }
 
     private void addSpawnHitac(String map) {
-        //add map if not in list
+        // add map if not in list
         if (hitacAliensMaps.stream().noneMatch(alien -> alien.equalsIgnoreCase(this.star.getCurrentMap().getName()))) {
             hitacAliensMaps.add(map);
         }
-        //add next map it will jump to
 
-        String nextMap;
-        if ((nextMap = getNextMap(map)) != null) {
+        // add next map it will jump to
+        String nextMap = getNextMap(map);
+        if (nextMap != null) {
             hitacAliensMaps.add(nextMap);
         }
     }
 
     private void goToNextMap() {
-        String nextMap;
-        if ((nextMap = getNextMap(hero.getMap().getName())) != null) {
+        String nextMap = getNextMap(hero.getMap().getName());
+        if (nextMap != null) {
             changeMap(nextMap);
         }
     }
 
     private String getNextMap(String givenMap) {
-        String nextMap;
         switch (givenMap) {
             case "1-3":
-                nextMap = "1-4";
-                break;
+                return "1-4";
             case "1-4":
-                nextMap = "3-4";
-                break;
+                return "3-4";
             case "3-4":
-                nextMap = "3-3";
-                break;
+                return "3-3";
             case "3-3":
-                nextMap = "2-4";
-                break;
+                return "2-4";
             case "2-4":
-                nextMap = "2-3";
-                break;
+                return "2-3";
             case "2-3":
-                nextMap = "1-3";
-                break;
+                return "1-3";
             case "4-1":
-                nextMap = "4-3";
-                break;
+                return "4-3";
             case "4-2":
-                nextMap = "4-1";
-                break;
+                return "4-1";
             case "4-3":
-                nextMap = "4-2";
-                break;
+                return "4-2";
             default:
-                nextMap = null;
+                return null;
         }
-        return nextMap;
     }
 
     private boolean hasHitac() {
@@ -199,29 +188,40 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
                         && !s.getEntityInfo().getUsername().contains("Hitac-Underboss")));
     }
 
-    private void changeMap(String mapName) {
-        if (mapName.contains("-3") || mapName.contains("-4")) {
-            if (!followerConfig.lowers || (!followerConfig.lowerEnemy && !mapName.contains(this.hero.getEntityInfo().getFaction().ordinal() + "-"))) {
-                if (hitacAliensMaps.getFirst().equalsIgnoreCase(mapName)) {
-                    hitacAliensMaps.removeFirst();
-                }
-                return;
-            }
-        }
+    private boolean isLowerMap(String mapName) {
+        return mapName.contains("-3") || mapName.contains("-4");
+    }
 
-        if (mapName.contains("-5") || mapName.contains("-6") || mapName.contains("-7") || mapName.contains("-8")) {
-            if (!followerConfig.uppers || (!followerConfig.upperEnemy && !mapName.contains(this.hero.getEntityInfo().getFaction().ordinal() + "-"))) {
-                if (hitacAliensMaps.getFirst().equalsIgnoreCase(mapName)) {
-                    hitacAliensMaps.removeFirst();
-                }
-                return;
-            }
+    private boolean isUpperMap(String mapName) {
+        return mapName.contains("-5") || mapName.contains("-6") || mapName.contains("-7") || mapName.contains("-8");
+    }
+
+    private boolean isSameFaction(String mapName) {
+        return mapName.contains(this.hero.getEntityInfo().getFaction().ordinal() + "-");
+    }
+
+    private boolean lowerMapFilter(String mapName) {
+        return isLowerMap(mapName)
+                && (!followerConfig.lowers || (!followerConfig.lowerEnemy && !isSameFaction(mapName)));
+    }
+
+    private boolean upperMapFilter(String mapName) {
+        return isUpperMap(mapName)
+                && (!followerConfig.uppers || (!followerConfig.upperEnemy && !isSameFaction(mapName)));
+    }
+
+    private void changeMap(String mapName) {
+        if (hitacAliensMaps.getFirst().equalsIgnoreCase(mapName)
+                && (lowerMapFilter(mapName) || upperMapFilter(mapName))) {
+            hitacAliensMaps.removeFirst();
+            return;
         }
 
         GameMap nextMap = star.findMap(mapName).orElse(null);
         if (nextMap == null) {
             return;
         }
+
         api.requireAPI(ConfigAPI.class).requireConfig("general.working_map").setValue(nextMap.getId());
     }
 }
