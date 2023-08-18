@@ -17,6 +17,7 @@ import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.extensions.Task;
 import eu.darkbot.api.game.entities.Npc;
+import eu.darkbot.api.game.other.GameMap;
 import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.ConfigAPI;
@@ -106,8 +107,7 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
     public void onLogMessage(GameLogAPI.LogMessageEvent message) {
         if (followerConfig.enable && extensionsAPI.getFeatureInfo(this.getClass()).isEnabled()) {
             String msg = message.getMessage();
-            if ((!msg.isEmpty() && msg.contains("Hitac")
-                    && ((followerConfig.goToPVP && msg.contains("PvP")) || !msg.contains("PvP")))) {
+            if (!msg.isEmpty() && msg.contains("Hitac") && titleFilter(msg) && pvpFilter(msg)) {
                 Matcher matcher = pattern.matcher(msg);
                 if (matcher.find()) {
                     lastHitacMap = matcher.group(0);
@@ -118,6 +118,15 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
 
             }
         }
+    }
+
+    private boolean pvpFilter(String message) {
+        return (followerConfig.goToPVP && message.contains("PvP")) || !message.contains("PvP");
+    }
+
+    private boolean titleFilter(String message) {
+        return followerConfig.goForTheTitle || (!message.contains("Hitac-Underling")
+                && !message.contains("Hitac-Underboss"));
     }
 
     private void goToNextMap() {
@@ -164,18 +173,18 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
             return false;
         }
         return npcs.stream()
-                .filter(s -> (s.getInfo() != null && s.getEntityInfo() != null
+                .anyMatch(s -> (s.getEntityInfo() != null
                         && s.getEntityInfo().getUsername() != null
-                        && s.getEntityInfo().getUsername().contains("Hitac")))
-                .findAny().orElse(null) != null;
+                        && s.getEntityInfo().getUsername().contains("Hitac")
+                        && !s.getEntityInfo().getUsername().contains("Hitac-Underling")
+                        && !s.getEntityInfo().getUsername().contains("Hitac-Underboss")));
     }
 
     private void changeMap(String mapName) {
-        try {
-            int map = star.getByName(mapName).getId();
-            api.requireAPI(ConfigAPI.class).requireConfig("general.working_map").setValue(map);
-        } catch (Exception e) {
-            System.out.println("Map not found" + e.getMessage());
+        GameMap nextMap = star.findMap(mapName).orElse(null);
+        if (nextMap == null) {
+            return;
         }
+        api.requireAPI(ConfigAPI.class).requireConfig("general.working_map").setValue(nextMap.getId());
     }
 }
