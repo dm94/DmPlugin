@@ -37,6 +37,14 @@ public class Utils {
     }
 
     public static void showDiscordDialog() {
+        showDiscordDialog("To use this option you need to be on my discord");
+    }
+
+    public static void showDiscordDonorDialog() {
+        showDiscordDialog("Special features: Enter my discord to know more");
+    }
+
+    public static void showDiscordDialog(String text) {
         JButton discordBtn = new JButton("Discord");
         JButton closeBtn = new JButton("Close");
         discordBtn.addActionListener(e -> {
@@ -46,7 +54,7 @@ public class Utils {
         closeBtn.addActionListener(e -> SwingUtilities.getWindowAncestor(closeBtn).setVisible(false));
 
         Popups.of("DmPlugin",
-                new JOptionPane("To use this option you need to be on my discord", JOptionPane.INFORMATION_MESSAGE,
+                new JOptionPane(text, JOptionPane.INFORMATION_MESSAGE,
                         JOptionPane.DEFAULT_OPTION, null, new Object[] { discordBtn, closeBtn }))
                 .showAsync();
     }
@@ -67,25 +75,10 @@ public class Utils {
 
             Popups.of("DmPlugin donate",
                     new JOptionPane(
-                            "You can help improve the plugin by donating. \n You get nothing extra if you donate.",
+                            "You can help improve the plugin by donating.",
                             JOptionPane.INFORMATION_MESSAGE,
                             JOptionPane.DEFAULT_OPTION, null, new Object[] { donateBtn, closeBtn }))
                     .showAsync();
         }
-    }
-
-    public static void showDiscordDonorDialog() {
-        JButton discordBtn = new JButton("Discord");
-        JButton closeBtn = new JButton("Close");
-        discordBtn.addActionListener(e -> {
-            SystemUtils.openUrl(DISCORD_URL);
-            SwingUtilities.getWindowAncestor(discordBtn).setVisible(false);
-        });
-        closeBtn.addActionListener(e -> SwingUtilities.getWindowAncestor(closeBtn).setVisible(false));
-
-        Popups.of("DmPlugin",
-                new JOptionPane("Special features: Enter my discord to know more", JOptionPane.INFORMATION_MESSAGE,
-                        JOptionPane.DEFAULT_OPTION, null, new Object[] { discordBtn, closeBtn }))
-                .showAsync();
     }
 }
