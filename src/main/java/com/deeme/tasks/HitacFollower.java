@@ -77,6 +77,7 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
         this.star = star;
         this.log = log;
 
+        this.nextCheck = 0;
         this.npcs = entities.getNpcs();
         this.workingMap = api.requireAPI(ConfigAPI.class).requireConfig("general.working_map");
     }
@@ -98,16 +99,15 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
                     mapHasHitac = false;
                     goToNextMap();
                 } else if (!hitacAliensMaps.isEmpty()) {
-                    changeMap(hitacAliensMaps.getFirst());
+                    changeMap(hitacAliensMaps.peekFirst());
                 } else if (followerConfig.returnToWaitingMap) {
                     api.requireAPI(ConfigAPI.class).requireConfig("general.working_map")
                             .setValue(followerConfig.waitMap);
                 }
             }
 
-            // remove if current map is the map next map visit
             if (!hitacAliensMaps.isEmpty()
-                    && hitacAliensMaps.getFirst().equalsIgnoreCase(star.getCurrentMap().getShortName())) {
+                    && hitacAliensMaps.peekFirst().equalsIgnoreCase(star.getCurrentMap().getShortName())) {
                 hitacAliensMaps.removeFirst();
             }
         }
@@ -118,7 +118,7 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
         if (followerConfig.enable && extensionsAPI.getFeatureInfo(this.getClass()).isEnabled()) {
             String msg = message.getMessage();
 
-            if (msg.contains("Hitac") && titleFilter(msg) && pvpFilter(msg)) {
+            if (msg.contains("Hitac") && ableToGoTitleFilter(msg)) {
                 Matcher matcher = pattern.matcher(msg);
                 if (matcher.find()) {
                     addSpawnHitac(matcher.group(0));
@@ -132,16 +132,20 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
         return map == null || map == star.getCurrentMap();
     }
 
-    private boolean pvpFilter(String message) {
-        return followerConfig.goToPVP || !message.contains("PvP");
+    private boolean ableToGoPvpFilter(String message) {
+        return followerConfig.goToPVP || !isPvpMap(message);
     }
 
-    private boolean titleFilter(String message) {
+    private boolean ableToGoTitleFilter(String message) {
         return followerConfig.goForTheTitle
                 || !(message.contains("Hitac-Underling") || message.contains("Hitac-Underboss"));
     }
 
     private void addSpawnHitac(String map) {
+        if (!abbleToGo(map)) {
+            return;
+        }
+
         // add map if not in list
         if (hitacAliensMaps.stream().noneMatch(m -> m.equalsIgnoreCase(this.star.getCurrentMap().getName()))) {
             hitacAliensMaps.add(map);
@@ -152,6 +156,11 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
         if (nextMap != null) {
             hitacAliensMaps.add(nextMap);
         }
+    }
+
+    private boolean abbleToGo(String map) {
+        return ableToGoPvpFilter(map) && ableToGoTitleFilter(map) && ableToGoLowerMapFilter(map)
+                && ableToGoUpperMapFilter(map);
     }
 
     private void goToNextMap() {
@@ -198,6 +207,10 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
                         && !s.getEntityInfo().getUsername().contains("Hitac-Underboss")));
     }
 
+    private boolean isPvpMap(String mapName) {
+        return mapName.contains("4-") || mapName.contains("PvP");
+    }
+
     private boolean isLowerMap(String mapName) {
         return mapName.contains("-3") || mapName.contains("-4");
     }
@@ -210,20 +223,22 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
         return mapName.contains(this.hero.getEntityInfo().getFaction().ordinal() + "-");
     }
 
-    private boolean lowerMapFilter(String mapName) {
-        return isLowerMap(mapName)
-                && (!followerConfig.lowers || (!followerConfig.lowerEnemy && !isSameFaction(mapName)));
+    private boolean ableToGoLowerMapFilter(String mapName) {
+        return !isLowerMap(mapName)
+                || (followerConfig.lowers && (followerConfig.lowerEnemy || !isSameFaction(mapName)));
     }
 
-    private boolean upperMapFilter(String mapName) {
-        return isUpperMap(mapName)
-                && (!followerConfig.uppers || (!followerConfig.upperEnemy && !isSameFaction(mapName)));
+    private boolean ableToGoUpperMapFilter(String mapName) {
+        return !isUpperMap(mapName)
+                || (followerConfig.uppers && (followerConfig.upperEnemy || !isSameFaction(mapName)));
     }
 
     private void changeMap(String mapName) {
-        if (!hitacAliensMaps.isEmpty() && hitacAliensMaps.getFirst().equalsIgnoreCase(mapName)
-                && (lowerMapFilter(mapName) || upperMapFilter(mapName))) {
+        if (!hitacAliensMaps.isEmpty() && hitacAliensMaps.getFirst().equalsIgnoreCase(mapName)) {
             hitacAliensMaps.removeFirst();
+        }
+
+        if (!abbleToGo(mapName)) {
             return;
         }
 
