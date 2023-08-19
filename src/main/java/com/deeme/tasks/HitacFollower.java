@@ -41,6 +41,8 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
     protected final ExtensionsAPI extensionsAPI;
     protected final Collection<? extends Npc> npcs;
 
+    protected final ConfigSetting<Integer> workingMap;
+
     protected final Pattern pattern = Pattern.compile("[0-9]+-[0-9]+", Pattern.CASE_INSENSITIVE);
 
     private HitacFollowerConfig followerConfig;
@@ -76,6 +78,7 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
         this.log = log;
 
         this.npcs = entities.getNpcs();
+        this.workingMap = api.requireAPI(ConfigAPI.class).requireConfig("general.working_map");
     }
 
     @Override
@@ -86,10 +89,11 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
     @Override
     public void onTickTask() {
         if (followerConfig.enable && nextCheck <= System.currentTimeMillis()) {
-            nextCheck = System.currentTimeMillis() + 20000;
+            nextCheck = System.currentTimeMillis() + 5000;
             if (hasHitac()) {
                 mapHasHitac = true;
-            } else {
+                hitacAliensMaps.clear();
+            } else if (isWorkingMap()) {
                 if (mapHasHitac) {
                     mapHasHitac = false;
                     goToNextMap();
@@ -123,6 +127,11 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
         }
     }
 
+    private boolean isWorkingMap() {
+        GameMap map = star.findMap(workingMap.getValue()).orElse(null);
+        return map == null || map == star.getCurrentMap();
+    }
+
     private boolean pvpFilter(String message) {
         return followerConfig.goToPVP || !message.contains("PvP");
     }
@@ -134,7 +143,7 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
 
     private void addSpawnHitac(String map) {
         // add map if not in list
-        if (hitacAliensMaps.stream().noneMatch(alien -> alien.equalsIgnoreCase(this.star.getCurrentMap().getName()))) {
+        if (hitacAliensMaps.stream().noneMatch(m -> m.equalsIgnoreCase(this.star.getCurrentMap().getName()))) {
             hitacAliensMaps.add(map);
         }
 
@@ -223,6 +232,6 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
             return;
         }
 
-        api.requireAPI(ConfigAPI.class).requireConfig("general.working_map").setValue(nextMap.getId());
+        workingMap.setValue(nextMap.getId());
     }
 }
