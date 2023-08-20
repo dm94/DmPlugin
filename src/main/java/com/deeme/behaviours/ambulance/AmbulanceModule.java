@@ -186,13 +186,7 @@ public class AmbulanceModule extends TemporalModule {
             return;
         }
 
-        if (items.getItem(abilityToUse, ItemFlag.USABLE, ItemFlag.READY).isPresent()) {
-            if (items.useItem(abilityToUse).isSuccessful()) {
-                abilityUsed = true;
-            }
-        } else {
-            abilityUsed = true;
-        }
+        abilityUsed = items.useItem(abilityToUse, 500, ItemFlag.USABLE, ItemFlag.READY).isSuccessful();
     }
 
     private GroupMember getMember() {
