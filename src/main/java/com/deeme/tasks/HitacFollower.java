@@ -89,28 +89,30 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
 
     @Override
     public void onTickTask() {
-        if (followerConfig.enable && nextCheck <= System.currentTimeMillis()) {
-            nextCheck = System.currentTimeMillis() + 5000;
-            if (hasHitac()) {
-                mapHasHitac = true;
-                hitacAliensMaps.clear();
-            } else if (isWorkingMap()) {
-                if (mapHasHitac) {
-                    mapHasHitac = false;
-                    goToNextMap();
-                } else if (!hitacAliensMaps.isEmpty()) {
-                    changeMap(hitacAliensMaps.peekFirst());
-                } else if (followerConfig.returnToWaitingMap) {
-                    api.requireAPI(ConfigAPI.class).requireConfig("general.working_map")
-                            .setValue(followerConfig.waitMap);
-                }
-            }
-
-            if (!hitacAliensMaps.isEmpty()
-                    && hitacAliensMaps.peekFirst().equalsIgnoreCase(star.getCurrentMap().getShortName())) {
-                hitacAliensMaps.removeFirst();
+        if (!followerConfig.enable || nextCheck > System.currentTimeMillis()) {
+            return;
+        }
+        nextCheck = System.currentTimeMillis() + 5000;
+        if (hasHitac()) {
+            mapHasHitac = true;
+            hitacAliensMaps.clear();
+            updateWorkingMap(hero.getMap().getId());
+        } else {
+            if (mapHasHitac) {
+                mapHasHitac = false;
+                goToNextMap();
+            } else if (!hitacAliensMaps.isEmpty()) {
+                changeMap(hitacAliensMaps.peekFirst());
+            } else if (followerConfig.returnToWaitingMap && isWorkingMap()) {
+                updateWorkingMap(followerConfig.waitMap);
             }
         }
+
+        if (!hitacAliensMaps.isEmpty()
+                && hitacAliensMaps.peekFirst().equalsIgnoreCase(star.getCurrentMap().getShortName())) {
+            hitacAliensMaps.removeFirst();
+        }
+
     }
 
     @EventHandler
@@ -127,9 +129,16 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
         }
     }
 
+    private void updateWorkingMap(int id) {
+        if (workingMap.getValue() == id) {
+            return;
+        }
+        workingMap.setValue(id);
+    }
+
     private boolean isWorkingMap() {
         GameMap map = star.findMap(workingMap.getValue()).orElse(null);
-        return map == null || map == star.getCurrentMap();
+        return map == null || map.getId() == star.getCurrentMap().getId();
     }
 
     private boolean ableToGoPvpFilter(String message) {
@@ -247,6 +256,6 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
             return;
         }
 
-        workingMap.setValue(nextMap.getId());
+        updateWorkingMap(nextMap.getId());
     }
 }

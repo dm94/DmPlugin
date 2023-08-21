@@ -135,7 +135,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
 
     private Ability getBestAbility() {
         Ability healthAbility = getHealthAbility();
-        if (healthAbility == null) {
+        if (healthAbility != null) {
             return healthAbility;
         }
 
@@ -152,12 +152,12 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
         }
 
         Ability speedAbility = getSpeedAbility();
-        if (speedAbility == null) {
+        if (speedAbility != null) {
             return speedAbility;
         }
 
         Ability evadeAbility = getEvadeAbility();
-        if (evadeAbility == null) {
+        if (evadeAbility != null) {
             return evadeAbility;
         }
 
@@ -170,7 +170,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
         }
 
         Ability evadeAbilityLastInstance = getEvadeAbilityLastInstance();
-        if (evadeAbilityLastInstance == null) {
+        if (evadeAbilityLastInstance != null) {
             return evadeAbilityLastInstance;
         }
 
