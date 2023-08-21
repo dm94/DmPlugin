@@ -290,7 +290,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     }
 
     private boolean shouldFocusHelpTank() {
-        if (heroapi.getHealth().shieldPercent() < 0.5) {
+        if (heroapi.getHealth().shieldPercent() <= this.config.minHealthToUseHealth) {
             return false;
         } else if (group.hasGroup()) {
             for (GroupMember member : group.getMembers()) {
@@ -304,12 +304,12 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     }
 
     private boolean shouldFocusShield() {
-        if (heroapi.getHealth().shieldPercent() < 0.5) {
+        if (heroapi.getHealth().shieldPercent() <= this.config.minHealthToUseHealth) {
             return true;
         } else if (group.hasGroup()) {
             for (GroupMember member : group.getMembers()) {
                 if (!member.isDead() && member.isAttacked() && member.isLocked()
-                        && member.getMemberInfo().shieldPercent() < 0.5) {
+                        && member.getMemberInfo().shieldPercent() <= this.config.minHealthToUseHealth) {
                     return true;
                 }
             }
@@ -326,7 +326,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
             return false;
         }
 
-        if (heroapi.getHealth().hpPercent() > 0.8) {
+        if (heroapi.getHealth().hpPercent() > this.config.minHealthToUseHealth) {
             return false;
         }
 

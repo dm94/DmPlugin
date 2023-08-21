@@ -3,6 +3,8 @@ package com.deeme.modules.astral;
 import com.deeme.types.SharedFunctions;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
+import com.deemetool.modules.astral.AstralPlus;
+import com.deemetool.modules.astral.PortalInfo;
 import com.github.manolo8.darkbot.config.NpcExtraFlag;
 import com.github.manolo8.darkbot.core.itf.NpcExtraProvider;
 
@@ -17,14 +19,13 @@ import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.enums.EntityEffect;
+import eu.darkbot.api.game.enums.PortalType;
 import eu.darkbot.api.game.items.Item;
 import eu.darkbot.api.game.items.ItemCategory;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.game.items.SelectableItem.Cpu;
-import eu.darkbot.api.game.items.SelectableItem.Laser;
 import eu.darkbot.api.game.other.GameMap;
-import eu.darkbot.api.game.other.Gui;
 import eu.darkbot.api.game.other.Locatable;
 import eu.darkbot.api.game.other.Location;
 import eu.darkbot.api.game.other.Lockable;
@@ -35,7 +36,6 @@ import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.ExtensionsAPI;
-import eu.darkbot.api.managers.GameScreenAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
 import eu.darkbot.api.managers.MovementAPI;
@@ -45,11 +45,13 @@ import eu.darkbot.api.utils.Inject;
 import eu.darkbot.shared.modules.MapModule;
 import eu.darkbot.shared.utils.SafetyFinder;
 import eu.darkbot.util.Popups;
+import eu.darkbot.util.SystemUtils;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Random;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
@@ -65,11 +67,12 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     protected final PetAPI pet;
     protected final HeroItemsAPI items;
     protected final StarSystemAPI starSystem;
+    protected final AuthAPI auth;
     protected ConfigSetting<Integer> maxCircleIterations;
     protected ConfigSetting<Boolean> runConfigInCircle;
     protected final ConfigSetting<Character> ammoKey;
 
-    private Gui astralGui;
+    protected final AstralPlus astralPlus;
 
     protected Collection<? extends Portal> portals;
     protected Collection<? extends Npc> npcs;
@@ -77,27 +80,21 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     protected boolean backwards = false;
     protected long maximumWaitingTime = 0;
     protected long lastTimeAttack = 0;
-    protected long rocketTime;
-    protected long laserTime;
     protected long clickDelay;
     protected long chooseClickDelay = 0;
     protected long nextCPUCheck = 0;
     protected long nextWaveCheck = 0;
 
+    protected int waitTime = 20000;
+
     protected boolean repairShield = false;
-    protected boolean waitingSign = false;
+    protected boolean waveHasBeenAwaited = false;
 
     private RocketSupplier rocketSupplier;
     private AmmoSupplier ammoSupplier;
     private AstralConfig astralConfig;
-    private AstralPortalSupplier astralPortalSupplier;
 
-    private AstralShip astralShip = null;
-
-    private final Random rand = new Random();
-    private int lastPortal = 0;
     private State currentStatus;
-    private int guiOffset = 100;
     private boolean showDialog = false;
     private boolean warningDisplayed = false;
 
@@ -110,8 +107,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         WAITING_WAVE("Waiting for the wave"),
         WAITING_HUMAN("Choose an option to continue"),
         WAITING_SHIP("Choose a ship"),
-        CHOOSING_PORTAL("Choosing the best portal"),
-        CHOOSING_ITEM("Choosing a random item");
+        CHOOSING_BEST_OPTION("Choosing the best option");
 
         private final String message;
 
@@ -135,6 +131,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         Utils.showDonateDialog();
 
         this.api = api;
+        this.auth = auth;
         this.bot = api.getAPI(BotAPI.class);
         this.heroapi = api.getAPI(HeroAPI.class);
         this.movement = api.getAPI(MovementAPI.class);
@@ -142,9 +139,6 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         this.pet = api.getAPI(PetAPI.class);
         this.starSystem = api.getAPI(StarSystemAPI.class);
         this.items = api.getAPI(HeroItemsAPI.class);
-
-        GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
-        this.astralGui = gameScreenAPI.getGui("rogue_lite");
 
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
         this.portals = entities.getPortals();
@@ -156,9 +150,11 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         this.runConfigInCircle = configApi.requireConfig("loot.run_config_in_circle");
         this.ammoKey = configApi.requireConfig("loot.ammo_key");
 
+        ConfigSetting<Boolean> devStuff = configApi.requireConfig("bot_settings.other.dev_stuff");
+
         this.rocketSupplier = new RocketSupplier(heroapi, items);
         this.ammoSupplier = new AmmoSupplier(items);
-        this.astralPortalSupplier = new AstralPortalSupplier(api, astralShip);
+        this.astralPlus = new AstralPlus(api, devStuff.getValue());
 
         this.currentStatus = State.WAIT;
         this.showDialog = false;
@@ -168,6 +164,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     @Override
     public void setConfig(ConfigSetting<AstralConfig> arg0) {
         this.astralConfig = arg0.getValue();
+        fillPortalInfo();
     }
 
     @Override
@@ -182,23 +179,21 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
     @Override
     public String getStatus() {
-        return "Astral | " + currentStatus.message + " | " + npcs.size() + " | " + attacker.getStatus() + "\nRadius: "
-                + lastRadius;
+        return "Astral | " + currentStatus.message + " | " + npcs.size() + " | " + attacker.getStatus() + " | Radius: "
+                + lastRadius + " | " + astralPlus.getStatus();
     }
 
     @Override
     public String getStoppedStatus() {
-        return (astralShip != null ? astralShip.getStatus()
-                : "")
-                + " | Ammo: " + astralPortalSupplier.getAmmoCount()
-                + "\nAstral GUI: " + (astralGui != null && astralGui.isVisible());
+        return getStatus();
     }
 
     @Override
     public String instructions() {
-        return "You need to manually enter the gate and select the ship. \n" +
-                "Place the quick bar with everything you want to be used. \n" +
-                "The bot will wait until you choose an item and portal. He does not jump through the gates.";
+        return "Instructions for those who do not have access to PLUS functions: \n" +
+                "- You need to manually select the ship. \n" +
+                "- Place the quick bar with everything you want to be used. \n" +
+                "- The bot will wait until you choose an item and portal. He does not jump through the gates!!";
     }
 
     @Override
@@ -206,20 +201,17 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         pet.setEnabled(false);
         showWarningDialog();
         if (isAstral() || heroapi.getMap().isGG()) {
-            if (astralShip == null) {
-                astralShip = new AstralShip(heroapi.getShipType());
-            }
-            if (astralShip.isValid(heroapi.getShipType())) {
+            if (astralPlus.isValidShip()) {
                 activeAutoRocketCPU();
                 repairShield = repairShield && heroapi.getHealth().shieldPercent() < 0.9
                         || heroapi.getHealth().shieldPercent() < 0.2;
                 if (findTarget()) {
                     waveLogic();
-                } else if (npcs.isEmpty() && nextWaveCheck < System.currentTimeMillis()) {
+                } else if (npcs.isEmpty() || !portals.isEmpty()) {
                     preparingWaveLogic();
                 }
-            } else {
-                stopBot();
+            } else if (!astralPlus.autoChooseShip(astralConfig.shipType.getId())) {
+                stopBot(State.WAITING_SHIP);
             }
         } else {
             goToAstral();
@@ -230,119 +222,66 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     public void onTickStopped() {
         if (isAstral()) {
             showWarningDialog();
-            countItems();
         }
     }
 
-    private void waveLogic() {
-        nextWaveCheck = System.currentTimeMillis() + 30000;
-        waitingSign = false;
-        this.currentStatus = State.DO;
-        if (astralGui != null && astralGui.isVisible()) {
-            astralGui.setVisible(false);
+    private void fillPortalInfo() {
+        if (astralConfig.portalInfos.size() > 0) {
+            return;
         }
+        Map<String, PortalInfo> defaultPortals = new HashMap<>();
+        defaultPortals.put(PortalType.ROUGE_LITE_HP_RECOVER.name(), new PortalInfo(0));
+        defaultPortals.put(PortalType.ROUGE_LITE_AMMUNITION.name(), new PortalInfo(1));
+        defaultPortals.put(PortalType.ROUGE_LITE_MODULE.name(), new PortalInfo(2));
+        defaultPortals.put(PortalType.ROUGE_LITE_GENERATOR.name(), new PortalInfo(3));
+        defaultPortals.put(PortalType.ROUGE_LITE_WEAPON.name(), new PortalInfo(4));
+        defaultPortals.put(PortalType.ROUGE_LITE_RESOURCE.name(), new PortalInfo(5));
+        defaultPortals.put(PortalType.ROUGE_LITE_AMMUNITION_BRUTAL.name(), new PortalInfo(6));
+        defaultPortals.put(PortalType.ROUGE_LITE_MODULE_BRUTAL.name(), new PortalInfo(7));
+        defaultPortals.put(PortalType.ROUGE_LITE_GENERATOR_BRUTAL.name(), new PortalInfo(8));
+        defaultPortals.put(PortalType.ROUGE_LITE_WEAPON_BRUTAL.name(), new PortalInfo(9));
+        defaultPortals.put(PortalType.ROUGE_LITE_RESOURCE_BRUTAL.name(), new PortalInfo(10));
+
+        astralConfig.portalInfos.putAll(defaultPortals);
+    }
+
+    private void waveLogic() {
+        nextWaveCheck = System.currentTimeMillis() + waitTime;
+        waveHasBeenAwaited = false;
+        this.currentStatus = State.DO;
+
         attacker.tryLockAndAttack();
         npcMove();
         changeAmmo();
     }
 
     private void preparingWaveLogic() {
-        if (waitingSign) {
-            nextWaveCheck = System.currentTimeMillis() + 30000;
-            goToTheMiddle();
-
-            if (astralConfig.autoChoosePortal || astralConfig.autoChooseItem) {
-                autoChooseLogic();
-            } else if (!portals.isEmpty() || (astralGui != null && astralGui.isVisible())) {
-                this.currentStatus = State.WAITING_HUMAN;
-                this.showDialog = true;
-                this.bot.setRunning(false);
-            } else {
-                this.currentStatus = State.WAITING_WAVE;
-            }
+        if (astralPlus.allowedToEquip()) {
+            nextWaveCheck = 0;
         }
-        waitingSign = true;
-    }
-
-    private void stopBot() {
-        if (astralConfig.displayWarning) {
-            this.showDialog = true;
-        }
-
-        this.currentStatus = State.WAITING_SHIP;
-        this.astralShip = null;
-        this.bot.setRunning(false);
-    }
-
-    private void autoChooseLogic() {
-        if (!astralGui.isVisible()) {
-            chooseClickDelay = System.currentTimeMillis() + 10000;
-        }
-        if (portals.isEmpty()) {
-            if (astralGui.isVisible()) {
-                chooseItem();
-            } else {
-                if (this.currentStatus == State.WAITING_SIGN && maximumWaitingTime < System.currentTimeMillis()) {
-                    astralGui.setVisible(true);
-                } else {
-                    this.currentStatus = State.WAITING_SIGN;
-                    maximumWaitingTime = System.currentTimeMillis() + 20000;
-                }
-            }
-        } else if (astralConfig.autoChoosePortal) {
-            jumpToTheBestPortal();
-        }
-    }
-
-    private void jumpToTheBestPortal() {
-        this.currentStatus = State.CHOOSING_PORTAL;
-        if (astralGui != null && astralGui.isVisible()) {
-            astralGui.setVisible(false);
-        }
-
-        astralPortalSupplier.setAstralShip(astralShip);
-        Portal portal = astralPortalSupplier.get();
-
-        if (portal == null) {
-            portal = portals.stream().filter(p -> p.getTypeId() == 1).findFirst().orElse(null);
-        }
-
-        if (portal != null) {
-            lastPortal = portal.getTypeId();
-            if (heroapi.distanceTo(portal) < 200) {
-                movement.jumpPortal(portal);
-            } else {
-                movement.moveTo(portal);
-            }
-        }
-    }
-
-    private void chooseItem() {
-        if (astralGui.isVisible() && chooseClickDelay < System.currentTimeMillis() && astralShip != null) {
-            chooseClickDelay = System.currentTimeMillis() + 20000;
-            if (lastPortal == 87 || lastPortal == 88) {
-                astralShip.setWeapons(astralShip.getWeapons() + 1);
-            } else if (lastPortal == 89 || lastPortal == 90) {
-                astralShip.setGenerators(astralShip.getGenerators() + 1);
-            } else if (lastPortal == 95 || lastPortal == 96) {
-                astralShip.setModules(astralShip.getModules() + 1);
-            }
-            randomChoose();
-            lastPortal = 0;
-            astralGui.setVisible(false);
-        }
-    }
-
-    private void randomChoose() {
-        if (!astralConfig.autoChooseItem) {
+        if (nextWaveCheck > System.currentTimeMillis()) {
             return;
         }
+        if (!waveHasBeenAwaited) {
+            waveHasBeenAwaited = true;
+            nextWaveCheck = System.currentTimeMillis() + waitTime;
+        }
 
-        this.currentStatus = State.CHOOSING_ITEM;
-        Integer xPoint = rand.nextInt((int) astralGui.getWidth() - guiOffset) + guiOffset + (int) astralGui.getX();
-        Integer yPoint = (int) ((astralGui.getHeight() / 2) + astralGui.getY());
-        astralGui.click(xPoint, yPoint);
+        goToTheMiddle();
 
+        if (astralConfig.autoChoose && astralPlus.autoChoose(astralConfig.portalInfos)) {
+            this.currentStatus = State.CHOOSING_BEST_OPTION;
+        } else if (!portals.isEmpty() || astralPlus.hasOptionsToChoose()) {
+            stopBot(State.WAITING_HUMAN);
+        } else {
+            this.currentStatus = State.WAITING_WAVE;
+        }
+    }
+
+    private void stopBot(State stateToSet) {
+        this.showDialog = true;
+        this.currentStatus = stateToSet;
+        this.bot.setRunning(false);
     }
 
     private boolean isAstral() {
@@ -351,10 +290,6 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     }
 
     private boolean changeAmmo() {
-        if (System.currentTimeMillis() < laserTime) {
-            return false;
-        }
-
         if (astralConfig.useBestAmmoLogic == BestAmmoConfig.ALWAYS || attacker.hasExtraFlag(ExtraNpcFlags.BEST_AMMO)
                 || useSpecialLogic()) {
             changeLaser(true);
@@ -371,15 +306,17 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
             return true;
         }
 
-        if (astralConfig.ammoKey == null) {
-            astralConfig.ammoKey = ammoKey.getValue();
+        Item currentRocket = items.getItems(ItemCategory.ROCKETS).stream().filter(Item::isSelected).findFirst()
+                .orElse(null);
+        if (currentRocket == null || currentRocket.getQuantity() <= 2) {
+            changeRocket(false);
         }
-        if (!ammoKey.getValue().equals(astralConfig.ammoKey)) {
-            ammoKey.setValue(astralConfig.ammoKey);
-        }
-        Item defaultLaser = items.getItem(ammoKey.getValue());
-        if (defaultLaser == null || defaultLaser.getQuantity() > 100) {
-            changeLaser(false);
+
+        Item defaultLaser = items.getItems(ItemCategory.LASERS).stream()
+                .filter(i -> i.getId().equals(astralConfig.defaultLaser)).findFirst()
+                .orElse(null);
+        if (defaultLaser != null && defaultLaser.getQuantity() > 100) {
+            changeLaser(defaultLaser);
         }
 
         return false;
@@ -532,22 +469,37 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     }
 
     public void changeRocket(boolean bestRocket) {
-        if (System.currentTimeMillis() < rocketTime) {
-            return;
-        }
         SelectableItem rocket = null;
         if (bestRocket) {
             rocket = rocketSupplier.get();
         } else {
             rocket = SharedFunctions.getItemById(astralConfig.defaultRocket);
-            if (rocket == null || items.getItem(rocket, ItemFlag.USABLE, ItemFlag.READY).isEmpty()) {
+            if (rocket == null
+                    || items.getItem(rocket, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.POSITIVE_QUANTITY).isEmpty()) {
                 rocket = rocketSupplier.getReverse();
             }
         }
 
-        if (rocket != null && heroapi.getRocket() != null && !heroapi.getRocket().getId().equals(rocket.getId())
-                && useSelectableReadyWhenReady(rocket)) {
-            rocketTime = System.currentTimeMillis() + 2000;
+        if (rocket != null && heroapi.getRocket() != null && !heroapi.getRocket().getId().equals(rocket.getId())) {
+            useSelectableReadyWhenReady(rocket);
+        }
+    }
+
+    private void changeLaser(SelectableItem laser) {
+        try {
+            if (laser != null && heroapi.getLaser() != null && !heroapi.getLaser().getId().equals(laser.getId())
+                    && items.useItem(laser, 250, ItemFlag.USABLE, ItemFlag.READY).isSuccessful()) {
+                changeAmmoKey(laser);
+            }
+        } catch (Exception e) {
+            // HeroApi getLaser Error
+        }
+    }
+
+    private void changeAmmoKey(SelectableItem laser) {
+        Character key = items.getKeyBind(laser);
+        if (ammoKey.getValue() != key) {
+            ammoKey.setValue(key);
         }
     }
 
@@ -560,28 +512,21 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         }
 
         if (laser == null) {
-            return;
+            laser = SharedFunctions.getItemById(astralConfig.defaultLaser);
         }
 
-        Laser currentLaser = heroapi.getLaser();
-        if (currentLaser != null && !currentLaser.getId().equals(laser.getId())
-                && useSelectableReadyWhenReady(laser)) {
-            Character key = items.getKeyBind(laser);
-            if (key != null && !ammoKey.getValue().equals(key)) {
-                ammoKey.setValue(key);
-            }
-            laserTime = System.currentTimeMillis() + 500;
-        }
-
+        changeLaser(laser);
     }
 
     public boolean useSelectableReadyWhenReady(SelectableItem selectableItem) {
-        if (System.currentTimeMillis() - clickDelay < 1000)
+        if (System.currentTimeMillis() - clickDelay < 1000) {
             return false;
-        if (selectableItem == null)
+        }
+        if (selectableItem == null) {
             return false;
+        }
 
-        if (items.useItem(selectableItem, ItemFlag.USABLE, ItemFlag.READY).isSuccessful()) {
+        if (items.useItem(selectableItem, 250, ItemFlag.USABLE, ItemFlag.READY).isSuccessful()) {
             clickDelay = System.currentTimeMillis();
             return true;
         }
@@ -594,7 +539,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                 return;
             }
 
-            GameMap map = starSystem.getByName("GG Astral");
+            GameMap map = starSystem.findMap("GG Astral").orElse(null);
             if (map == null || map == starSystem.getCurrentMap()) {
                 return;
             }
@@ -628,6 +573,10 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
             return false;
         }
 
+        if (astralPlus.getRift() >= 15) {
+            return true;
+        }
+
         if (heroapi.getHealth().hpPercent() <= 0.20) {
             return true;
         }
@@ -655,42 +604,8 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     private void activeAutoRocketCPU() {
         if (nextCPUCheck < System.currentTimeMillis()) {
             nextCPUCheck = System.currentTimeMillis() + 300000;
-            items.useItem(SelectableItem.Cpu.AROL_X, ItemFlag.NOT_SELECTED);
+            items.useItem(SelectableItem.Cpu.AROL_X, 500, ItemFlag.NOT_SELECTED);
         }
-    }
-
-    private void countItems() {
-        if (portals == null) {
-            return;
-        }
-
-        if (portals.isEmpty()) {
-            if (lastPortal != 0 && astralShip != null) {
-                switch (lastPortal) {
-                    case 87:
-                    case 88:
-                        astralShip.setWeapons(astralShip.getWeapons() + 1);
-                        break;
-                    case 89:
-                    case 90:
-                        astralShip.setGenerators(astralShip.getGenerators() + 1);
-                        break;
-                    case 95:
-                    case 96:
-                        astralShip.setModules(astralShip.getModules() + 1);
-                        break;
-                    default:
-                        lastPortal = 0;
-                }
-            }
-            lastPortal = 0;
-        } else {
-            Portal portal = portals.stream().filter(Portal::isJumping).findFirst().orElse(null);
-            if (portal != null) {
-                lastPortal = portal.getTypeId();
-            }
-        }
-
     }
 
     private void showWarningDialog() {
@@ -706,11 +621,17 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
             warningDisplayed = false;
             showDialog = false;
         });
+
+        JButton discordBtn = new JButton("+Info");
+        discordBtn.addActionListener(e -> {
+            SystemUtils.openUrl(Utils.DISCORD_URL);
+        });
+
         Popups.of("Astral Gate",
                 new JOptionPane(
-                        "Manual action is needed",
+                        "Manual action is needed. \n With the PLUS functions the bot will not need manual actions.",
                         JOptionPane.INFORMATION_MESSAGE,
-                        JOptionPane.DEFAULT_OPTION, null, new Object[] { closeBtn }))
+                        JOptionPane.DEFAULT_OPTION, null, new Object[] { discordBtn, closeBtn }))
                 .showAsync();
     }
 }

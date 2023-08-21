@@ -47,6 +47,6 @@ public class ConditionsManagement {
             return false;
         }
 
-        return items.useItem(selectableItem, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE).isSuccessful();
+        return items.useItem(selectableItem, 250, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE).isSuccessful();
     }
 }
