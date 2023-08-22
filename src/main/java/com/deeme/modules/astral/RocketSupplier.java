@@ -45,8 +45,8 @@ public class RocketSupplier implements PrioritizedSupplier<SelectableItem> {
 
             try {
                 return items.getItems(ItemCategory.ROCKETS).stream()
-                        .filter(Item::isReadyToUse)
-                        .sorted(Comparator.comparing(i -> damageOrder.indexOf(i.getId()))).findFirst().orElse(null);
+                        .filter(Item::isUsable)
+                        .min(Comparator.comparing(i -> damageOrder.indexOf(i.getId()))).orElse(null);
             } catch (Exception e) {
                 return null;
             }
@@ -58,9 +58,8 @@ public class RocketSupplier implements PrioritizedSupplier<SelectableItem> {
     public SelectableItem getReverse() {
         try {
             return items.getItems(ItemCategory.ROCKETS).stream()
-                    .filter(Item::isReadyToUse)
-                    .sorted(Comparator.comparing(i -> damageOrder.indexOf(i.getId()), Comparator.reverseOrder()))
-                    .findFirst().orElse(null);
+                    .filter(Item::isUsable)
+                    .max(Comparator.comparing(i -> damageOrder.indexOf(i.getId()))).orElse(null);
         } catch (Exception e) {
             return null;
         }

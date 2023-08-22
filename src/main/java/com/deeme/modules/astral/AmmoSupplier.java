@@ -22,8 +22,8 @@ public class AmmoSupplier implements PrioritizedSupplier<SelectableItem> {
     public SelectableItem get() {
         try {
             return items.getItems(ItemCategory.LASERS).stream()
-                    .filter(item -> item.isReadyToUse() && item.getQuantity() > 100)
-                    .sorted(Comparator.comparing(i -> damageOrder.indexOf(i.getId()))).findFirst().orElse(null);
+                    .filter(item -> item.isUsable() && item.getQuantity() > 100)
+                    .min(Comparator.comparing(i -> damageOrder.indexOf(i.getId()))).orElse(null);
         } catch (Exception e) {
             return null;
         }
@@ -32,9 +32,8 @@ public class AmmoSupplier implements PrioritizedSupplier<SelectableItem> {
     public SelectableItem getReverse() {
         try {
             return items.getItems(ItemCategory.LASERS).stream()
-                    .filter(item -> item.isReadyToUse() && item.getQuantity() > 100)
-                    .sorted(Comparator.comparing(i -> damageOrder.indexOf(i.getId()), Comparator.reverseOrder()))
-                    .findFirst().orElse(null);
+                    .filter(item -> item.isUsable() && item.getQuantity() > 100)
+                    .max(Comparator.comparing(i -> damageOrder.indexOf(i.getId()))).orElse(null);
         } catch (Exception e) {
             return null;
         }
