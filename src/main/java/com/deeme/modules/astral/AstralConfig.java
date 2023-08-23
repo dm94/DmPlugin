@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.deeme.behaviours.bestrocket.RocketSupplier;
 import com.deemetool.gui.suppliers.LaserSupplier;
+import com.deemetool.modules.astral.CustomItemPriority;
 import com.deemetool.modules.astral.PortalInfo;
 
 import eu.darkbot.api.config.annotations.Configuration;
@@ -46,4 +47,7 @@ public class AstralConfig {
     public boolean autoChoose = false;
 
     public @Option @Table Map<String, PortalInfo> portalInfos = new HashMap<>();
+
+    @Option("astral.custom_item_priority")
+    public CustomItemPriority customItemPriority = new CustomItemPriority();
 }
