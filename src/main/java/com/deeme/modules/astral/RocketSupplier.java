@@ -5,7 +5,6 @@ import java.util.Comparator;
 import java.util.List;
 
 import eu.darkbot.api.extensions.selectors.PrioritizedSupplier;
-import eu.darkbot.api.game.items.Item;
 import eu.darkbot.api.game.items.ItemCategory;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
@@ -29,36 +28,40 @@ public class RocketSupplier implements PrioritizedSupplier<SelectableItem> {
 
     public SelectableItem get() {
         Lockable target = heroapi.getLocalTarget();
-        if (target != null && target.isValid()) {
-            if (shouldFocusSpeed(target)) {
-                if (isAvailable(Rocket.R_IC3)) {
-                    return Rocket.R_IC3;
-                }
-                if (isAvailable(Rocket.DCR_250)) {
-                    return Rocket.DCR_250;
-                }
-            }
-
-            if (shouldUsePLD() && isAvailable(Rocket.PLD_8)) {
-                return Rocket.PLD_8;
-            }
-
-            try {
-                return items.getItems(ItemCategory.ROCKETS).stream()
-                        .filter(Item::isUsable)
-                        .min(Comparator.comparing(i -> damageOrder.indexOf(i.getId()))).orElse(null);
-            } catch (Exception e) {
-                return null;
-            }
-
+        if (target == null || !target.isValid()) {
+            return null;
         }
-        return null;
+
+        if (shouldFocusSpeed(target)) {
+            if (isAvailable(Rocket.R_IC3)) {
+                return Rocket.R_IC3;
+            }
+            if (isAvailable(Rocket.DCR_250)) {
+                return Rocket.DCR_250;
+            }
+        }
+
+        if (shouldUsePLD()) {
+            return Rocket.PLD_8;
+        }
+
+        return getBestRocket();
+    }
+
+    public SelectableItem getBestRocket() {
+        try {
+            return items.getItems(ItemCategory.ROCKETS).stream()
+                    .filter(item -> item.isUsable() && item.getQuantity() > 0)
+                    .min(Comparator.comparing(i -> damageOrder.indexOf(i.getId()))).orElse(null);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public SelectableItem getReverse() {
         try {
             return items.getItems(ItemCategory.ROCKETS).stream()
-                    .filter(Item::isUsable)
+                    .filter(item -> item.isUsable() && item.getQuantity() > 0)
                     .max(Comparator.comparing(i -> damageOrder.indexOf(i.getId()))).orElse(null);
         } catch (Exception e) {
             return null;
@@ -73,7 +76,7 @@ public class RocketSupplier implements PrioritizedSupplier<SelectableItem> {
     }
 
     private boolean shouldUsePLD() {
-        return heroapi.getHealth().shieldPercent() < 0.8;
+        return heroapi.getHealth().shieldPercent() < 0.9 && isAvailable(Rocket.PLD_8);
     }
 
     private boolean isAvailable(Rocket rocket) {

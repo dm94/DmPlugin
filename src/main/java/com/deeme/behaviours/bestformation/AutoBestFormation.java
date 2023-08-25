@@ -281,7 +281,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
             return false;
         }
 
-        if (items.useItem(formation, 1000, ItemFlag.USABLE, ItemFlag.READY).isSuccessful()) {
+        if (items.useItem(formation, 500, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.NOT_SELECTED).isSuccessful()) {
             changeOffensiveConfig(formation);
             return true;
         }

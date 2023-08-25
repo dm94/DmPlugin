@@ -497,13 +497,12 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     }
 
     private void changeLaser(SelectableItem laser) {
-        try {
-            if (laser != null && heroapi.getLaser() != null && !heroapi.getLaser().getId().equals(laser.getId())
-                    && items.useItem(laser, 250, ItemFlag.USABLE, ItemFlag.READY).isSuccessful()) {
-                changeAmmoKey(laser);
-            }
-        } catch (Exception e) {
-            // HeroApi getLaser Error
+        if (laser == null) {
+            return;
+        }
+        if (items.useItem(laser, 250, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.NOT_SELECTED)
+                .isSuccessful()) {
+            changeAmmoKey(laser);
         }
     }
 
@@ -537,7 +536,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
             return false;
         }
 
-        if (items.useItem(selectableItem, 250, ItemFlag.USABLE, ItemFlag.READY).isSuccessful()) {
+        if (items.useItem(selectableItem, 250, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.NOT_SELECTED).isSuccessful()) {
             clickDelay = System.currentTimeMillis();
             return true;
         }
@@ -615,7 +614,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     private void activeAutoRocketCPU() {
         if (nextCPUCheck < System.currentTimeMillis()) {
             nextCPUCheck = System.currentTimeMillis() + 300000;
-            items.useItem(SelectableItem.Cpu.AROL_X, 500, ItemFlag.NOT_SELECTED);
+            useSelectableReadyWhenReady(SelectableItem.Cpu.AROL_X);
         }
     }
 
