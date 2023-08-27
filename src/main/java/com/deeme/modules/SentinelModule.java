@@ -259,7 +259,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                     } else if (maximumWaitingTime <= System.currentTimeMillis()) {
                         currentStatus = State.WAIT;
                         GameMap map = getWorkingMap();
-                        if (!portals.isEmpty() && map != starSystem.getCurrentMap()) {
+                        if (map != null && !portals.isEmpty() && map != starSystem.getCurrentMap()) {
                             currentStatus = State.TRAVELING_TO_WORKING_MAP;
                             this.bot.setModule(new MapModule(api, true))
                                     .setTarget(map);
@@ -326,7 +326,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
     }
 
     protected GameMap getWorkingMap() {
-        return starSystem.getOrCreateMapById(workingMap.getValue());
+        return starSystem.findMap(workingMap.getValue()).orElse(null);
     }
 
     private boolean isAttacking() {
@@ -434,11 +434,13 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                     movement.moveTo(m.getLocation());
                     currentStatus = State.FOLLOWING_MASTER;
                 } else {
-                    this.bot.setModule(api.requireInstance(MapModule.class))
-                            .setTarget(starSystem.getOrCreateMapById(m.getMapId()));
-                    currentStatus = State.TRAVELLING_TO_MASTER;
+                    GameMap map = starSystem.findMap(m.getMapId()).orElse(null);
+                    if (map != null) {
+                        this.bot.setModule(api.requireInstance(MapModule.class))
+                                .setTarget(map);
+                        currentStatus = State.TRAVELLING_TO_MASTER;
+                    }
                 }
-                return;
             }
         }
     }

@@ -76,7 +76,6 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     private boolean isCongigRunFull = false;
 
     private long nextAttackCheck = 0;
-    private final int maxSecondsTimeOut = 10;
     private int timeOut = 0;
 
     private ArrayList<Integer> playersKilled = new ArrayList<>();
@@ -126,7 +125,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
             return safety.status();
         } else if (target != null) {
             return shipAttacker.getStatus() + " | Time out:" + timeOut
-                    + "/" + maxSecondsTimeOut;
+                    + "/" + pvpConfig.maxSecondsTimeOut;
         }
         return collectorModule.getStatus();
     }
@@ -209,7 +208,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
                 timeOut = 0;
             } else {
                 timeOut++;
-                if (timeOut >= maxSecondsTimeOut) {
+                if (timeOut >= pvpConfig.maxSecondsTimeOut) {
                     target = null;
                 }
             }
@@ -259,8 +258,8 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     }
 
     private boolean checkMap() {
-        GameMap map = starSystem.getOrCreateMapById(workingMap.getValue());
-        if (!portals.isEmpty() && map != starSystem.getCurrentMap()) {
+        GameMap map = starSystem.findMap(workingMap.getValue()).orElse(null);
+        if (map != null && !portals.isEmpty() && map != starSystem.getCurrentMap()) {
             this.bot.setModule(api.requireInstance(MapModule.class)).setTarget(map);
             return false;
         }
