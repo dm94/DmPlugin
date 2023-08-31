@@ -85,13 +85,10 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
     }
 
     private void changeRocket(SelectableItem rocket) {
-        try {
-            if (rocket != null && heroapi.getRocket() != null && !heroapi.getRocket().getId().equals(rocket.getId())) {
-                items.useItem(rocket, 500, ItemFlag.USABLE, ItemFlag.READY);
-            }
-        } catch (Exception e) {
-            /* Nothing here */
+        if (rocket == null) {
+            return;
         }
+        items.useItem(rocket, 500, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.NOT_SELECTED);
     }
 
     private Rocket getBestRocketPVP(Lockable target) {

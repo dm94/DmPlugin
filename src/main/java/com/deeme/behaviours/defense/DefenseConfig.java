@@ -12,6 +12,7 @@ import eu.darkbot.api.config.annotations.Configuration;
 import eu.darkbot.api.config.annotations.Dropdown;
 import eu.darkbot.api.config.annotations.Option;
 import eu.darkbot.api.config.annotations.Percentage;
+import eu.darkbot.api.config.annotations.Number;
 
 @Configuration("defense")
 public class DefenseConfig {
@@ -28,6 +29,14 @@ public class DefenseConfig {
 
     @Option("defense.help_attack")
     public boolean helpAttack = true;
+
+    @Option("defense.max_time_out")
+    @Number(min = 0, max = 180, step = 1)
+    public int maxSecondsTimeOut = 10;
+
+    @Option("pvp_module.max_range_enemy_attacked")
+    @Number(min = 1000, max = 4000, step = 100)
+    public int rangeForAttackedEnemy = 1500;
 
     @Option("defense.movement_mode")
     @Dropdown

@@ -41,9 +41,9 @@ public class DefenseModule extends TemporalModule {
     private Entity target = null;
 
     private long nextAttackCheck = 0;
-    private final int maxSecondsTimeOut = 10;
 
     private int timeOut = 0;
+    protected static final int DISTANCE_TO_USE_VS_MODE = 1500;
 
     public DefenseModule(PluginAPI api, DefenseConfig defenseConfig, Entity target) {
         this(api, api.requireAPI(BotAPI.class),
@@ -80,7 +80,7 @@ public class DefenseModule extends TemporalModule {
     @Override
     public String getStatus() {
         return "Defense Mode | " + shipAttacker.getStatus() + " | " + safetyFinder.status() + " | Time out:" + timeOut
-                + "/" + maxSecondsTimeOut;
+                + "/" + defenseConfig.maxSecondsTimeOut;
     }
 
     @Override
@@ -121,7 +121,7 @@ public class DefenseModule extends TemporalModule {
                 timeOut = 0;
             } else {
                 timeOut++;
-                if (timeOut >= maxSecondsTimeOut) {
+                if (timeOut >= defenseConfig.maxSecondsTimeOut) {
                     target = null;
                     super.goBack();
                 }
@@ -138,12 +138,14 @@ public class DefenseModule extends TemporalModule {
         if (shipAttacker.getTarget() != null && shipAttacker.getTarget().isValid()
                 && shipAttacker.getTarget().getId() != heroapi.getId()
                 && (!defenseConfig.ignoreEnemies
-                        || shipAttacker.getTarget().getLocationInfo().distanceTo(heroapi) < 1500)) {
+                        || shipAttacker.getTarget().getLocationInfo()
+                                .distanceTo(heroapi) < defenseConfig.rangeForAttackedEnemy)) {
             return true;
         }
 
         if (target.isValid()
-                && target.getLocationInfo().distanceTo(heroapi) < 1500 && movement.canMove(target)) {
+                && target.getLocationInfo().distanceTo(heroapi) < defenseConfig.rangeForAttackedEnemy
+                && movement.canMove(target)) {
             shipAttacker.setTarget((Ship) target);
             return true;
         }
@@ -153,8 +155,7 @@ public class DefenseModule extends TemporalModule {
     }
 
     private void setConfigToUse() {
-        if (heroapi.getHealth().hpPercent() <= defenseConfig.healthToChange
-                && heroapi.getHealth().shieldPercent() <= 0.1) {
+        if (heroapi.getHealth().hpPercent() <= defenseConfig.healthToChange) {
             attackConfigLost = true;
         }
 
@@ -187,7 +188,7 @@ public class DefenseModule extends TemporalModule {
                 if (safetyFinder.tick()) {
                     GroupMember groupMember = shipAttacker.getClosestMember();
                     if (groupMember != null) {
-                        if (groupMember.getLocation().distanceTo(heroapi) < 1500) {
+                        if (groupMember.getLocation().distanceTo(heroapi) < DISTANCE_TO_USE_VS_MODE) {
                             shipAttacker.vsMove();
                         } else {
                             movement.moveTo(groupMember.getLocation());
@@ -200,7 +201,7 @@ public class DefenseModule extends TemporalModule {
             case GROUPVS:
                 GroupMember groupMember = shipAttacker.getClosestMember();
                 if (groupMember != null) {
-                    if (groupMember.getLocation().distanceTo(heroapi) < 1500) {
+                    if (groupMember.getLocation().distanceTo(heroapi) < DISTANCE_TO_USE_VS_MODE) {
                         shipAttacker.vsMove();
                     } else {
                         movement.moveTo(groupMember.getLocation());

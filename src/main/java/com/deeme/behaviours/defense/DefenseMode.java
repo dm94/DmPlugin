@@ -136,7 +136,7 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
 
     private boolean hasPreviusTarget() {
         if (target != null && target.isValid() && target.getId() != heroapi.getId()
-                && target.getLocationInfo().distanceTo(heroapi) < 2000) {
+                && target.getLocationInfo().distanceTo(heroapi) < defenseConfig.rangeForAttackedEnemy) {
             return true;
         }
 

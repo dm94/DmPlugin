@@ -341,6 +341,10 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
         Entity target = SharedFunctions.getAttacker(heroapi, allPlayers, heroapi);
 
         if (config.npcEnabled && target == null) {
+            if (heroapi.getHealth().hpPercent() > this.config.minHealthToUseHealth) {
+                return false;
+            }
+
             target = SharedFunctions.getAttacker(heroapi, allNPCs, heroapi);
         }
         return target != null;
