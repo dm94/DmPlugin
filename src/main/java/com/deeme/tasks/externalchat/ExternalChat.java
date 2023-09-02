@@ -3,18 +3,21 @@ package com.deeme.tasks.externalchat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Random;
+
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
-import javax.swing.SwingUtilities;
+import javax.swing.JTextField;
 import javax.swing.text.DefaultCaret;
 import net.miginfocom.swing.MigLayout;
 
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
+import com.github.manolo8.darkbot.utils.Time;
 
 import java.awt.Toolkit;
 import eu.darkbot.api.PluginAPI;
@@ -23,11 +26,15 @@ import eu.darkbot.api.events.Listener;
 import eu.darkbot.api.extensions.ExtraMenus;
 import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.extensions.Task;
+import eu.darkbot.api.game.other.Gui;
 import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.ExtensionsAPI;
+import eu.darkbot.api.managers.GameScreenAPI;
 import eu.darkbot.api.managers.ChatAPI.MessageSentEvent;
 import eu.darkbot.api.utils.Inject;
 import eu.darkbot.util.Popups;
+
+import static com.github.manolo8.darkbot.Main.API;
 
 @Feature(name = "ExternalChat", description = "See the chat")
 public class ExternalChat implements Task, Listener, ExtraMenus {
@@ -37,6 +44,7 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
     private JPanel mainPanel;
     private JTextArea globalChatTextArea;
     private JTextArea otherChatTextArea;
+    private JTextField input;
     private ArrayList<String> globalChat = new ArrayList<>();
     private ArrayList<String> otherChats = new ArrayList<>();
 
@@ -45,6 +53,17 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
 
     private int lastGlobalSize = 0;
     private int lastOtherSize = 0;
+
+    private Gui chatGui;
+    private long nextClick = 0;
+    private int clickDelay = 2000;
+    private Random rnd;
+
+    private ArrayList<String> pendingMessages = new ArrayList<>();
+
+    protected static final int INPUT_WIDTH_OFFSET = 19;
+    protected static final int INPUT_BOTTOM_OFFSET = 15;
+    protected static final int INPUT_HEIGHT = 15;
 
     public ExternalChat(PluginAPI api) {
         this(api, api.requireAPI(AuthAPI.class));
@@ -61,7 +80,14 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
         Utils.showDonateDialog();
 
         this.api = api;
+        GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
+        this.chatGui = gameScreenAPI.getGui("chat");
+        this.rnd = new Random();
 
+        initGui();
+    }
+
+    private void initGui() {
         this.mainPanel = new JPanel(new MigLayout(""));
         JTabbedPane tabbedPane = new JTabbedPane();
         JPanel globalChatPanel = new JPanel(new MigLayout(""));
@@ -88,16 +114,35 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
         clearBtn.addActionListener(e -> {
             this.globalChat.clear();
             this.otherChats.clear();
-            SwingUtilities.getWindowAncestor(clearBtn).setVisible(false);
         });
+
+        input = new JTextField("");
+
+        JButton sendButton = new JButton("Send");
+        sendButton.addActionListener(e -> {
+            addMessageToPendingList();
+        });
+
         tabbedPane.add(globalChatPanel, "Global");
         tabbedPane.add(otherChatPanel, "Others");
         this.mainPanel.add(tabbedPane, "span");
         this.mainPanel.add(clearBtn, "span");
+        this.mainPanel.add(input, "span, grow");
+        this.mainPanel.add(sendButton);
+    }
+
+    private void addMessageToPendingList() {
+        if (input == null || input.getText().length() <= 0) {
+            return;
+        }
+
+        this.pendingMessages.add(input.getText());
+        input.setText("");
     }
 
     @Override
     public void onTickTask() {
+        pendingMessages.forEach(this::sendMessage);
         try {
             if (globalChatProcessor != null && lastGlobalSize != globalChat.size()) {
                 lastGlobalSize = globalChat.size();
@@ -143,9 +188,51 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
         caretOthers.setUpdatePolicy(1);
         globalChatProcessor = new ChatProcessor(this.globalChatTextArea, this.globalChat);
         otherChatProcesssor = new ChatProcessor(this.otherChatTextArea, this.otherChats);
+        lastGlobalSize = globalChat.size();
+        lastGlobalSize = otherChats.size();
 
         globalChatProcessor.execute();
         otherChatProcesssor.execute();
         Popups.of("Chat", this.mainPanel).showAsync();
+    }
+
+    private boolean waitToClick() {
+        return System.currentTimeMillis() < nextClick;
+    }
+
+    private void closeGui() {
+        if (waitToClick() || chatGui == null) {
+            return;
+        }
+        if (chatGui.isVisible()) {
+            nextClick = System.currentTimeMillis() + this.clickDelay;
+            chatGui.setVisible(false);
+        }
+    }
+
+    private boolean sendMessage(String message) {
+        if (waitToClick() || chatGui == null) {
+            return false;
+        }
+        if (!chatGui.isVisible()) {
+            nextClick = System.currentTimeMillis() + this.clickDelay;
+            chatGui.setVisible(true);
+            return false;
+        }
+
+        int inputWidth = (int) chatGui.getWidth() - (INPUT_WIDTH_OFFSET * 2);
+        int xPoint = INPUT_WIDTH_OFFSET + rnd.nextInt(inputWidth);
+        int yPoint = (int) chatGui.getHeight() - INPUT_BOTTOM_OFFSET - (rnd.nextInt(INPUT_HEIGHT));
+        chatGui.click(xPoint, yPoint);
+
+        Time.sleep(100);
+
+        API.sendText(message);
+        API.keyClick(Character.LINE_SEPARATOR);
+
+        closeGui();
+        pendingMessages.remove(message);
+
+        return true;
     }
 }
