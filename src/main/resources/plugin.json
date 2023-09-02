@@ -17,7 +17,7 @@
     "com.deeme.tasks.WeeklySchedule",
     "com.deeme.tasks.AutoChangeMap",
     "com.deeme.tasks.HitacFollower",
-    "com.deeme.tasks.ExternalChat",
+    "com.deeme.tasks.externalchat.ExternalChat",
     "com.deeme.tasks.AutoShopDummy",
     "com.deeme.behaviours.Others",
     "com.deeme.behaviours.defense.DefenseMode",

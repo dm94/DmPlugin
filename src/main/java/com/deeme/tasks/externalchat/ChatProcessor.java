@@ -1,4 +1,4 @@
-package com.deeme.types.gui;
+package com.deeme.tasks.externalchat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +16,7 @@ public class ChatProcessor extends SwingWorker<List<String>, String> {
         this.globalChat = globalChat;
     }
 
+    @Override
     protected void process(List<String> chunks) {
         for (String text : chunks) {
             this.globalChatTextArea.append(text);

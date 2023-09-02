@@ -1,4 +1,4 @@
-package com.deeme.tasks;
+package com.deeme.tasks.externalchat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,7 +15,7 @@ import net.miginfocom.swing.MigLayout;
 
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
-import com.deeme.types.gui.ChatProcessor;
+
 import java.awt.Toolkit;
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.events.EventHandler;
@@ -39,6 +39,12 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
     private JTextArea otherChatTextArea;
     private ArrayList<String> globalChat = new ArrayList<>();
     private ArrayList<String> otherChats = new ArrayList<>();
+
+    private ChatProcessor globalChatProcessor;
+    private ChatProcessor otherChatProcesssor;
+
+    private int lastGlobalSize = 0;
+    private int lastOtherSize = 0;
 
     public ExternalChat(PluginAPI api) {
         this(api, api.requireAPI(AuthAPI.class));
@@ -92,7 +98,19 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
 
     @Override
     public void onTickTask() {
-        // Anything to do here
+        try {
+            if (globalChatProcessor != null && lastGlobalSize != globalChat.size()) {
+                lastGlobalSize = globalChat.size();
+                globalChatProcessor.doInBackground();
+            }
+            if (otherChatProcesssor != null && lastOtherSize != otherChats.size()) {
+                lastGlobalSize = otherChats.size();
+                otherChatProcesssor.doInBackground();
+            }
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     @EventHandler
@@ -124,8 +142,11 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
         caretGlobal.setUpdatePolicy(1);
         DefaultCaret caretOthers = (DefaultCaret) this.otherChatTextArea.getCaret();
         caretOthers.setUpdatePolicy(1);
-        new ChatProcessor(this.globalChatTextArea, this.globalChat).execute();
-        new ChatProcessor(this.otherChatTextArea, this.otherChats).execute();
-        Popups.of("Chat", new Object[] { this.mainPanel }, -1).showAsync();
+        globalChatProcessor = new ChatProcessor(this.globalChatTextArea, this.globalChat);
+        otherChatProcesssor = new ChatProcessor(this.otherChatTextArea, this.otherChats);
+
+        globalChatProcessor.execute();
+        otherChatProcesssor.execute();
+        Popups.of("Chat", this.mainPanel).showAsync();
     }
 }
