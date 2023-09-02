@@ -108,7 +108,6 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
                 otherChatProcesssor.doInBackground();
             }
         } catch (Exception e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }

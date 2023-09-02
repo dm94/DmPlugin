@@ -9,9 +9,9 @@ import javax.swing.SwingWorker;
 public class ChatProcessor extends SwingWorker<List<String>, String> {
 
     private JTextArea globalChatTextArea;
-    private ArrayList<String> globalChat = new ArrayList<>();
+    private List<String> globalChat = new ArrayList<>();
 
-    public ChatProcessor(JTextArea globalChatTextArea, ArrayList<String> globalChat) {
+    public ChatProcessor(JTextArea globalChatTextArea, List<String> globalChat) {
         this.globalChatTextArea = globalChatTextArea;
         this.globalChat = globalChat;
     }
@@ -30,7 +30,7 @@ public class ChatProcessor extends SwingWorker<List<String>, String> {
         for (String s : globalChat) {
             buffer.append(s).append("\n");
         }
-        publish(new String[] { buffer.toString() });
+        publish(buffer.toString());
         return this.globalChat;
     }
 
