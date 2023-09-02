@@ -110,7 +110,7 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
                         + (Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 1.3D) + ", width :"
                         + (Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 3.0D) + ":"
                         + (Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 1.4D));
-        JButton clearBtn = new JButton("Clear");
+        JButton clearBtn = new JButton("Clear Chat");
         clearBtn.addActionListener(e -> {
             this.globalChat.clear();
             this.otherChats.clear();
@@ -118,7 +118,7 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
 
         input = new JTextField("");
 
-        JButton sendButton = new JButton("Send");
+        JButton sendButton = new JButton("Send a message to global chat");
         sendButton.addActionListener(e -> {
             addMessageToPendingList();
         });
@@ -128,7 +128,7 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
         this.mainPanel.add(tabbedPane, "span");
         this.mainPanel.add(clearBtn, "span");
         this.mainPanel.add(input, "span, grow");
-        this.mainPanel.add(sendButton);
+        this.mainPanel.add(sendButton, "grow");
     }
 
     private void addMessageToPendingList() {
