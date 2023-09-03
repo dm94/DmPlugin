@@ -3,6 +3,7 @@ package com.deeme.tasks.externalchat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Random;
 
 import javax.swing.JButton;
@@ -17,7 +18,6 @@ import net.miginfocom.swing.MigLayout;
 
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
-import com.github.manolo8.darkbot.utils.Time;
 
 import java.awt.Toolkit;
 import eu.darkbot.api.PluginAPI;
@@ -34,6 +34,7 @@ import eu.darkbot.api.managers.ChatAPI.MessageSentEvent;
 import eu.darkbot.api.utils.Inject;
 import eu.darkbot.util.Popups;
 
+import com.github.manolo8.darkbot.utils.Time;
 import static com.github.manolo8.darkbot.Main.API;
 
 @Feature(name = "ExternalChat", description = "Allows you to use the chat")
@@ -59,7 +60,7 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
     private int clickDelay = 2000;
     private Random rnd;
 
-    private ArrayList<String> pendingMessages = new ArrayList<>();
+    private LinkedList<String> pendingMessages = new LinkedList<>();
 
     protected static final int INPUT_WIDTH_OFFSET = 20;
     protected static final int INPUT_BOTTOM_OFFSET = 15;
@@ -142,7 +143,16 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
 
     @Override
     public void onTickTask() {
-        pendingMessages.forEach(this::sendMessage);
+
+        if (!pendingMessages.isEmpty()) {
+            if (openGui()) {
+                return;
+            }
+            sendMessage(pendingMessages.pollFirst());
+        }
+
+        closeGui();
+
         try {
             if (globalChatProcessor != null && lastGlobalSize != globalChat.size()) {
                 lastGlobalSize = globalChat.size();
@@ -210,29 +220,28 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
         }
     }
 
-    private boolean sendMessage(String message) {
+    private boolean openGui() {
         if (waitToClick() || chatGui == null) {
-            return false;
+            return true;
         }
         if (!chatGui.isVisible()) {
             nextClick = System.currentTimeMillis() + this.clickDelay;
             chatGui.setVisible(true);
-            return false;
+            return true;
         }
 
+        return false;
+    }
+
+    private void sendMessage(String message) {
         int inputWidth = (int) chatGui.getWidth() - (INPUT_WIDTH_OFFSET * 2);
         int xPoint = INPUT_WIDTH_OFFSET + rnd.nextInt(inputWidth);
         int yPoint = (int) chatGui.getHeight() - INPUT_BOTTOM_OFFSET - (rnd.nextInt(INPUT_HEIGHT));
         chatGui.click(xPoint, yPoint);
 
         Time.sleep(100);
-
         API.sendText(message);
         API.keyClick(Character.LINE_SEPARATOR);
-
-        closeGui();
-        pendingMessages.remove(message);
-
-        return true;
     }
+
 }
