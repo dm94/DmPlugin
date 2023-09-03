@@ -36,7 +36,7 @@ import eu.darkbot.util.Popups;
 
 import static com.github.manolo8.darkbot.Main.API;
 
-@Feature(name = "ExternalChat", description = "See the chat")
+@Feature(name = "ExternalChat", description = "Allows you to use the chat")
 public class ExternalChat implements Task, Listener, ExtraMenus {
 
     protected final PluginAPI api;
@@ -61,7 +61,7 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
 
     private ArrayList<String> pendingMessages = new ArrayList<>();
 
-    protected static final int INPUT_WIDTH_OFFSET = 19;
+    protected static final int INPUT_WIDTH_OFFSET = 20;
     protected static final int INPUT_BOTTOM_OFFSET = 15;
     protected static final int INPUT_HEIGHT = 15;
 
@@ -149,7 +149,7 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
                 globalChatProcessor.doInBackground();
             }
             if (otherChatProcesssor != null && lastOtherSize != otherChats.size()) {
-                lastGlobalSize = otherChats.size();
+                lastOtherSize = otherChats.size();
                 otherChatProcesssor.doInBackground();
             }
         } catch (Exception e) {
