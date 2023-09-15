@@ -310,6 +310,9 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         if (sConfig.autoCloak.autoCloakShip && !heroapi.isInvisible()
                 && lastTimeAttack < (System.currentTimeMillis()
                         - (sConfig.autoCloak.secondsOfWaiting * 1000))) {
+            if (sConfig.autoCloak.onlyPvpMaps && !heroapi.getMap().isPvp()) {
+                return;
+            }
             shipAttacker.useSelectableReadyWhenReady(Cpu.CL04K);
         }
     }
