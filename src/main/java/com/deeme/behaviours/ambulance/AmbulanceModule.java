@@ -5,6 +5,7 @@ import java.util.Collection;
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.game.entities.Player;
 import eu.darkbot.api.game.group.GroupMember;
+import eu.darkbot.api.game.items.Item;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem.Ability;
 import eu.darkbot.api.game.other.Lockable;
@@ -100,6 +101,11 @@ public class AmbulanceModule extends TemporalModule {
                 super.goBack();
                 return;
             }
+            if (!ableToUseAbility()) {
+                super.goBack();
+                return;
+            }
+
             if (abilityUsed) {
                 if (returnToTarget) {
                     selectOldTarget();
@@ -177,6 +183,16 @@ public class AmbulanceModule extends TemporalModule {
         } else {
             idMember = 0;
         }
+    }
+
+    private boolean ableToUseAbility() {
+        if (abilityToUse == null) {
+            return false;
+        }
+
+        Item ability = items.getItem(abilityToUse, ItemFlag.USABLE, ItemFlag.READY).orElse(null);
+
+        return ability != null;
     }
 
     private void useAbilityReadyWhenReady() {

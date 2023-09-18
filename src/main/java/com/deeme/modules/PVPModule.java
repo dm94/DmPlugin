@@ -219,6 +219,9 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         if (pvpConfig.autoCloak.autoCloakShip && !heroapi.isInvisible()
                 && lastTimeAttack < (System.currentTimeMillis()
                         - (pvpConfig.autoCloak.secondsOfWaiting * 1000))) {
+            if (pvpConfig.autoCloak.onlyPvpMaps && !heroapi.getMap().isPvp()) {
+                return;
+            }
             shipAttacker.useSelectableReadyWhenReady(Cpu.CL04K);
         }
     }

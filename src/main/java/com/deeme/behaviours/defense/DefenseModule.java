@@ -117,7 +117,9 @@ public class DefenseModule extends TemporalModule {
     private void timeOutCheck() {
         if (nextAttackCheck < System.currentTimeMillis()) {
             nextAttackCheck = System.currentTimeMillis() + 1000;
-            if (shipAttacker.getTarget() != null && heroapi.isAttacking(shipAttacker.getTarget())) {
+            if (shipAttacker.getTarget() != null && heroapi.isAttacking(shipAttacker.getTarget())
+                    && shipAttacker.getTarget().getLocationInfo()
+                            .distanceTo(heroapi) < defenseConfig.rangeForAttackedEnemy) {
                 timeOut = 0;
             } else {
                 timeOut++;
