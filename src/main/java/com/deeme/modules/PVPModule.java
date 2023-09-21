@@ -55,8 +55,6 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     protected final Collection<? extends Player> players;
 
     protected final ConfigSetting<Integer> workingMap;
-    protected final ConfigSetting<ShipMode> configOffensive;
-    protected final ConfigSetting<ShipMode> configRun;
 
     private boolean attackConfigLost = false;
     protected boolean firstAttack;
@@ -107,8 +105,6 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         this.bot = api.getAPI(BotAPI.class);
         this.pet = api.getAPI(PetAPI.class);
         this.workingMap = configApi.requireConfig("general.working_map");
-        this.configOffensive = configApi.requireConfig("general.offensive");
-        this.configRun = configApi.requireConfig("general.run");
 
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
         this.portals = entities.getPortals();
@@ -229,14 +225,14 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     private void rechargeShields() {
         if (pvpConfig.rechargeShields) {
             if (!isConfigAttackFull) {
-                heroapi.setMode(configOffensive.getValue());
+                heroapi.setAttackMode(null);
                 if ((heroapi.getHealth().getMaxShield() > 10000
                         && heroapi.getHealth().shieldPercent() > 0.9)
                         || heroapi.getHealth().getShield() >= heroapi.getHealth().getMaxShield()) {
                     isConfigAttackFull = true;
                 }
             } else if (!isCongigRunFull) {
-                heroapi.setMode(configRun.getValue());
+                heroapi.setRunMode();
                 if ((heroapi.getHealth().getMaxShield() > 10000
                         && heroapi.getHealth().shieldPercent() > 0.9)
                         || heroapi.getHealth().getShield() >= heroapi.getHealth().getMaxShield()) {
@@ -286,21 +282,20 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     private void setConfigToUse() {
         if (attackConfigLost || heroapi.getHealth().shieldPercent() < 0.1 && heroapi.getHealth().hpPercent() < 0.3) {
             attackConfigLost = true;
-            heroapi.setMode(configRun.getValue());
-            lastDistanceTarget = 1000;
+            heroapi.setRunMode();
         } else if (pvpConfig.useRunConfig && target != null) {
             double distance = heroapi.getLocationInfo().distanceTo(target);
             if (distance > 500 && distance > lastDistanceTarget && target.getSpeed() >= heroapi.getSpeed()) {
-                heroapi.setMode(configRun.getValue());
+                heroapi.setRunMode();
                 lastDistanceTarget = distance;
+                return;
             } else {
-                heroapi.setMode(configOffensive.getValue());
-                lastDistanceTarget = 1000;
+                heroapi.setAttackMode(null);
             }
         } else {
-            heroapi.setMode(configOffensive.getValue());
-            lastDistanceTarget = 1000;
+            heroapi.setAttackMode(null);
         }
+        lastDistanceTarget = 1500;
     }
 
     private boolean isUnderAttack() {
