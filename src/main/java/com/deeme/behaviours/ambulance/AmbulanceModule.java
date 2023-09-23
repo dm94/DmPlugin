@@ -38,6 +38,7 @@ public class AmbulanceModule extends TemporalModule {
 
     private boolean abilityUsed = false;
     private boolean returnToTarget = true;
+    private double healthToRepair = 1;
 
     private enum State {
         INIT("Init"),
@@ -55,12 +56,14 @@ public class AmbulanceModule extends TemporalModule {
         }
     }
 
-    public AmbulanceModule(PluginAPI api, int idMember, Ability abilityToUse, boolean returnToTarget) {
-        this(api, api.requireAPI(BotAPI.class), idMember, abilityToUse, returnToTarget);
+    public AmbulanceModule(PluginAPI api, int idMember, Ability abilityToUse, boolean returnToTarget,
+            double healthToRepair) {
+        this(api, api.requireAPI(BotAPI.class), idMember, abilityToUse, returnToTarget, healthToRepair);
     }
 
     @Inject
-    public AmbulanceModule(PluginAPI api, BotAPI bot, int idMember, Ability abilityToUse, boolean returnToTarget) {
+    public AmbulanceModule(PluginAPI api, BotAPI bot, int idMember, Ability abilityToUse, boolean returnToTarget,
+            double healthToRepair) {
         super(bot);
         this.api = api;
         this.movement = api.getAPI(MovementAPI.class);
@@ -77,6 +80,7 @@ public class AmbulanceModule extends TemporalModule {
         this.maxModuleTime = System.currentTimeMillis() + 60000;
         this.returnToTarget = returnToTarget;
         this.abilityUsed = false;
+        this.healthToRepair = healthToRepair;
     }
 
     @Override
@@ -102,6 +106,11 @@ public class AmbulanceModule extends TemporalModule {
                 return;
             }
             if (!ableToUseAbility()) {
+                super.goBack();
+                return;
+            }
+
+            if (!stillNeedHelp()) {
                 super.goBack();
                 return;
             }
@@ -175,7 +184,7 @@ public class AmbulanceModule extends TemporalModule {
                 .findFirst().orElse(null);
     }
 
-    public void goToMemberAttacked() {
+    private void goToMemberAttacked() {
         GroupMember member = getMember();
         if (member != null && !member.isDead()) {
             this.currentStatus = State.TRAVEL_TO_MEMBER;
@@ -183,6 +192,21 @@ public class AmbulanceModule extends TemporalModule {
         } else {
             idMember = 0;
         }
+    }
+
+    private boolean stillNeedHelp() {
+        GroupMember member = getMember();
+        if (member == null || member.isDead() || member.getMapId() != heroapi.getMap().getId()) {
+            return false;
+        }
+
+        if (abilityToUse == Ability.AEGIS_SHIELD_REPAIR) {
+            return member.getMemberInfo().getMaxShield() > 1000
+                    && member.getMemberInfo().shieldPercent() < healthToRepair;
+        }
+
+        return member.getMemberInfo().getHp() > 1
+                && member.getMemberInfo().hpPercent() < healthToRepair;
     }
 
     private boolean ableToUseAbility() {

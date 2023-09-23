@@ -81,7 +81,7 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
         if (ability != null && botApi.getModule().getClass() != AmbulanceModule.class) {
             botApi.setModule(
                     new AmbulanceModule(api, memberToHelp, ability,
-                            config.returnToTarget));
+                            config.returnToTarget, config.healthToRepair));
         }
     }
 
