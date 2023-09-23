@@ -60,6 +60,10 @@ public class Utils {
     }
 
     public static void showDonateDialog() {
+        if (Backpage.isDonor()) {
+            return;
+        }
+
         Preferences prefs = Preferences.userNodeForPackage(Backpage.class);
 
         if (prefs.getLong("donateDialog", 0) <= System.currentTimeMillis()) {
