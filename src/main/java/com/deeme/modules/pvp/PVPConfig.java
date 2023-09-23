@@ -1,6 +1,5 @@
 package com.deeme.modules.pvp;
 
-import com.deeme.types.config.AutoCloak;
 import com.deeme.types.config.ExtraKeyConditions;
 
 import com.github.manolo8.darkbot.config.Config.Loot.Sab;
@@ -55,9 +54,6 @@ public class PVPConfig {
 
     @Option("general.pem")
     public ExtraKeyConditions PEM = new ExtraKeyConditions();
-
-    @Option("general.auto_cloak")
-    public AutoCloak autoCloak = new AutoCloak();
 
     @Option("anti_push")
     public AntiPush antiPush = new AntiPush();

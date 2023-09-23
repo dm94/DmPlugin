@@ -21,7 +21,6 @@ import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.entities.Player;
 import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.entities.Ship;
-import eu.darkbot.api.game.items.SelectableItem.Cpu;
 import eu.darkbot.api.game.items.SelectableItem.Formation;
 import eu.darkbot.api.game.items.SelectableItem.Special;
 import eu.darkbot.api.game.other.GameMap;
@@ -238,8 +237,6 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                             collectorModule.tryCollectNearestBox();
                         }
                     }
-
-                    autoCloack();
                 } else {
                     sentinel = null;
                 }
@@ -304,17 +301,6 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
             lastSentinelLocation = null;
         }
         return false;
-    }
-
-    private void autoCloack() {
-        if (sConfig.autoCloak.autoCloakShip && !heroapi.isInvisible()
-                && lastTimeAttack < (System.currentTimeMillis()
-                        - (sConfig.autoCloak.secondsOfWaiting * 1000))) {
-            if (sConfig.autoCloak.onlyPvpMaps && !heroapi.getMap().isPvp()) {
-                return;
-            }
-            shipAttacker.useSelectableReadyWhenReady(Cpu.CL04K);
-        }
     }
 
     private void moveToMaster() {

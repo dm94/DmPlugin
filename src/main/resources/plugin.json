@@ -30,7 +30,8 @@
     "com.deeme.behaviours.bestformation.AutoBestFormation",
     "com.deeme.behaviours.bestammo.AutoBestAmmoDummy",
     "com.deeme.behaviours.bestrocketlauncher.AutoBestRocketLauncherDummy",
-    "com.deeme.behaviours.pvplog.PVPLogDummy"
+    "com.deeme.behaviours.pvplog.PVPLogDummy",
+    "com.deeme.behaviours.autocloack.AutoCloack"
   ],
   "donation": "https://ko-fi.com/deeme",
   "discord": "https://discord.gg/GPRTRRZJPw",

@@ -8,7 +8,6 @@ import com.deeme.types.backpage.Utils;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
-import eu.darkbot.api.config.types.ShipMode;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Module;
 import eu.darkbot.api.extensions.Feature;
@@ -16,7 +15,6 @@ import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.entities.Player;
 import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.entities.Ship;
-import eu.darkbot.api.game.items.SelectableItem.Cpu;
 import eu.darkbot.api.game.items.SelectableItem.Special;
 import eu.darkbot.api.game.other.GameMap;
 import eu.darkbot.api.managers.AuthAPI;
@@ -167,7 +165,6 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
                 attackConfigLost = false;
                 target = null;
                 shipAttacker.resetDefenseData();
-                autoCloakLogic();
                 rechargeShields();
                 roamingLogic();
             }
@@ -208,17 +205,6 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
                     target = null;
                 }
             }
-        }
-    }
-
-    private void autoCloakLogic() {
-        if (pvpConfig.autoCloak.autoCloakShip && !heroapi.isInvisible()
-                && lastTimeAttack < (System.currentTimeMillis()
-                        - (pvpConfig.autoCloak.secondsOfWaiting * 1000))) {
-            if (pvpConfig.autoCloak.onlyPvpMaps && !heroapi.getMap().isPvp()) {
-                return;
-            }
-            shipAttacker.useSelectableReadyWhenReady(Cpu.CL04K);
         }
     }
 
