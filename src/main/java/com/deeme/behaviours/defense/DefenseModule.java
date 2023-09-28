@@ -164,7 +164,8 @@ public class DefenseModule extends TemporalModule {
         if (attackConfigLost) {
             heroapi.setMode(configRun.getValue());
         } else {
-            if (safetyFinder.state() != Escaping.ENEMY) {
+            if (safetyFinder.state() != Escaping.ENEMY || (defenseConfig.movementMode != MovementMode.GROUPVSSAFETY
+                    && defenseConfig.movementMode != MovementMode.VSSAFETY)) {
                 heroapi.setMode(configOffensive.getValue());
             } else {
                 heroapi.setMode(configRun.getValue());
