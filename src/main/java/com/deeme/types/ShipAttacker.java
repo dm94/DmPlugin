@@ -1,6 +1,7 @@
 package com.deeme.types;
 
 import com.deeme.behaviours.defense.DefenseConfig;
+import com.deeme.modules.sentinel.Humanizer;
 import com.deeme.types.config.ExtraKeyConditions;
 import com.deeme.types.config.ExtraKeyConditionsSelectable;
 import com.deeme.types.suppliers.DefenseLaserSupplier;
@@ -68,8 +69,15 @@ public class ShipAttacker {
     protected int fixedTimes;
     protected Character lastShot;
 
+    private Humanizer humanizerConfig;
+
     public ShipAttacker(Main main) {
         this(main.pluginAPI.getAPI(PluginAPI.class), main.config.LOOT.SAB, main.config.LOOT.RSB.ENABLED);
+    }
+
+    public ShipAttacker(PluginAPI api, Sab sab, boolean rsbEnabled, Humanizer humanizerConfig) {
+        this(api, sab, rsbEnabled);
+        this.humanizerConfig = humanizerConfig;
     }
 
     public ShipAttacker(PluginAPI api, Sab sab, boolean rsbEnabled) {
@@ -85,6 +93,8 @@ public class ShipAttacker {
         this.rnd = new Random();
         this.items = api.getAPI(HeroItemsAPI.class);
         this.laserSupplier = new DefenseLaserSupplier(api, heroapi, items, sab, rsbEnabled);
+        this.humanizerConfig = new Humanizer();
+        this.humanizerConfig.maxRandomTime = 0;
 
         this.repairHpRange = configAPI.requireConfig("general.safety.repair_hp_range");
         this.ammoKey = configAPI.requireConfig("loot.ammo_key");
@@ -95,6 +105,7 @@ public class ShipAttacker {
     public ShipAttacker(PluginAPI api, DefenseConfig defense) {
         this(api, defense.SAB, defense.useRSB);
         this.defense = defense;
+        this.humanizerConfig = defense.humanizer;
     }
 
     public String getStatus() {
@@ -109,9 +120,12 @@ public class ShipAttacker {
         }
     }
 
-    public void tryLockTarget() {
+    private void tryLockTarget() {
         if (heroapi.getTarget() == target && firstAttack) {
             clickDelay = System.currentTimeMillis();
+            if (humanizerConfig.addRandomTime) {
+                clickDelay = System.currentTimeMillis() + (rnd.nextInt(humanizerConfig.maxRandomTime) * 1000);
+            }
         }
 
         fixedTimes = 0;
@@ -124,7 +138,7 @@ public class ShipAttacker {
                 clickDelay = System.currentTimeMillis();
             }
         } else {
-            movement.moveTo(target);
+            movement.moveTo(target.getDestination().orElse(target.getLocationInfo()));
         }
     }
 
@@ -165,7 +179,7 @@ public class ShipAttacker {
         }
     }
 
-    private void sendAttack(long minWait, long bugTime, boolean normal) {
+    protected void sendAttack(long minWait, long bugTime, boolean normal) {
         laserTime = System.currentTimeMillis() + minWait;
         isAttacking = Math.max(isAttacking, laserTime + bugTime);
         if (normal) {

@@ -141,7 +141,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         if (api == null || pvpConfig == null)
             return;
 
-        this.shipAttacker = new ShipAttacker(api, pvpConfig.SAB, pvpConfig.useRSB);
+        this.shipAttacker = new ShipAttacker(api, pvpConfig.SAB, pvpConfig.useRSB, pvpConfig.humanizer);
         this.antiPushLogic = new AntiPushLogic(this.heroapi, api.getAPI(StatsAPI.class), this.pvpConfig.antiPush);
     }
 

@@ -4,6 +4,7 @@ import java.util.EnumSet;
 import java.util.Set;
 
 import com.deeme.modules.pvp.AntiPush;
+import com.deeme.modules.sentinel.Humanizer;
 import com.deeme.types.config.ExtraKeyConditions;
 import com.deeme.types.config.ExtraKeyConditionsSelectable;
 import com.github.manolo8.darkbot.config.Config.Loot.Sab;
@@ -90,4 +91,7 @@ public class DefenseConfig {
 
     @Option("anti_push")
     public AntiPush antiPush = new AntiPush();
+
+    @Option("humanizer")
+    public Humanizer humanizer = new Humanizer();
 }

@@ -1,5 +1,6 @@
 package com.deeme.modules.pvp;
 
+import com.deeme.modules.sentinel.Humanizer;
 import com.deeme.types.config.ExtraKeyConditions;
 
 import com.github.manolo8.darkbot.config.Config.Loot.Sab;
@@ -57,4 +58,7 @@ public class PVPConfig {
 
     @Option("anti_push")
     public AntiPush antiPush = new AntiPush();
+
+    @Option("humanizer")
+    public Humanizer humanizer = new Humanizer();
 }
