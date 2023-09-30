@@ -1,5 +1,6 @@
 package com.deeme.modules;
 
+import com.deeme.modules.pvp.AntiPushLogic;
 import com.deeme.modules.pvp.PVPConfig;
 import com.deeme.types.SharedFunctions;
 import com.deeme.types.ShipAttacker;
@@ -26,15 +27,14 @@ import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.MovementAPI;
 import eu.darkbot.api.managers.PetAPI;
 import eu.darkbot.api.managers.StarSystemAPI;
+import eu.darkbot.api.managers.StatsAPI;
 import eu.darkbot.api.utils.Inject;
 import eu.darkbot.shared.modules.CollectorModule;
 import eu.darkbot.shared.modules.MapModule;
 import eu.darkbot.shared.utils.SafetyFinder;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 
 @Feature(name = "PVP Module", description = "It is limited so as not to spoil the game")
 public class PVPModule implements Module, Configurable<PVPConfig> {
@@ -74,8 +74,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     private long nextAttackCheck = 0;
     private int timeOut = 0;
 
-    private ArrayList<Integer> playersKilled = new ArrayList<>();
-    private int lastPlayerId = 0;
+    private AntiPushLogic antiPushLogic;
 
     public PVPModule(PluginAPI api) {
         this(api, api.requireAPI(HeroAPI.class),
@@ -143,6 +142,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
             return;
 
         this.shipAttacker = new ShipAttacker(api, pvpConfig.SAB, pvpConfig.useRSB);
+        this.antiPushLogic = new AntiPushLogic(this.heroapi, api.getAPI(StatsAPI.class), this.pvpConfig.antiPush);
     }
 
     @Override
@@ -150,18 +150,8 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         pet.setEnabled(true);
         if (!pvpConfig.move || (safety.tick() && checkMap())) {
             if (hasTarget()) {
-                if (target.getId() != lastPlayerId) {
-                    playersKilled.add(lastPlayerId);
-                }
-                if (target.getHealth().getHp() <= 30000) {
-                    lastPlayerId = target.getId();
-                }
                 attackLogic();
             } else {
-                if (0 != lastPlayerId) {
-                    playersKilled.add(lastPlayerId);
-                    lastPlayerId = 0;
-                }
                 attackConfigLost = false;
                 target = null;
                 shipAttacker.resetDefenseData();
@@ -169,6 +159,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
                 roamingLogic();
             }
         }
+        antiPushLogic.registerTarget(target);
     }
 
     private void attackLogic() {
@@ -258,7 +249,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         }
 
         if (!isUnderAttack()) {
-            target = shipAttacker.getEnemy(pvpConfig.rangeForEnemies, getIgnoredPlayers());
+            target = shipAttacker.getEnemy(pvpConfig.rangeForEnemies, antiPushLogic.getIgnoredPlayers());
             shipAttacker.setTarget(target);
         }
 
@@ -296,20 +287,5 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         target = null;
 
         return false;
-    }
-
-    private ArrayList<Integer> getIgnoredPlayers() {
-        ArrayList<Integer> playersToIgnore = new ArrayList<>();
-
-        if (pvpConfig.antiPush.enable) {
-            playersKilled.forEach(id -> {
-                if (!playersToIgnore.contains(id)
-                        && Collections.frequency(playersKilled, id) >= pvpConfig.antiPush.maxKills) {
-                    playersToIgnore.add(id);
-                }
-            });
-        }
-
-        return playersToIgnore;
     }
 }
