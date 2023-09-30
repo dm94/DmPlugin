@@ -165,7 +165,7 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
             return false;
         }
 
-        target = SharedFunctions.getAttacker(heroapi, players, heroapi);
+        target = SharedFunctions.getAttacker(heroapi, players, heroapi, !defenseConfig.defendEvenAreNotEnemies);
         if (target != null && target.isValid()) {
             if (!getIgnoredPlayers().contains(target.getId())) {
                 return true;
@@ -185,7 +185,7 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
                     }
                 }
 
-                Ship tar = SharedFunctions.getAttacker(ship, players, heroapi);
+                Ship tar = SharedFunctions.getAttacker(ship, players, heroapi, !defenseConfig.defendEvenAreNotEnemies);
                 if (tar != null && tar.isValid()) {
                     return tar;
                 }

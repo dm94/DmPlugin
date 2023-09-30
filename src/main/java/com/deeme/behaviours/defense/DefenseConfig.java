@@ -30,6 +30,9 @@ public class DefenseConfig {
     @Option("defense.help_attack")
     public boolean helpAttack = true;
 
+    @Option("defense.defend_even_are_not_enemies")
+    public boolean defendEvenAreNotEnemies = false;
+
     @Option("defense.max_time_out")
     @Number(min = 0, max = 180, step = 1)
     public int maxSecondsTimeOut = 10;
