@@ -157,10 +157,9 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
         }
 
         target = SharedFunctions.getAttacker(heroapi, players, heroapi, !defenseConfig.defendEvenAreNotEnemies);
-        if (target != null && target.isValid() && heroapi.distanceTo(target) <= defenseConfig.rangeForAttackedEnemy) {
-            if (!this.antiPushLogic.getIgnoredPlayers().contains(target.getId())) {
-                return true;
-            }
+        if (target != null && target.isValid() && heroapi.distanceTo(target) <= defenseConfig.rangeForAttackedEnemy
+                && !this.antiPushLogic.getIgnoredPlayers().contains(target.getId())) {
+            return true;
         }
 
         target = null;
