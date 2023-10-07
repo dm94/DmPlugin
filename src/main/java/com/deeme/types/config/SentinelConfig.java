@@ -1,6 +1,7 @@
 package com.deeme.types.config;
 
 import com.deeme.modules.sentinel.Humanizer;
+import com.deemetool.general.movement.MovementConfig;
 import com.github.manolo8.darkbot.config.PlayerTag;
 import com.github.manolo8.darkbot.config.types.Tag;
 import com.github.manolo8.darkbot.config.types.TagDefault;
@@ -43,6 +44,9 @@ public class SentinelConfig {
 
     @Option("sentinel.aggressive_follow")
     public boolean aggressiveFollow = false;
+
+    @Option("extra_movement_conditions")
+    public MovementConfig movementConfig = new MovementConfig();
 
     @Option("sentinel.auto_attack")
     public AutoAttack autoAttack = new AutoAttack();

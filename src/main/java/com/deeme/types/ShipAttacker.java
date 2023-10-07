@@ -23,7 +23,6 @@ import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.game.items.SelectableItem.Formation;
 import eu.darkbot.api.game.items.SelectableItem.Laser;
-import eu.darkbot.api.game.other.Location;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
@@ -214,22 +213,6 @@ public class ShipAttacker {
         return defaultAmmo;
     }
 
-    public void vsMove() {
-        if (target != null && target.isValid()) {
-            double distance = heroapi.getLocationInfo().distanceTo(target);
-            Location targetLoc = target.getLocationInfo().destinationInTime(500);
-            if (distance > 600) {
-                if (movement.canMove(targetLoc)) {
-                    movement.moveTo(targetLoc);
-                } else {
-                    resetDefenseData();
-                }
-            } else {
-                movement.moveTo(Location.of(targetLoc, rnd.nextInt(360), distance));
-            }
-        }
-    }
-
     public boolean useKeyWithConditions(ExtraKeyConditions extra, SelectableItem selectableItem) {
         if (extra.enable) {
             if (selectableItem == null && extra.key != null) {
@@ -294,16 +277,6 @@ public class ShipAttacker {
         if (member != null) {
             movement.moveTo(member.getLocation());
         }
-    }
-
-    public GroupMember getClosestMember() {
-        if (group.hasGroup()) {
-            return group.getMembers().stream()
-                    .filter(member -> !member.isDead() && member.getMapId() == heroapi.getMap().getId())
-                    .min(Comparator.<GroupMember>comparingDouble(m -> m.getLocation().distanceTo(heroapi)))
-                    .orElse(null);
-        }
-        return null;
     }
 
     public void setMode(ShipMode config, Formation formation) {

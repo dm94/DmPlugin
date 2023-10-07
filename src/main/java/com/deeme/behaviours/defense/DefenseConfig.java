@@ -7,6 +7,7 @@ import com.deeme.modules.pvp.AntiPush;
 import com.deeme.modules.sentinel.Humanizer;
 import com.deeme.types.config.ExtraKeyConditions;
 import com.deeme.types.config.ExtraKeyConditionsSelectable;
+import com.deemetool.general.movement.MovementConfig;
 import com.github.manolo8.darkbot.config.Config.Loot.Sab;
 
 import eu.darkbot.api.config.annotations.Configuration;
@@ -42,9 +43,8 @@ public class DefenseConfig {
     @Number(min = 1000, max = 4000, step = 100)
     public int rangeForAttackedEnemy = 1500;
 
-    @Option("defense.movement_mode")
-    @Dropdown
-    public MovementMode movementMode = MovementMode.VSSAFETY;
+    @Option("extra_movement_conditions")
+    public MovementConfig movementConfig = new MovementConfig();
 
     @Option("defense.ignore_enemies")
     public boolean ignoreEnemies = true;

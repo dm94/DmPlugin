@@ -5,6 +5,7 @@ import com.deeme.types.ShipAttacker;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 import com.deeme.types.config.SentinelConfig;
+import com.deemetool.general.movement.ExtraMovementLogic;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.Config;
 
@@ -75,6 +76,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
     protected Collection<? extends Npc> npcs;
 
     private SentinelConfig sConfig;
+    private ExtraMovementLogic extraMovementLogic;
     private Player sentinel;
     private Main main;
     private SafetyFinder safety;
@@ -173,6 +175,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         }
 
         this.shipAttacker = new ShipAttacker(api, sabSettings.getValue(), rsbEnabled.getValue(), sConfig.humanizer);
+        this.extraMovementLogic = new ExtraMovementLogic(api, heroapi, movement, sConfig.movementConfig);
     }
 
     @Override
@@ -222,7 +225,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                         }
                     } else {
                         shipAttacker.tryAttackOrFix();
-                        shipAttacker.vsMove();
+                        extraMovementLogic.tick();
                         useSpecialItems();
                     }
 
