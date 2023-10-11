@@ -17,6 +17,7 @@ import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.entities.Ship;
+import eu.darkbot.api.game.enums.EntityEffect;
 import eu.darkbot.api.game.group.GroupMember;
 import eu.darkbot.api.game.items.Item;
 import eu.darkbot.api.game.items.ItemCategory;
@@ -214,7 +215,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     }
 
     private Ability getDamageAbility() {
-        if (!shouldFocusDamage()) {
+        if (!shouldFocusDamage() || hasISH()) {
             return null;
         }
 
@@ -227,6 +228,12 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
         }
 
         return getAbilityAvailableFromList(damageAbilities);
+    }
+
+    private boolean hasISH() {
+        Lockable target = heroapi.getLocalTarget();
+        return target != null && target.isValid() && (target.hasEffect(EntityEffect.ISH)
+                || target.hasEffect(EntityEffect.NPC_ISH) || target.hasEffect(EntityEffect.PET_SPAWN));
     }
 
     private boolean shouldFocusDamage() {

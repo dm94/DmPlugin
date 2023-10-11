@@ -13,6 +13,7 @@ import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.game.entities.Npc;
+import eu.darkbot.api.game.enums.EntityEffect;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.game.items.SelectableItem.Rocket;
@@ -92,7 +93,7 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
     }
 
     private Rocket getBestRocketPVP(Lockable target) {
-        if (config.useICRorDCR && shouldFocusSpeed(target)) {
+        if (config.useICRorDCR && !hasISH() && shouldFocusSpeed(target)) {
             if (isAvailable(Rocket.R_IC3)) {
                 return Rocket.R_IC3;
             } else if (isAvailable(Rocket.DCR_250)) {
@@ -114,6 +115,12 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
         return null;
     }
 
+    private boolean hasISH() {
+        Lockable target = heroapi.getLocalTarget();
+        return target != null && target.isValid() && (target.hasEffect(EntityEffect.ISH)
+                || target.hasEffect(EntityEffect.NPC_ISH) || target.hasEffect(EntityEffect.PET_SPAWN));
+    }
+
     private boolean shouldFocusSpeed(Lockable target) {
         double distance = heroapi.getLocationInfo().getCurrent().distanceTo(target.getLocationInfo());
         double speed = target instanceof Movable ? ((Movable) target).getSpeed() : 0;
@@ -124,6 +131,10 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
     }
 
     private boolean shouldUsePLD(Lockable target) {
+        if (hasISH()) {
+            return false;
+        }
+
         return target instanceof Movable && ((Movable) target).isAiming(heroapi)
                 && heroapi.getHealth().hpPercent() < 0.5;
     }
