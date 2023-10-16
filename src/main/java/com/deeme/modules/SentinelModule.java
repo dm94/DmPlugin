@@ -5,6 +5,7 @@ import com.deeme.types.ShipAttacker;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 import com.deeme.types.config.SentinelConfig;
+import com.deemetool.general.movement.ExtraMovementLogic;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.Config;
 
@@ -21,7 +22,6 @@ import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.entities.Player;
 import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.entities.Ship;
-import eu.darkbot.api.game.items.SelectableItem.Cpu;
 import eu.darkbot.api.game.items.SelectableItem.Formation;
 import eu.darkbot.api.game.items.SelectableItem.Special;
 import eu.darkbot.api.game.other.GameMap;
@@ -47,7 +47,6 @@ import eu.darkbot.shared.utils.SafetyFinder;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Random;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -77,6 +76,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
     protected Collection<? extends Npc> npcs;
 
     private SentinelConfig sConfig;
+    private ExtraMovementLogic extraMovementLogic;
     private Player sentinel;
     private Main main;
     private SafetyFinder safety;
@@ -94,7 +94,6 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
     protected long randomWaitTime = 0;
 
     protected Location lastSentinelLocation = null;
-    private Random rnd;
 
     private JLabel label = new JLabel("<html><b>Sentinel Module</b> <br>" +
             "It's important that the main ship is in a group <br>" +
@@ -120,6 +119,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
     @Override
     public void setConfig(ConfigSetting<SentinelConfig> arg0) {
         this.sConfig = arg0.getValue();
+        setup();
     }
 
     public SentinelModule(Main main, PluginAPI api) {
@@ -166,8 +166,16 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         this.rsbEnabled = configApi.requireConfig("loot.rsb.enabled");
         this.sabSettings = configApi.requireConfig("loot.sab");
 
-        this.shipAttacker = new ShipAttacker(api, sabSettings.getValue(), rsbEnabled.getValue());
-        this.rnd = new Random();
+        setup();
+    }
+
+    private void setup() {
+        if (api == null || sConfig == null) {
+            return;
+        }
+
+        this.shipAttacker = new ShipAttacker(api, sabSettings.getValue(), rsbEnabled.getValue(), sConfig.humanizer);
+        this.extraMovementLogic = new ExtraMovementLogic(api, heroapi, movement, sConfig.movementConfig);
     }
 
     @Override
@@ -217,7 +225,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                         }
                     } else {
                         shipAttacker.tryAttackOrFix();
-                        shipAttacker.vsMove();
+                        extraMovementLogic.tick();
                         useSpecialItems();
                     }
 
@@ -226,7 +234,6 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                         moveToMaster();
                     }
                 } else if (sentinel.isValid()) {
-                    addRandomTime();
                     currentStatus = State.FOLLOWING_MASTER;
                     setMode(configRoam.getValue());
                     if (heroapi.distanceTo(sentinel.getLocationInfo().getCurrent()) > sConfig.rangeToLider) {
@@ -238,8 +245,6 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                             collectorModule.tryCollectNearestBox();
                         }
                     }
-
-                    autoCloack();
                 } else {
                     sentinel = null;
                 }
@@ -272,12 +277,6 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         }
     }
 
-    private void addRandomTime() {
-        if (sConfig.humanizer.addRandomTime) {
-            randomWaitTime = System.currentTimeMillis() + (rnd.nextInt(sConfig.humanizer.maxRandomTime) * 1000);
-        }
-    }
-
     private void useSpecialItems() {
         shipAttacker.useKeyWithConditions(sConfig.specialItems.ish, Special.ISH_01);
         shipAttacker.useKeyWithConditions(sConfig.specialItems.smb, Special.SMB_01);
@@ -304,17 +303,6 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
             lastSentinelLocation = null;
         }
         return false;
-    }
-
-    private void autoCloack() {
-        if (sConfig.autoCloak.autoCloakShip && !heroapi.isInvisible()
-                && lastTimeAttack < (System.currentTimeMillis()
-                        - (sConfig.autoCloak.secondsOfWaiting * 1000))) {
-            if (sConfig.autoCloak.onlyPvpMaps && !heroapi.getMap().isPvp()) {
-                return;
-            }
-            shipAttacker.useSelectableReadyWhenReady(Cpu.CL04K);
-        }
     }
 
     private void moveToMaster() {

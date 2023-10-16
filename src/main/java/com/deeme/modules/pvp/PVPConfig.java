@@ -1,8 +1,8 @@
 package com.deeme.modules.pvp;
 
-import com.deeme.types.config.AutoCloak;
+import com.deeme.modules.sentinel.Humanizer;
 import com.deeme.types.config.ExtraKeyConditions;
-
+import com.deemetool.general.movement.MovementConfig;
 import com.github.manolo8.darkbot.config.Config.Loot.Sab;
 
 import eu.darkbot.api.config.annotations.Configuration;
@@ -41,6 +41,9 @@ public class PVPConfig {
     @Option("general.rsb")
     public boolean useRSB = false;
 
+    @Option("extra_movement_conditions")
+    public MovementConfig movementConfig = new MovementConfig();
+
     @Option("config.loot.sab")
     public Sab SAB = new Sab();
 
@@ -56,9 +59,9 @@ public class PVPConfig {
     @Option("general.pem")
     public ExtraKeyConditions PEM = new ExtraKeyConditions();
 
-    @Option("general.auto_cloak")
-    public AutoCloak autoCloak = new AutoCloak();
-
     @Option("anti_push")
     public AntiPush antiPush = new AntiPush();
+
+    @Option("humanizer")
+    public Humanizer humanizer = new Humanizer();
 }

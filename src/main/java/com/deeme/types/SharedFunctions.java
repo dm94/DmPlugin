@@ -5,7 +5,6 @@ import com.github.manolo8.darkbot.core.entities.Pet;
 
 import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.config.types.NpcInfo;
-import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.entities.Ship;
 import eu.darkbot.api.game.group.GroupMember;
 import eu.darkbot.api.game.items.ItemCategory;
@@ -34,13 +33,19 @@ public class SharedFunctions {
     }
 
     public static Ship getAttacker(Ship assaulted, Collection<? extends Ship> allShips, HeroAPI hero) {
+        return getAttacker(assaulted, allShips, hero, true);
+    }
+
+    public static Ship getAttacker(Ship assaulted, Collection<? extends Ship> allShips, HeroAPI hero,
+            boolean onlyEnemies) {
         if (allShips == null || allShips.isEmpty()) {
             return null;
         }
 
         return allShips.stream()
                 .filter(Ship::isValid)
-                .filter(s -> (s instanceof Npc || s.getEntityInfo().isEnemy()) && s.getId() != hero.getId())
+                .filter(s -> s.getId() != hero.getId())
+                .filter(s -> s.getEntityInfo().isEnemy() || !onlyEnemies)
                 .filter(s -> !(s instanceof Pet))
                 .filter(s -> s.isAttacking(assaulted))
                 .sorted(Comparator.comparingDouble(s -> s.getLocationInfo().distanceTo(hero)))

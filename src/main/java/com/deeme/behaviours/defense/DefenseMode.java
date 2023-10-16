@@ -2,6 +2,7 @@ package com.deeme.behaviours.defense;
 
 import com.deeme.modules.PVPModule;
 import com.deeme.modules.SentinelModule;
+import com.deeme.modules.pvp.AntiPushLogic;
 import com.deeme.types.SharedFunctions;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
@@ -24,14 +25,13 @@ import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.GroupAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.MovementAPI;
+import eu.darkbot.api.managers.StatsAPI;
 import eu.darkbot.api.utils.Inject;
 import eu.darkbot.shared.modules.MapModule;
 import eu.darkbot.shared.modules.TemporalModule;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,11 +43,11 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
     protected final GroupAPI group;
     protected final ConfigAPI configApi;
     protected final BotAPI botApi;
+    protected final StatsAPI stats;
     protected final Collection<? extends Player> players;
 
-    private ArrayList<Integer> playersKilled = new ArrayList<>();
-    private int lastPlayerId = 0;
     private DefenseConfig defenseConfig;
+    private AntiPushLogic antiPushLogic;
     private Ship target = null;
 
     public DefenseMode(PluginAPI api) {
@@ -71,14 +71,25 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
         this.heroapi = hero;
         this.movement = movement;
         this.configApi = configApi;
+        this.stats = api.getAPI(StatsAPI.class);
         this.botApi = api.getAPI(BotAPI.class);
         this.group = api.getAPI(GroupAPI.class);
         this.players = entities.getPlayers();
+        setup();
     }
 
     @Override
     public void setConfig(ConfigSetting<DefenseConfig> arg0) {
         this.defenseConfig = arg0.getValue();
+        setup();
+    }
+
+    private void setup() {
+        if (api == null || defenseConfig == null) {
+            return;
+        }
+
+        this.antiPushLogic = new AntiPushLogic(heroapi, stats, this.defenseConfig.antiPush);
     }
 
     @Override
@@ -94,27 +105,7 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
                 && isUnderAttack()) {
             botApi.setModule(new DefenseModule(api, defenseConfig, target));
         }
-        registerTarget();
-    }
-
-    private void registerTarget() {
-        if (!defenseConfig.antiPush.enable) {
-            return;
-        }
-
-        if (target != null && target.isValid()) {
-            if (target.getId() != lastPlayerId) {
-                playersKilled.add(lastPlayerId);
-            }
-            if (target.getHealth().getHp() <= 30000) {
-                lastPlayerId = target.getId();
-            }
-        } else {
-            if (0 != lastPlayerId) {
-                playersKilled.add(lastPlayerId);
-                lastPlayerId = 0;
-            }
-        }
+        this.antiPushLogic.registerTarget(target);
     }
 
     private boolean inGroupAttacked(int id) {
@@ -165,13 +156,13 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
             return false;
         }
 
-        target = SharedFunctions.getAttacker(heroapi, players, heroapi);
-        if (target != null && target.isValid()) {
-            if (!getIgnoredPlayers().contains(target.getId())) {
-                return true;
-            }
-            target = null;
+        target = SharedFunctions.getAttacker(heroapi, players, heroapi, !defenseConfig.defendEvenAreNotEnemies);
+        if (target != null && target.isValid() && heroapi.distanceTo(target) <= defenseConfig.rangeForAttackedEnemy
+                && !this.antiPushLogic.getIgnoredPlayers().contains(target.getId())) {
+            return true;
         }
+
+        target = null;
         return false;
     }
 
@@ -185,7 +176,7 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
                     }
                 }
 
-                Ship tar = SharedFunctions.getAttacker(ship, players, heroapi);
+                Ship tar = SharedFunctions.getAttacker(ship, players, heroapi, !defenseConfig.defendEvenAreNotEnemies);
                 if (tar != null && tar.isValid()) {
                     return tar;
                 }
@@ -203,20 +194,5 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
         if (member != null) {
             movement.moveTo(member.getLocation());
         }
-    }
-
-    private ArrayList<Integer> getIgnoredPlayers() {
-        ArrayList<Integer> playersToIgnore = new ArrayList<>();
-
-        if (defenseConfig.antiPush.enable) {
-            playersKilled.forEach(id -> {
-                if (!playersToIgnore.contains(id)
-                        && Collections.frequency(playersKilled, id) >= defenseConfig.antiPush.maxKills) {
-                    playersToIgnore.add(id);
-                }
-            });
-        }
-
-        return playersToIgnore;
     }
 }

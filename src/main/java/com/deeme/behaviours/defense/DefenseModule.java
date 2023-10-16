@@ -3,6 +3,7 @@ package com.deeme.behaviours.defense;
 import java.util.Collection;
 
 import com.deeme.types.ShipAttacker;
+import com.deemetool.general.movement.ExtraMovementLogic;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -11,7 +12,6 @@ import eu.darkbot.api.config.types.ShipMode;
 import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.entities.Player;
 import eu.darkbot.api.game.entities.Ship;
-import eu.darkbot.api.game.group.GroupMember;
 import eu.darkbot.api.game.items.SelectableItem.Special;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.ConfigAPI;
@@ -41,6 +41,7 @@ public class DefenseModule extends TemporalModule {
     private Entity target = null;
 
     private long nextAttackCheck = 0;
+    private ExtraMovementLogic extraMovementLogic;
 
     private int timeOut = 0;
     protected static final int DISTANCE_TO_USE_VS_MODE = 1500;
@@ -48,7 +49,6 @@ public class DefenseModule extends TemporalModule {
     public DefenseModule(PluginAPI api, DefenseConfig defenseConfig, Entity target) {
         this(api, api.requireAPI(BotAPI.class),
                 api.requireAPI(HeroAPI.class), defenseConfig, target);
-
     }
 
     @Inject
@@ -67,6 +67,7 @@ public class DefenseModule extends TemporalModule {
         this.repairHpRange = configApi.requireConfig("general.safety.repair_hp_range");
         this.defenseConfig = defenseConfig;
         this.shipAttacker = new ShipAttacker(api, defenseConfig);
+        this.extraMovementLogic = new ExtraMovementLogic(api, defenseConfig.movementConfig);
         this.target = target;
         this.nextAttackCheck = 0;
         this.timeOut = 0;
@@ -102,7 +103,7 @@ public class DefenseModule extends TemporalModule {
                 shipAttacker.useKeyWithConditions(defenseConfig.selectable4);
                 shipAttacker.useKeyWithConditions(defenseConfig.selectable5);
                 shipAttacker.tryAttackOrFix();
-                movementLogic();
+                this.extraMovementLogic.tick();
             } else {
                 target = null;
                 super.goBack();
@@ -171,53 +172,4 @@ public class DefenseModule extends TemporalModule {
             }
         }
     }
-
-    private void movementLogic() {
-        switch (defenseConfig.movementMode) {
-            case VSSAFETY:
-                if (!safetyFinder.tick()) {
-                    break;
-                }
-            case VS:
-                shipAttacker.vsMove();
-                break;
-            case RANDOM:
-                if (!movement.isMoving() || movement.isOutOfMap()) {
-                    movement.moveRandom();
-                }
-                break;
-            case GROUPVSSAFETY:
-                if (safetyFinder.tick()) {
-                    GroupMember groupMember = shipAttacker.getClosestMember();
-                    if (groupMember != null) {
-                        if (groupMember.getLocation().distanceTo(heroapi) < DISTANCE_TO_USE_VS_MODE) {
-                            shipAttacker.vsMove();
-                        } else {
-                            movement.moveTo(groupMember.getLocation());
-                        }
-                    } else {
-                        shipAttacker.vsMove();
-                    }
-                }
-                break;
-            case GROUPVS:
-                GroupMember groupMember = shipAttacker.getClosestMember();
-                if (groupMember != null) {
-                    if (groupMember.getLocation().distanceTo(heroapi) < DISTANCE_TO_USE_VS_MODE) {
-                        shipAttacker.vsMove();
-                    } else {
-                        movement.moveTo(groupMember.getLocation());
-                    }
-                } else {
-                    shipAttacker.vsMove();
-                }
-                break;
-            default:
-                if (safetyFinder.tick()) {
-                    shipAttacker.vsMove();
-                }
-                break;
-        }
-    }
-
 }

@@ -1,7 +1,7 @@
 {
   "name": "DmPlugin",
   "author": "Dm94Dani",
-  "version": "2.1.8",
+  "version": "2.1.9",
   "minVersion": "1.128",
   "supportedVersion": "1.129",
   "basePackage": "com.deeme",
@@ -30,10 +30,12 @@
     "com.deeme.behaviours.bestformation.AutoBestFormation",
     "com.deeme.behaviours.bestammo.AutoBestAmmoDummy",
     "com.deeme.behaviours.bestrocketlauncher.AutoBestRocketLauncherDummy",
-    "com.deeme.behaviours.pvplog.PVPLogDummy"
+    "com.deeme.behaviours.pvplog.PVPLogDummy",
+    "com.deeme.behaviours.autocloack.AutoCloack",
+    "com.deeme.behaviours.antitrain.AntiTrainDummy"
   ],
   "donation": "https://ko-fi.com/deeme",
   "discord": "https://discord.gg/GPRTRRZJPw",
-  "download": "https://github.com/darkbot-reloaded/DmPlugin/releases/download/v2.1.8/DmPlugin.jar",
+  "download": "https://github.com/darkbot-reloaded/DmPlugin/releases/download/v2.1.9/DmPlugin.jar",
   "update": "https://raw.githubusercontent.com/darkbot-reloaded/DmPlugin/master/src/main/resources/plugin.json"
 }

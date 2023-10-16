@@ -1,6 +1,7 @@
 package com.deeme.types;
 
 import com.deeme.behaviours.defense.DefenseConfig;
+import com.deeme.modules.sentinel.Humanizer;
 import com.deeme.types.config.ExtraKeyConditions;
 import com.deeme.types.config.ExtraKeyConditionsSelectable;
 import com.deeme.types.suppliers.DefenseLaserSupplier;
@@ -22,7 +23,6 @@ import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.game.items.SelectableItem.Formation;
 import eu.darkbot.api.game.items.SelectableItem.Laser;
-import eu.darkbot.api.game.other.Location;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
@@ -68,8 +68,15 @@ public class ShipAttacker {
     protected int fixedTimes;
     protected Character lastShot;
 
+    private Humanizer humanizerConfig;
+
     public ShipAttacker(Main main) {
         this(main.pluginAPI.getAPI(PluginAPI.class), main.config.LOOT.SAB, main.config.LOOT.RSB.ENABLED);
+    }
+
+    public ShipAttacker(PluginAPI api, Sab sab, boolean rsbEnabled, Humanizer humanizerConfig) {
+        this(api, sab, rsbEnabled);
+        this.humanizerConfig = humanizerConfig;
     }
 
     public ShipAttacker(PluginAPI api, Sab sab, boolean rsbEnabled) {
@@ -85,6 +92,8 @@ public class ShipAttacker {
         this.rnd = new Random();
         this.items = api.getAPI(HeroItemsAPI.class);
         this.laserSupplier = new DefenseLaserSupplier(api, heroapi, items, sab, rsbEnabled);
+        this.humanizerConfig = new Humanizer();
+        this.humanizerConfig.maxRandomTime = 0;
 
         this.repairHpRange = configAPI.requireConfig("general.safety.repair_hp_range");
         this.ammoKey = configAPI.requireConfig("loot.ammo_key");
@@ -95,6 +104,7 @@ public class ShipAttacker {
     public ShipAttacker(PluginAPI api, DefenseConfig defense) {
         this(api, defense.SAB, defense.useRSB);
         this.defense = defense;
+        this.humanizerConfig = defense.humanizer;
     }
 
     public String getStatus() {
@@ -109,9 +119,12 @@ public class ShipAttacker {
         }
     }
 
-    public void tryLockTarget() {
+    private void tryLockTarget() {
         if (heroapi.getTarget() == target && firstAttack) {
             clickDelay = System.currentTimeMillis();
+            if (humanizerConfig.addRandomTime) {
+                clickDelay = System.currentTimeMillis() + (rnd.nextInt(humanizerConfig.maxRandomTime) * 1000);
+            }
         }
 
         fixedTimes = 0;
@@ -124,7 +137,7 @@ public class ShipAttacker {
                 clickDelay = System.currentTimeMillis();
             }
         } else {
-            movement.moveTo(target);
+            movement.moveTo(target.getDestination().orElse(target.getLocationInfo()));
         }
     }
 
@@ -165,7 +178,7 @@ public class ShipAttacker {
         }
     }
 
-    private void sendAttack(long minWait, long bugTime, boolean normal) {
+    protected void sendAttack(long minWait, long bugTime, boolean normal) {
         laserTime = System.currentTimeMillis() + minWait;
         isAttacking = Math.max(isAttacking, laserTime + bugTime);
         if (normal) {
@@ -198,25 +211,6 @@ public class ShipAttacker {
         }
 
         return defaultAmmo;
-    }
-
-    public void vsMove() {
-        if (target != null && target.isValid()) {
-            double distance = heroapi.getLocationInfo().distanceTo(target);
-            Location targetLoc = target.getLocationInfo().destinationInTime(400);
-            if (distance > 600) {
-                if (movement.canMove(targetLoc)) {
-                    movement.moveTo(targetLoc);
-                    if (target.getSpeed() > heroapi.getSpeed()) {
-                        heroapi.setRunMode();
-                    }
-                } else {
-                    resetDefenseData();
-                }
-            } else {
-                movement.moveTo(Location.of(targetLoc, rnd.nextInt(360), distance));
-            }
-        }
     }
 
     public boolean useKeyWithConditions(ExtraKeyConditions extra, SelectableItem selectableItem) {
@@ -283,16 +277,6 @@ public class ShipAttacker {
         if (member != null) {
             movement.moveTo(member.getLocation());
         }
-    }
-
-    public GroupMember getClosestMember() {
-        if (group.hasGroup()) {
-            return group.getMembers().stream()
-                    .filter(member -> !member.isDead() && member.getMapId() == heroapi.getMap().getId())
-                    .min(Comparator.<GroupMember>comparingDouble(m -> m.getLocation().distanceTo(heroapi)))
-                    .orElse(null);
-        }
-        return null;
     }
 
     public void setMode(ShipMode config, Formation formation) {

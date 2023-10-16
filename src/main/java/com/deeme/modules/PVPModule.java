@@ -1,14 +1,15 @@
 package com.deeme.modules;
 
+import com.deeme.modules.pvp.AntiPushLogic;
 import com.deeme.modules.pvp.PVPConfig;
 import com.deeme.types.SharedFunctions;
 import com.deeme.types.ShipAttacker;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
+import com.deemetool.general.movement.ExtraMovementLogic;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
-import eu.darkbot.api.config.types.ShipMode;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Module;
 import eu.darkbot.api.extensions.Feature;
@@ -16,7 +17,6 @@ import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.entities.Player;
 import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.entities.Ship;
-import eu.darkbot.api.game.items.SelectableItem.Cpu;
 import eu.darkbot.api.game.items.SelectableItem.Special;
 import eu.darkbot.api.game.other.GameMap;
 import eu.darkbot.api.managers.AuthAPI;
@@ -28,15 +28,14 @@ import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.MovementAPI;
 import eu.darkbot.api.managers.PetAPI;
 import eu.darkbot.api.managers.StarSystemAPI;
+import eu.darkbot.api.managers.StatsAPI;
 import eu.darkbot.api.utils.Inject;
 import eu.darkbot.shared.modules.CollectorModule;
 import eu.darkbot.shared.modules.MapModule;
 import eu.darkbot.shared.utils.SafetyFinder;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 
 @Feature(name = "PVP Module", description = "It is limited so as not to spoil the game")
 public class PVPModule implements Module, Configurable<PVPConfig> {
@@ -55,8 +54,6 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     protected final Collection<? extends Player> players;
 
     protected final ConfigSetting<Integer> workingMap;
-    protected final ConfigSetting<ShipMode> configOffensive;
-    protected final ConfigSetting<ShipMode> configRun;
 
     private boolean attackConfigLost = false;
     protected boolean firstAttack;
@@ -69,6 +66,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     protected long lastTimeAttack = 0;
 
     private SafetyFinder safety;
+    private ExtraMovementLogic extraMovementLogic;
     private double lastDistanceTarget = 1000;
     protected CollectorModule collectorModule;
 
@@ -78,8 +76,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     private long nextAttackCheck = 0;
     private int timeOut = 0;
 
-    private ArrayList<Integer> playersKilled = new ArrayList<>();
-    private int lastPlayerId = 0;
+    private AntiPushLogic antiPushLogic;
 
     public PVPModule(PluginAPI api) {
         this(api, api.requireAPI(HeroAPI.class),
@@ -107,8 +104,6 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         this.bot = api.getAPI(BotAPI.class);
         this.pet = api.getAPI(PetAPI.class);
         this.workingMap = configApi.requireConfig("general.working_map");
-        this.configOffensive = configApi.requireConfig("general.offensive");
-        this.configRun = configApi.requireConfig("general.run");
 
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
         this.portals = entities.getPortals();
@@ -148,7 +143,9 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         if (api == null || pvpConfig == null)
             return;
 
-        this.shipAttacker = new ShipAttacker(api, pvpConfig.SAB, pvpConfig.useRSB);
+        this.shipAttacker = new ShipAttacker(api, pvpConfig.SAB, pvpConfig.useRSB, pvpConfig.humanizer);
+        this.antiPushLogic = new AntiPushLogic(this.heroapi, api.getAPI(StatsAPI.class), this.pvpConfig.antiPush);
+        this.extraMovementLogic = new ExtraMovementLogic(api, heroapi, movement, pvpConfig.movementConfig);
     }
 
     @Override
@@ -156,26 +153,16 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         pet.setEnabled(true);
         if (!pvpConfig.move || (safety.tick() && checkMap())) {
             if (hasTarget()) {
-                if (target.getId() != lastPlayerId) {
-                    playersKilled.add(lastPlayerId);
-                }
-                if (target.getHealth().getHp() <= 30000) {
-                    lastPlayerId = target.getId();
-                }
                 attackLogic();
             } else {
-                if (0 != lastPlayerId) {
-                    playersKilled.add(lastPlayerId);
-                    lastPlayerId = 0;
-                }
                 attackConfigLost = false;
                 target = null;
                 shipAttacker.resetDefenseData();
-                autoCloakLogic();
                 rechargeShields();
                 roamingLogic();
             }
         }
+        antiPushLogic.registerTarget(target);
     }
 
     private void attackLogic() {
@@ -196,7 +183,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         shipAttacker.tryAttackOrFix();
 
         if (pvpConfig.move) {
-            shipAttacker.vsMove();
+            extraMovementLogic.tick();
         }
         timeOutCheck();
     }
@@ -215,28 +202,17 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         }
     }
 
-    private void autoCloakLogic() {
-        if (pvpConfig.autoCloak.autoCloakShip && !heroapi.isInvisible()
-                && lastTimeAttack < (System.currentTimeMillis()
-                        - (pvpConfig.autoCloak.secondsOfWaiting * 1000))) {
-            if (pvpConfig.autoCloak.onlyPvpMaps && !heroapi.getMap().isPvp()) {
-                return;
-            }
-            shipAttacker.useSelectableReadyWhenReady(Cpu.CL04K);
-        }
-    }
-
     private void rechargeShields() {
         if (pvpConfig.rechargeShields) {
             if (!isConfigAttackFull) {
-                heroapi.setMode(configOffensive.getValue());
+                heroapi.setAttackMode(null);
                 if ((heroapi.getHealth().getMaxShield() > 10000
                         && heroapi.getHealth().shieldPercent() > 0.9)
                         || heroapi.getHealth().getShield() >= heroapi.getHealth().getMaxShield()) {
                     isConfigAttackFull = true;
                 }
             } else if (!isCongigRunFull) {
-                heroapi.setMode(configRun.getValue());
+                heroapi.setRunMode();
                 if ((heroapi.getHealth().getMaxShield() > 10000
                         && heroapi.getHealth().shieldPercent() > 0.9)
                         || heroapi.getHealth().getShield() >= heroapi.getHealth().getMaxShield()) {
@@ -276,7 +252,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         }
 
         if (!isUnderAttack()) {
-            target = shipAttacker.getEnemy(pvpConfig.rangeForEnemies, getIgnoredPlayers());
+            target = shipAttacker.getEnemy(pvpConfig.rangeForEnemies, antiPushLogic.getIgnoredPlayers());
             shipAttacker.setTarget(target);
         }
 
@@ -286,21 +262,20 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     private void setConfigToUse() {
         if (attackConfigLost || heroapi.getHealth().shieldPercent() < 0.1 && heroapi.getHealth().hpPercent() < 0.3) {
             attackConfigLost = true;
-            heroapi.setMode(configRun.getValue());
-            lastDistanceTarget = 1000;
+            heroapi.setRunMode();
         } else if (pvpConfig.useRunConfig && target != null) {
             double distance = heroapi.getLocationInfo().distanceTo(target);
             if (distance > 500 && distance > lastDistanceTarget && target.getSpeed() >= heroapi.getSpeed()) {
-                heroapi.setMode(configRun.getValue());
+                heroapi.setRunMode();
                 lastDistanceTarget = distance;
+                return;
             } else {
-                heroapi.setMode(configOffensive.getValue());
-                lastDistanceTarget = 1000;
+                heroapi.setAttackMode(null);
             }
         } else {
-            heroapi.setMode(configOffensive.getValue());
-            lastDistanceTarget = 1000;
+            heroapi.setAttackMode(null);
         }
+        lastDistanceTarget = 1500;
     }
 
     private boolean isUnderAttack() {
@@ -315,20 +290,5 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         target = null;
 
         return false;
-    }
-
-    private ArrayList<Integer> getIgnoredPlayers() {
-        ArrayList<Integer> playersToIgnore = new ArrayList<>();
-
-        if (pvpConfig.antiPush.enable) {
-            playersKilled.forEach(id -> {
-                if (!playersToIgnore.contains(id)
-                        && Collections.frequency(playersKilled, id) >= pvpConfig.antiPush.maxKills) {
-                    playersToIgnore.add(id);
-                }
-            });
-        }
-
-        return playersToIgnore;
     }
 }

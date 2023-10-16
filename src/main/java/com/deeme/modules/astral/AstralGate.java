@@ -395,7 +395,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                 .orElse(null);
     }
 
-    protected double getRadius(Lockable target) {
+    private double getRadius(Lockable target) {
         if (repairShield) {
             return 1500;
         }
@@ -412,7 +412,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         return attacker.modifyRadius(npcRadius);
     }
 
-    protected void npcMove() {
+    private void npcMove() {
         if (!attacker.hasTarget()) {
             return;
         }
@@ -455,7 +455,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         movement.moveTo(direction);
     }
 
-    protected Location getBestDir(Locatable targetLoc, double angle, double angleDiff, double distance) {
+    private Location getBestDir(Locatable targetLoc, double angle, double angleDiff, double distance) {
         int maxCircleIterationsValue = this.maxCircleIterations.getValue();
         int iteration = 1;
         double forwardScore = 0;
@@ -472,14 +472,14 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         return Location.of(targetLoc, angle + angleDiff * (backwards ? -1 : 1), distance);
     }
 
-    protected double score(Locatable loc) {
+    private double score(Locatable loc) {
         return (movement.canMove(loc) ? 0 : -1000) - npcs.stream()
                 .filter(n -> attacker.getTarget() != n)
                 .mapToDouble(n -> Math.max(0, n.getInfo().getRadius() - n.distanceTo(loc)))
                 .sum();
     }
 
-    public void changeRocket(boolean bestRocket) {
+    private void changeRocket(boolean bestRocket) {
         SelectableItem rocket = null;
         if (bestRocket) {
             rocket = rocketSupplier.get();
@@ -497,9 +497,15 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     }
 
     private void changeLaser(SelectableItem laser) {
+        SelectableItem configuredLaserNpc = getLaserConfiguredFromNPC();
+        if (configuredLaserNpc != null) {
+            laser = configuredLaserNpc;
+        }
+
         if (laser == null) {
             return;
         }
+
         if (items.useItem(laser, 250, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.NOT_SELECTED)
                 .isSuccessful()) {
             changeAmmoKey(laser);
@@ -513,7 +519,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         }
     }
 
-    public void changeLaser(boolean bestLaser) {
+    private void changeLaser(boolean bestLaser) {
         SelectableItem laser = null;
         if (bestLaser) {
             laser = ammoSupplier.get();
@@ -528,7 +534,18 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         changeLaser(laser);
     }
 
-    public boolean useSelectableReadyWhenReady(SelectableItem selectableItem) {
+    private SelectableItem getLaserConfiguredFromNPC() {
+        Lockable target = heroapi.getLocalTarget();
+        if (target != null && target.isValid() && target instanceof Npc) {
+            Npc npc = (Npc) target;
+            if (npc.getInfo().getAmmo().isPresent()) {
+                return npc.getInfo().getAmmo().get();
+            }
+        }
+        return null;
+    }
+
+    private boolean useSelectableReadyWhenReady(SelectableItem selectableItem) {
         if (System.currentTimeMillis() - clickDelay < 1000) {
             return false;
         }

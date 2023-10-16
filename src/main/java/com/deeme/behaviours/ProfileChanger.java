@@ -33,6 +33,7 @@ import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.GameScreenAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.RepairAPI;
+import eu.darkbot.api.managers.StatsAPI;
 import eu.darkbot.api.utils.Inject;
 
 @Feature(name = "ProfileChanger", description = "Change the profile to another one when completing a task")
@@ -42,6 +43,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     protected final BotAPI bot;
     protected final HeroAPI hero;
     protected final RepairAPI repair;
+    protected final StatsAPI stats;
 
     private ProfileChangerConfig config;
     private Main main;
@@ -56,11 +58,12 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     public ProfileChanger(Main main, PluginAPI api) {
         this(main, api, api.requireAPI(AuthAPI.class),
                 api.requireAPI(BotAPI.class),
-                api.requireAPI(HeroAPI.class));
+                api.requireAPI(HeroAPI.class),
+                api.requireAPI(StatsAPI.class));
     }
 
     @Inject
-    public ProfileChanger(Main main, PluginAPI api, AuthAPI auth, BotAPI bot, HeroAPI hero) {
+    public ProfileChanger(Main main, PluginAPI api, AuthAPI auth, BotAPI bot, HeroAPI hero, StatsAPI stats) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
@@ -71,6 +74,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
         this.api = api;
         this.bot = bot;
         this.hero = hero;
+        this.stats = stats;
         this.repair = api.getAPI(RepairAPI.class);
 
         ConfigAPI configApi = api.getAPI(ConfigAPI.class);
@@ -191,11 +195,14 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
                 String name = target.getEntityInfo().getUsername();
                 if (target.getId() != npcCondition.lastNPCId && npcCondition.isAttacked) {
                     npcCondition.isAttacked = false;
-                    npcCondition.npcCounter++;
+                    if (npcCondition.lastExperiencieCheck < stats.getTotalExperience()) {
+                        npcCondition.npcCounter++;
+                    }
                 }
                 if (name != null && name.toLowerCase().contains(npcCondition.npcName.toLowerCase())
                         && target.getId() != npcCondition.lastNPCId) {
                     npcCondition.lastNPCId = target.getId();
+                    npcCondition.lastExperiencieCheck = stats.getTotalExperience();
                     npcCondition.isAttacked = true;
                 }
             }

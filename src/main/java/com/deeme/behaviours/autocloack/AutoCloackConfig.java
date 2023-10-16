@@ -1,11 +1,12 @@
-package com.deeme.types.config;
+package com.deeme.behaviours.autocloack;
 
 import eu.darkbot.api.config.annotations.Number;
 import eu.darkbot.api.config.annotations.Option;
+import eu.darkbot.api.config.types.Condition;
 import eu.darkbot.api.config.annotations.Configuration;
 
 @Configuration("auto_cloack")
-public class AutoCloak {
+public class AutoCloackConfig {
     @Option("general.enabled")
     public boolean autoCloakShip = false;
 
@@ -15,4 +16,7 @@ public class AutoCloak {
 
     @Option("auto_cloack.only_pvp")
     public boolean onlyPvpMaps = false;
+
+    @Option("general.condition")
+    public Condition condition;
 }

@@ -9,6 +9,7 @@ import eu.darkbot.api.config.annotations.Option;
 public class NpcCounterCondition {
 
     public transient int lastNPCId = 0;
+    public transient double lastExperiencieCheck = 0;
     public transient boolean isAttacked = false;
 
     @Option("general.enabled")
