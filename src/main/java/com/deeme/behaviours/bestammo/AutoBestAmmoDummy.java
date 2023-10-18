@@ -35,7 +35,11 @@ public class AutoBestAmmoDummy implements Behavior, Configurable<BestAmmoConfig>
         VerifierChecker.checkAuthenticity(auth);
         Utils.discordDonorCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
-        this.privateBehaviour = new AutoBestAmmo(api);
+        try {
+            this.privateBehaviour = new AutoBestAmmo(api);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

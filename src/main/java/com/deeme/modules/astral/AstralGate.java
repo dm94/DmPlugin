@@ -282,7 +282,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
         if (astralConfig.autoChoose && astralPlus.autoChoose(astralConfig.portalInfos)) {
             this.currentStatus = State.CHOOSING_BEST_OPTION;
-        } else if (!portals.isEmpty() || astralPlus.hasOptionsToChoose()) {
+        } else if (!portals.isEmpty() || astralPlus.hasOptions()) {
             stopBot(State.WAITING_HUMAN);
         } else {
             this.currentStatus = State.WAITING_WAVE;

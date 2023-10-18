@@ -33,7 +33,11 @@ public class AutoShopDummy implements Task, Configurable<Config> {
         VerifierChecker.checkAuthenticity(auth);
         Utils.discordDonorCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
-        this.privateTask = new AutoShop(api);
+        try {
+            this.privateTask = new AutoShop(api);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

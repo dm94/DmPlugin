@@ -145,7 +145,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
 
         this.shipAttacker = new ShipAttacker(api, pvpConfig.SAB, pvpConfig.useRSB, pvpConfig.humanizer);
         this.antiPushLogic = new AntiPushLogic(this.heroapi, api.getAPI(StatsAPI.class), this.pvpConfig.antiPush);
-        this.extraMovementLogic = new ExtraMovementLogic(api, heroapi, movement, pvpConfig.movementConfig);
+        this.extraMovementLogic = new ExtraMovementLogic(api, pvpConfig.movementConfig);
     }
 
     @Override

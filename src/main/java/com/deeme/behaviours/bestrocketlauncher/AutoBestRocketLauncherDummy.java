@@ -35,7 +35,11 @@ public class AutoBestRocketLauncherDummy implements Behavior, Configurable<BestR
         VerifierChecker.checkAuthenticity(auth);
         Utils.discordDonorCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
-        this.privateBehaviour = new AutoBestRocketLauncher(api);
+        try {
+            this.privateBehaviour = new AutoBestRocketLauncher(api);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

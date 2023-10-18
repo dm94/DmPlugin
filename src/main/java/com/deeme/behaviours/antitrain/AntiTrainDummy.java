@@ -32,7 +32,11 @@ public class AntiTrainDummy implements Behavior, Configurable<AntiTrainConfig> {
         VerifierChecker.checkAuthenticity(auth);
         Utils.discordDonorCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
-        this.privateBehaviour = new AntiTrain(api);
+        try {
+            this.privateBehaviour = new AntiTrain(api);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

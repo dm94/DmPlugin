@@ -60,7 +60,7 @@ public class Utils {
     }
 
     public static void showDonateDialog() {
-        if (Backpage.isDonor()) {
+        if (Backpage.isDonorExternal()) {
             return;
         }
 

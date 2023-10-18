@@ -175,7 +175,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         }
 
         this.shipAttacker = new ShipAttacker(api, sabSettings.getValue(), rsbEnabled.getValue(), sConfig.humanizer);
-        this.extraMovementLogic = new ExtraMovementLogic(api, heroapi, movement, sConfig.movementConfig);
+        this.extraMovementLogic = new ExtraMovementLogic(api, sConfig.movementConfig);
     }
 
     @Override
