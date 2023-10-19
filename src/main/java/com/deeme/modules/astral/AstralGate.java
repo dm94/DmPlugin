@@ -3,8 +3,8 @@ package com.deeme.modules.astral;
 import com.deeme.types.SharedFunctions;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
-import com.deemetool.modules.astral.AstralPlus;
-import com.deemetool.modules.astral.PortalInfo;
+import com.deemeplus.modules.astral.AstralPlus;
+import com.deemeplus.modules.astral.PortalInfo;
 import com.github.manolo8.darkbot.config.NpcExtraFlag;
 import com.github.manolo8.darkbot.core.itf.NpcExtraProvider;
 
@@ -282,7 +282,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
         if (astralConfig.autoChoose && astralPlus.autoChoose(astralConfig.portalInfos)) {
             this.currentStatus = State.CHOOSING_BEST_OPTION;
-        } else if (!portals.isEmpty() || astralPlus.hasOptionsToChoose()) {
+        } else if (!portals.isEmpty() || astralPlus.hasOptions()) {
             stopBot(State.WAITING_HUMAN);
         } else {
             this.currentStatus = State.WAITING_WAVE;

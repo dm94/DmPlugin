@@ -2,7 +2,7 @@ package com.deeme.modules.pvp;
 
 import com.deeme.modules.sentinel.Humanizer;
 import com.deeme.types.config.ExtraKeyConditions;
-import com.deemetool.general.movement.MovementConfig;
+import com.deemeplus.general.movement.MovementConfig;
 import com.github.manolo8.darkbot.config.Config.Loot.Sab;
 
 import eu.darkbot.api.config.annotations.Configuration;

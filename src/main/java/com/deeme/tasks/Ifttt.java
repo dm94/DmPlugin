@@ -2,7 +2,7 @@ package com.deeme.tasks;
 
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
-import com.deemetool.utils.Backpage;
+import com.deemeplus.utils.Backpage;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.types.*;
 import com.github.manolo8.darkbot.config.types.suppliers.OptionList;

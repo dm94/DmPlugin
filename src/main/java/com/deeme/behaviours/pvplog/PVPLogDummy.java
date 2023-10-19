@@ -1,6 +1,6 @@
 package com.deeme.behaviours.pvplog;
 
-import com.deemetool.behaviours.pvplog.PVPLog;
+import com.deemeplus.behaviours.pvplog.PVPLog;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.extensions.Behavior;

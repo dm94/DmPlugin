@@ -4,8 +4,8 @@ import java.util.Arrays;
 
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
-import com.deemetool.behaviours.bestammo.AutoBestAmmo;
-import com.deemetool.behaviours.bestammo.BestAmmoConfig;
+import com.deemeplus.behaviours.bestammo.AutoBestAmmo;
+import com.deemeplus.behaviours.bestammo.BestAmmoConfig;
 import com.github.manolo8.darkbot.config.NpcExtraFlag;
 import com.github.manolo8.darkbot.core.itf.NpcExtraProvider;
 
@@ -35,7 +35,11 @@ public class AutoBestAmmoDummy implements Behavior, Configurable<BestAmmoConfig>
         VerifierChecker.checkAuthenticity(auth);
         Utils.discordDonorCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
-        this.privateBehaviour = new AutoBestAmmo(api);
+        try {
+            this.privateBehaviour = new AutoBestAmmo(api);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

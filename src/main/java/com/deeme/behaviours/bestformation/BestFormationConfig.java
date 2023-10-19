@@ -13,7 +13,7 @@ public class BestFormationConfig {
     @Option("general.options")
     @Dropdown(multi = true)
     public Set<BehaviourOptions> options = EnumSet.of(BehaviourOptions.VS_PLAYERS, BehaviourOptions.VS_NPC,
-            BehaviourOptions.RESPECT_NPC_FORMATION);
+            BehaviourOptions.RESPECT_NPC_FORMATION, BehaviourOptions.REPLACE_FORMATION_KEY);
 
     @Option("general.next_check_time")
     @Number(max = 300, step = 1)

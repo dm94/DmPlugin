@@ -1,12 +1,12 @@
 package com.deeme.tasks;
 
-import com.deemetool.tasks.autoshop.Config;
+import com.deemeplus.tasks.autoshop.Config;
 
 import java.util.Arrays;
 
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
-import com.deemetool.tasks.autoshop.AutoShop;
+import com.deemeplus.tasks.autoshop.AutoShop;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -33,7 +33,11 @@ public class AutoShopDummy implements Task, Configurable<Config> {
         VerifierChecker.checkAuthenticity(auth);
         Utils.discordDonorCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
-        this.privateTask = new AutoShop(api);
+        try {
+            this.privateTask = new AutoShop(api);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

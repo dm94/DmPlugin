@@ -3,7 +3,7 @@ package com.deeme.behaviours.defense;
 import java.util.Collection;
 
 import com.deeme.types.ShipAttacker;
-import com.deemetool.general.movement.ExtraMovementLogic;
+import com.deemeplus.general.movement.ExtraMovementLogic;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;

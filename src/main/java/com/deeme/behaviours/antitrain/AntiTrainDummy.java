@@ -4,8 +4,8 @@ import java.util.Arrays;
 
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
-import com.deemetool.behaviours.antitrain.AntiTrain;
-import com.deemetool.behaviours.antitrain.AntiTrainConfig;
+import com.deemeplus.behaviours.antitrain.AntiTrain;
+import com.deemeplus.behaviours.antitrain.AntiTrainConfig;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -32,7 +32,11 @@ public class AntiTrainDummy implements Behavior, Configurable<AntiTrainConfig> {
         VerifierChecker.checkAuthenticity(auth);
         Utils.discordDonorCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
-        this.privateBehaviour = new AntiTrain(api);
+        try {
+            this.privateBehaviour = new AntiTrain(api);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

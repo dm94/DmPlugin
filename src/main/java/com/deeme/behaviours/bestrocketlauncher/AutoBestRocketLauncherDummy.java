@@ -4,8 +4,8 @@ import java.util.Arrays;
 
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
-import com.deemetool.behaviours.bestrocketlauncher.AutoBestRocketLauncher;
-import com.deemetool.behaviours.bestrocketlauncher.BestRocketLauncherConfig;
+import com.deemeplus.behaviours.bestrocketlauncher.AutoBestRocketLauncher;
+import com.deemeplus.behaviours.bestrocketlauncher.BestRocketLauncherConfig;
 import com.github.manolo8.darkbot.config.NpcExtraFlag;
 import com.github.manolo8.darkbot.core.itf.NpcExtraProvider;
 
@@ -35,7 +35,11 @@ public class AutoBestRocketLauncherDummy implements Behavior, Configurable<BestR
         VerifierChecker.checkAuthenticity(auth);
         Utils.discordDonorCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
-        this.privateBehaviour = new AutoBestRocketLauncher(api);
+        try {
+            this.privateBehaviour = new AutoBestRocketLauncher(api);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
