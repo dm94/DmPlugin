@@ -4,8 +4,8 @@ import java.util.Arrays;
 
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
-import com.deemetool.behaviours.bestammo.AutoBestAmmo;
-import com.deemetool.behaviours.bestammo.BestAmmoConfig;
+import com.deemeplus.behaviours.bestammo.AutoBestAmmo;
+import com.deemeplus.behaviours.bestammo.BestAmmoConfig;
 import com.github.manolo8.darkbot.config.NpcExtraFlag;
 import com.github.manolo8.darkbot.core.itf.NpcExtraProvider;
 

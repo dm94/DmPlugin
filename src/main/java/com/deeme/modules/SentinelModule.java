@@ -5,7 +5,7 @@ import com.deeme.types.ShipAttacker;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 import com.deeme.types.config.SentinelConfig;
-import com.deemetool.general.movement.ExtraMovementLogic;
+import com.deemeplus.general.movement.ExtraMovementLogic;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.Config;
 

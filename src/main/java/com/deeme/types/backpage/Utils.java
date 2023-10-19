@@ -6,7 +6,7 @@ import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
-import com.deemetool.utils.Backpage;
+import com.deemeplus.utils.Backpage;
 
 import eu.darkbot.api.extensions.FeatureInfo;
 import eu.darkbot.util.Popups;

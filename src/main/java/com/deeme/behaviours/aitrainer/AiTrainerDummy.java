@@ -1,6 +1,6 @@
 package com.deeme.behaviours.aitrainer;
 
-import com.deemetool.behaviours.aitrainer.AiTrainer;
+import com.deemeplus.behaviours.aitrainer.AiTrainer;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.extensions.Behavior;

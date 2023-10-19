@@ -4,8 +4,8 @@ import java.util.Arrays;
 
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
-import com.deemetool.behaviours.antitrain.AntiTrain;
-import com.deemetool.behaviours.antitrain.AntiTrainConfig;
+import com.deemeplus.behaviours.antitrain.AntiTrain;
+import com.deemeplus.behaviours.antitrain.AntiTrainConfig;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
