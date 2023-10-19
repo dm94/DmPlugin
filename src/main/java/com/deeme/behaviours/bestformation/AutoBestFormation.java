@@ -289,6 +289,10 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     }
 
     private void changeOffensiveConfig(Formation formation) {
+        if (!hasOption(BehaviourOptions.REPLACE_FORMATION_KEY)) {
+            return;
+        }
+
         try {
             Character key = items.getKeyBind(formation);
             if (key == null || configOffensive.getValue().getLegacyFormation() == null
