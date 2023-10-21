@@ -60,7 +60,7 @@ public class AutoChangeMap implements Task, Configurable<ChangeMapConfig> {
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.showDonateDialog();
+        Utils.showDonateDialog(auth.getAuthId());
 
         this.api = api;
         this.hero = hero;

@@ -15,6 +15,8 @@ import com.github.manolo8.darkbot.gui.tree.components.JListField;
 import com.github.manolo8.darkbot.utils.SystemUtils;
 import com.github.manolo8.darkbot.utils.Time;
 
+import eu.darkbot.api.managers.AuthAPI;
+
 import javax.swing.*;
 import java.text.DecimalFormat;
 import java.util.Arrays;
@@ -35,7 +37,7 @@ public class Ifttt implements Task, Configurable<Ifttt.IftttConfig>, Instruction
             return;
         VerifierChecker.checkAuthenticity();
 
-        Utils.showDonateDialog();
+        Utils.showDonateDialog(main.pluginAPI.getAPI(AuthAPI.class).getAuthId());
 
         this.main = main;
         this.statsManager = main.statsManager;

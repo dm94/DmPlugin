@@ -129,7 +129,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         VerifierChecker.checkAuthenticity(auth);
 
         Utils.discordCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
-        Utils.showDonateDialog();
+        Utils.showDonateDialog(auth.getAuthId());
 
         this.api = api;
         this.auth = auth;
@@ -280,7 +280,8 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
         goToTheMiddle();
 
-        if (astralConfig.autoChoose && astralPlus.autoChoose(astralConfig.portalInfos)) {
+        if (astralConfig.autoChoose
+                && astralPlus.autoChoose(astralConfig.portalInfos, astralConfig.customItemPriority)) {
             this.currentStatus = State.CHOOSING_BEST_OPTION;
         } else if (!portals.isEmpty() || astralPlus.hasOptions()) {
             stopBot(State.WAITING_HUMAN);

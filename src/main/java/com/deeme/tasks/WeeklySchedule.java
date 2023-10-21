@@ -72,7 +72,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.showDonateDialog();
+        Utils.showDonateDialog(auth.getAuthId());
 
         this.main = main;
         this.api = api;

@@ -61,7 +61,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.showDonateDialog();
+        Utils.showDonateDialog(auth.getAuthId());
 
         this.api = api;
         this.items = items;

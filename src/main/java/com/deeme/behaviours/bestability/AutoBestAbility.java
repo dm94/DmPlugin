@@ -81,7 +81,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.showDonateDialog();
+        Utils.showDonateDialog(auth.getAuthId());
 
         this.api = api;
         this.bot = bot;

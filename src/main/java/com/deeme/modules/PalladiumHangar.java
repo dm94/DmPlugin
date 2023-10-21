@@ -92,7 +92,7 @@ public class PalladiumHangar extends LootCollectorModule implements Configurable
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.showDonateDialog();
+        Utils.showDonateDialog(auth.getAuthId());
 
         this.main = main;
         this.api = api;

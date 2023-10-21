@@ -78,7 +78,7 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
 
         this.extensionsAPI = api.getAPI(ExtensionsAPI.class);
         Utils.discordCheck(extensionsAPI.getFeatureInfo(this.getClass()), auth.getAuthId());
-        Utils.showDonateDialog();
+        Utils.showDonateDialog(auth.getAuthId());
 
         this.api = api;
         GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
