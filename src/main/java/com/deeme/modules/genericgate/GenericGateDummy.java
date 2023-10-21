@@ -33,7 +33,8 @@ public class GenericGateDummy implements Module, Configurable<Config>, NpcExtraP
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) {
             throw new SecurityException();
         }
-        VerifierChecker.checkAuthenticity(auth);
+
+        VerifierChecker.requireAuthenticity(auth);
         Utils.discordDonorCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
         try {

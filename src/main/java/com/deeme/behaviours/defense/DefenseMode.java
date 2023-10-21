@@ -61,8 +61,10 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
     @Inject
     public DefenseMode(PluginAPI api, HeroAPI hero, MovementAPI movement, AuthAPI auth, ConfigAPI configApi,
             EntitiesAPI entities) {
-        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
+        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) {
             throw new SecurityException();
+        }
+
         VerifierChecker.checkAuthenticity(auth);
 
         Utils.showDonateDialog(auth.getAuthId());

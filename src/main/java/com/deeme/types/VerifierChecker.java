@@ -44,6 +44,11 @@ public class VerifierChecker {
         }
     }
 
+    public static void requireAuthenticity(eu.darkbot.api.managers.AuthAPI auth) {
+        checkAuthenticity(auth);
+        auth.requireDonor();
+    }
+
     public static void verifyAuthApi(eu.darkbot.api.managers.AuthAPI auth) {
         try (JarFile jf = new JarFile(findPathJar(auth.getClass()), true)) {
             Vector<JarEntry> entriesVec = new Vector<>();

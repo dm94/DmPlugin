@@ -8,7 +8,6 @@ import com.deeme.modules.sentinel.Humanizer;
 import com.deeme.types.config.ExtraKeyConditions;
 import com.deeme.types.config.ExtraKeyConditionsSelectable;
 import com.deemeplus.general.movement.MovementConfig;
-import com.github.manolo8.darkbot.config.Config.Loot.Sab;
 
 import eu.darkbot.api.config.annotations.Configuration;
 import eu.darkbot.api.config.annotations.Dropdown;
@@ -46,21 +45,15 @@ public class DefenseConfig {
     @Option("extra_movement_conditions")
     public MovementConfig movementConfig = new MovementConfig();
 
+    @Option("ammo_config")
+    public AmmoConfig ammoConfig = new AmmoConfig();
+
     @Option("defense.ignore_enemies")
     public boolean ignoreEnemies = true;
-
-    @Option("general.default_ammo")
-    public Character ammoKey;
-
-    @Option("general.rsb")
-    public boolean useRSB = false;
 
     @Option("defense.run_config_min_health")
     @Percentage
     public double healthToChange = 0.0;
-
-    @Option("config.loot.sab")
-    public Sab SAB = new Sab();
 
     @Option("general.ability")
     public ExtraKeyConditions ability = new ExtraKeyConditions();
