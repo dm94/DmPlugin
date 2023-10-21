@@ -1,5 +1,6 @@
 package com.deeme.modules.pvp;
 
+import com.deeme.behaviours.defense.AmmoConfig;
 import com.deeme.modules.sentinel.Humanizer;
 import com.deeme.types.config.ExtraKeyConditions;
 import com.deemeplus.general.movement.MovementConfig;
@@ -38,14 +39,11 @@ public class PVPConfig {
     @Number(min = 1000, max = 4000, step = 100)
     public int rangeForAttackedEnemy = 2000;
 
-    @Option("general.rsb")
-    public boolean useRSB = false;
-
     @Option("extra_movement_conditions")
     public MovementConfig movementConfig = new MovementConfig();
 
-    @Option("config.loot.sab")
-    public Sab SAB = new Sab();
+    @Option("ammo_config")
+    public AmmoConfig ammoConfig = new AmmoConfig();
 
     @Option("general.ability")
     public ExtraKeyConditions ability = new ExtraKeyConditions();

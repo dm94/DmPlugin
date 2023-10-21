@@ -124,9 +124,11 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
     @Inject
     public AstralGate(PluginAPI api, AuthAPI auth, SafetyFinder safety) {
-        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
+        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) {
             throw new SecurityException();
-        VerifierChecker.checkAuthenticity(auth);
+        }
+
+        VerifierChecker.requireAuthenticity(auth);
 
         Utils.discordCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
         Utils.showDonateDialog(auth.getAuthId());

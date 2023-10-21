@@ -89,9 +89,11 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     @Inject
     public PVPModule(PluginAPI api, HeroAPI hero, AuthAPI auth, ConfigAPI configApi, MovementAPI movement,
             SafetyFinder safety) {
-        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
+        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) {
             throw new SecurityException();
-        VerifierChecker.checkAuthenticity(auth);
+        }
+
+        VerifierChecker.requireAuthenticity(auth);
 
         Utils.discordCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
         Utils.showDonateDialog(auth.getAuthId());
@@ -143,7 +145,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         if (api == null || pvpConfig == null)
             return;
 
-        this.shipAttacker = new ShipAttacker(api, pvpConfig.SAB, pvpConfig.useRSB, pvpConfig.humanizer);
+        this.shipAttacker = new ShipAttacker(api, pvpConfig.ammoConfig, pvpConfig.humanizer);
         this.antiPushLogic = new AntiPushLogic(this.heroapi, api.getAPI(StatsAPI.class), this.pvpConfig.antiPush);
         this.extraMovementLogic = new ExtraMovementLogic(api, pvpConfig.movementConfig);
     }

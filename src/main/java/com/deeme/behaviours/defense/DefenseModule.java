@@ -66,7 +66,7 @@ public class DefenseModule extends TemporalModule {
         this.configRun = configApi.requireConfig("general.run");
         this.repairHpRange = configApi.requireConfig("general.safety.repair_hp_range");
         this.defenseConfig = defenseConfig;
-        this.shipAttacker = new ShipAttacker(api, defenseConfig);
+        this.shipAttacker = new ShipAttacker(api, defenseConfig.ammoConfig, defenseConfig.humanizer);
         this.extraMovementLogic = new ExtraMovementLogic(api, defenseConfig.movementConfig);
         this.target = target;
         this.nextAttackCheck = 0;
@@ -109,7 +109,6 @@ public class DefenseModule extends TemporalModule {
                 super.goBack();
             }
         } catch (Exception e) {
-            System.err.println(e.getLocalizedMessage());
             target = null;
             super.goBack();
         }
