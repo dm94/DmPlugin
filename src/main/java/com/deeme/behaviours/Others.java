@@ -18,6 +18,7 @@ import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.game.other.Gui;
+import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BackpageAPI;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
@@ -56,7 +57,7 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
 
     @Inject
     public Others(Main main, PluginAPI api, BotAPI bot, StatsAPI stats, HeroItemsAPI heroItems) {
-        Utils.showDonateDialog();
+        Utils.showDonateDialog(api.getAPI(AuthAPI.class).getAuthId());
         this.main = main;
         this.api = api;
         this.bot = bot;
