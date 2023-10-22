@@ -16,6 +16,7 @@ import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.extensions.FeatureInfo;
 import eu.darkbot.api.extensions.InstructionProvider;
 import eu.darkbot.api.extensions.Task;
 import eu.darkbot.api.game.other.Gui;
@@ -41,6 +42,8 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
     protected final HeroAPI heroapi;
     protected final BotAPI botApi;
     protected final BackpageAPI backpage;
+    protected final FeatureInfo featureInfo;
+
     private WeeklyConfig weeklyConfig;
     private Main main;
     private long nextCheck = 0;
@@ -80,6 +83,8 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
         this.botApi = api.getAPI(BotAPI.class);
         this.extensionsAPI = api.getAPI(ExtensionsAPI.class);
         this.backpage = api.getAPI(BackpageAPI.class);
+
+        this.featureInfo = extensionsAPI.getFeatureInfo(this.getClass());
 
         GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
         lostConnectionGUI = gameScreenAPI.getGui("lost_connection");
@@ -242,7 +247,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
                 updateHangarList = false;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            featureInfo.addWarning("tryUpdateHangarList", e.getLocalizedMessage());
         }
     }
 

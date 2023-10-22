@@ -16,6 +16,7 @@ import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.extensions.FeatureInfo;
 import eu.darkbot.api.game.entities.Station;
 import eu.darkbot.api.game.other.GameMap;
 import eu.darkbot.api.game.other.Gui;
@@ -25,6 +26,7 @@ import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BackpageAPI;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
+import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.GameScreenAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.OreAPI;
@@ -46,6 +48,7 @@ public class PalladiumHangar extends LootCollectorModule implements Configurable
     protected final AttackAPI attackApi;
     protected final StatsAPI stats;
     protected final BackpageAPI backpage;
+    protected final FeatureInfo featureInfo;
     private GameMap sellMap;
     private GameMap activeMap;
     private Collection<? extends Station> bases;
@@ -102,6 +105,9 @@ public class PalladiumHangar extends LootCollectorModule implements Configurable
         this.oreApi = api.getAPI(OreAPI.class);
         this.stats = api.getAPI(StatsAPI.class);
         this.backpage = api.getAPI(BackpageAPI.class);
+
+        ExtensionsAPI extensionsAPI = api.getAPI(ExtensionsAPI.class);
+        this.featureInfo = extensionsAPI.getFeatureInfo(this.getClass());
 
         GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
         this.tradeGui = gameScreenAPI.getGui("ore_trade");
@@ -294,7 +300,7 @@ public class PalladiumHangar extends LootCollectorModule implements Configurable
                 updateHangarList = false;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            featureInfo.addWarning("tryUpdateHangarList", e.getLocalizedMessage());
         }
     }
 

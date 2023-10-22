@@ -31,12 +31,13 @@ public class AntiTrainDummy implements Behavior, Configurable<AntiTrainConfig> {
         }
 
         VerifierChecker.requireAuthenticity(auth);
-        Utils.discordDonorCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
+        ExtensionsAPI extensionsAPI = api.getAPI(ExtensionsAPI.class);
+        Utils.discordDonorCheck(extensionsAPI.getFeatureInfo(this.getClass()), auth.getAuthId());
 
         try {
             this.privateBehaviour = new AntiTrain(api);
         } catch (Exception e) {
-            e.printStackTrace();
+            extensionsAPI.getFeatureInfo(this.getClass()).addFailure("Error", e.getMessage());
         }
     }
 

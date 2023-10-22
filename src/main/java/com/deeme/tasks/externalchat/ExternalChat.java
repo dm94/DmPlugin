@@ -42,6 +42,7 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
 
     protected final PluginAPI api;
     protected final ExtensionsAPI extensionsAPI;
+
     private JPanel mainPanel;
     private JTextArea globalChatTextArea;
     private JTextArea otherChatTextArea;
@@ -120,9 +121,7 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
         input = new JTextField("");
 
         JButton sendButton = new JButton("Send a message to global chat");
-        sendButton.addActionListener(e -> {
-            addMessageToPendingList();
-        });
+        sendButton.addActionListener(e -> addMessageToPendingList());
 
         tabbedPane.add(globalChatPanel, "Global");
         tabbedPane.add(otherChatPanel, "Others");
@@ -163,7 +162,7 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
                 otherChatProcesssor.doInBackground();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            extensionsAPI.getFeatureInfo(this.getClass()).addWarning("External Chat", e.getLocalizedMessage());
         }
     }
 
