@@ -37,10 +37,21 @@ dependencies {
 }
 
 tasks.register<proguard.gradle.ProGuardTask>("proguard") {
+    dependsOn("uberJar")
     configuration("proguard.conf")
     dontnote()
     dontwarn()
 
-    injars("./DmPluginTest.jar")
+    injars("./build/libs/DmPlugin-2.1.10.jar")
     outjars("DmPlugin.jar")
+}
+
+tasks.register<Jar>("uberJar") {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    from(sourceSets.main.get().output)
+
+    dependsOn(configurations.runtimeClasspath)
+    from({
+        configurations.runtimeClasspath.get().filter { it.name.equals("private.jar") }.map { zipTree(it) }
+    })
 }
