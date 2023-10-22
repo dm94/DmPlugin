@@ -49,7 +49,7 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.showDonateDialog();
+        Utils.showDonateDialog(auth.getAuthId());
 
         this.api = api;
         this.bot = bot;

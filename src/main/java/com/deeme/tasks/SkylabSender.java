@@ -72,7 +72,7 @@ public class SkylabSender implements Task, Configurable<SkylabSender.SkylabConfi
         }
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.showDonateDialog();
+        Utils.showDonateDialog(auth.getAuthId());
 
         this.main = main;
         this.backpageManager = main.backpage;

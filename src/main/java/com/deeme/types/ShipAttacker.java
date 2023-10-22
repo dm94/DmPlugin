@@ -1,12 +1,12 @@
 package com.deeme.types;
 
-import com.deeme.behaviours.defense.DefenseConfig;
+import com.deeme.behaviours.defense.AmmoConfig;
 import com.deeme.modules.sentinel.Humanizer;
 import com.deeme.types.config.ExtraKeyConditions;
 import com.deeme.types.config.ExtraKeyConditionsSelectable;
 import com.deeme.types.suppliers.DefenseLaserSupplier;
-import com.github.manolo8.darkbot.Main;
-import com.github.manolo8.darkbot.config.Config.Loot.Sab;
+import com.github.manolo8.darkbot.core.api.Capability;
+import com.github.manolo8.darkbot.core.objects.facades.SettingsProxy;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -46,8 +46,8 @@ public class ShipAttacker {
     protected final ConfigAPI configAPI;
     protected final GroupAPI group;
     protected final BotAPI bot;
+    protected final SettingsProxy settingsProxy;
     protected final ConfigSetting<PercentRange> repairHpRange;
-    protected final ConfigSetting<Character> ammoKey;
     protected final Collection<? extends Player> allShips;
     protected final Collection<? extends Portal> allPortals;
 
@@ -59,8 +59,7 @@ public class ShipAttacker {
     protected long fixTimes;
     protected long clickDelay;
     protected long keyDelay;
-    protected boolean sab;
-    private DefenseConfig defense = null;
+
     private Random rnd;
 
     protected boolean firstAttack;
@@ -68,18 +67,12 @@ public class ShipAttacker {
     protected int fixedTimes;
     protected Character lastShot;
 
+    protected Character attackLaserKey;
+
     private Humanizer humanizerConfig;
+    private AmmoConfig ammoConfig;
 
-    public ShipAttacker(Main main) {
-        this(main.pluginAPI.getAPI(PluginAPI.class), main.config.LOOT.SAB, main.config.LOOT.RSB.ENABLED);
-    }
-
-    public ShipAttacker(PluginAPI api, Sab sab, boolean rsbEnabled, Humanizer humanizerConfig) {
-        this(api, sab, rsbEnabled);
-        this.humanizerConfig = humanizerConfig;
-    }
-
-    public ShipAttacker(PluginAPI api, Sab sab, boolean rsbEnabled) {
+    public ShipAttacker(PluginAPI api, AmmoConfig ammoConfig, Humanizer humanizerConfig) {
         this.api = api;
         this.heroapi = api.getAPI(HeroAPI.class);
         this.movement = api.getAPI(MovementAPI.class);
@@ -91,20 +84,18 @@ public class ShipAttacker {
         this.allPortals = entities.getPortals();
         this.rnd = new Random();
         this.items = api.getAPI(HeroItemsAPI.class);
-        this.laserSupplier = new DefenseLaserSupplier(api, heroapi, items, sab, rsbEnabled);
         this.humanizerConfig = new Humanizer();
         this.humanizerConfig.maxRandomTime = 0;
 
+        this.settingsProxy = api.requireInstance(SettingsProxy.class);
+        attackLaserKey = settingsProxy.getCharacterOf(SettingsProxy.KeyBind.ATTACK_LASER).orElse(null);
+
         this.repairHpRange = configAPI.requireConfig("general.safety.repair_hp_range");
-        this.ammoKey = configAPI.requireConfig("loot.ammo_key");
 
         this.conditionsManagement = new ConditionsManagement(api, items);
-    }
-
-    public ShipAttacker(PluginAPI api, DefenseConfig defense) {
-        this(api, defense.SAB, defense.useRSB);
-        this.defense = defense;
-        this.humanizerConfig = defense.humanizer;
+        this.humanizerConfig = humanizerConfig;
+        this.ammoConfig = ammoConfig;
+        this.laserSupplier = new DefenseLaserSupplier(api, heroapi, items, ammoConfig.sab, ammoConfig.useRSB);
     }
 
     public String getStatus() {
@@ -181,9 +172,11 @@ public class ShipAttacker {
     protected void sendAttack(long minWait, long bugTime, boolean normal) {
         laserTime = System.currentTimeMillis() + minWait;
         isAttacking = Math.max(isAttacking, laserTime + bugTime);
-        if (normal) {
+        if (normal && ammoConfig.enableAmmoConfig) {
             lastShot = getAttackKey();
             API.keyboardClick(lastShot);
+        } else if (API.hasCapability(Capability.ALL_KEYBINDS_SUPPORT)) {
+            this.settingsProxy.pressKeybind(SettingsProxy.KeyBind.ATTACK_LASER);
         } else if (target != null && target.isValid()) {
             target.trySelect(true);
         }
@@ -194,10 +187,10 @@ public class ShipAttacker {
     }
 
     private Character getAttackKey() {
-        return getAttackKey(ammoKey.getValue());
-    }
+        if (!ammoConfig.enableAmmoConfig) {
+            return attackLaserKey;
+        }
 
-    private Character getAttackKey(Character defaultAmmo) {
         Laser laser = getBestLaserAmmo();
         if (laser != null) {
             Character key = items.getKeyBind(laser);
@@ -206,11 +199,11 @@ public class ShipAttacker {
             }
         }
 
-        if (defense != null) {
-            return defense.ammoKey;
+        if (ammoConfig != null) {
+            return ammoConfig.ammoKey;
         }
 
-        return defaultAmmo;
+        return null;
     }
 
     public boolean useKeyWithConditions(ExtraKeyConditions extra, SelectableItem selectableItem) {

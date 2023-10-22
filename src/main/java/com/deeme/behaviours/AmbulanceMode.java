@@ -47,7 +47,7 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.showDonateDialog();
+        Utils.showDonateDialog(auth.getAuthId());
 
         this.api = api;
         this.heroapi = hero;

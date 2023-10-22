@@ -68,7 +68,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.showDonateDialog();
+        Utils.showDonateDialog(auth.getAuthId());
 
         this.main = main;
         this.api = api;

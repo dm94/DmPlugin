@@ -59,8 +59,8 @@ public class Utils {
                 .showAsync();
     }
 
-    public static void showDonateDialog() {
-        if (Backpage.isDonorExternal()) {
+    public static void showDonateDialog(String authId) {
+        if (Backpage.isDonor(authId)) {
             return;
         }
 

@@ -47,7 +47,7 @@ public class StopButton implements Behavior, ExtraMenus {
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.showDonateDialog();
+        Utils.showDonateDialog(auth.getAuthId());
 
         this.api = api;
         this.bot = bot;

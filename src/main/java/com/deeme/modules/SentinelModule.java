@@ -128,12 +128,14 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
 
     @Inject
     public SentinelModule(Main main, PluginAPI api, AuthAPI auth, SafetyFinder safety) {
-        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
+        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) {
             throw new SecurityException();
-        VerifierChecker.checkAuthenticity(auth);
+        }
+
+        VerifierChecker.requireAuthenticity(auth);
 
         Utils.discordCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
-        Utils.showDonateDialog();
+        Utils.showDonateDialog(auth.getAuthId());
 
         this.main = main;
         this.currentStatus = State.INIT;
@@ -174,7 +176,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
             return;
         }
 
-        this.shipAttacker = new ShipAttacker(api, sabSettings.getValue(), rsbEnabled.getValue(), sConfig.humanizer);
+        this.shipAttacker = new ShipAttacker(api, sConfig.ammoConfig, sConfig.humanizer);
         this.extraMovementLogic = new ExtraMovementLogic(api, sConfig.movementConfig);
     }
 
