@@ -3,8 +3,8 @@ package com.deeme.modules.pvp;
 import com.deeme.behaviours.defense.AmmoConfig;
 import com.deeme.modules.sentinel.Humanizer;
 import com.deeme.types.config.ExtraKeyConditions;
+import com.deemeplus.general.configchanger.ExtraConfigChangerConfig;
 import com.deemeplus.general.movement.MovementConfig;
-import com.github.manolo8.darkbot.config.Config.Loot.Sab;
 
 import eu.darkbot.api.config.annotations.Configuration;
 import eu.darkbot.api.config.annotations.Number;
@@ -15,17 +15,11 @@ public class PVPConfig {
     @Option("pvp_module.movement")
     public boolean move = true;
 
-    @Option("pvp_module.recharge_shields")
-    public boolean rechargeShields = true;
-
     @Option("pvp_module.enable_collector")
     public boolean collectorActive = false;
 
     @Option("pvp_module.change_config")
     public boolean changeConfig = true;
-
-    @Option("pvp_module.run_config")
-    public boolean useRunConfig = true;
 
     @Option("auto_attack.max_range")
     @Number(min = 0, max = 1000, step = 50)
@@ -41,6 +35,9 @@ public class PVPConfig {
 
     @Option("extra_movement_conditions")
     public MovementConfig movementConfig = new MovementConfig();
+
+    @Option("extra_config_changer")
+    public ExtraConfigChangerConfig extraConfigChangerConfig = new ExtraConfigChangerConfig();
 
     @Option("ammo_config")
     public AmmoConfig ammoConfig = new AmmoConfig();

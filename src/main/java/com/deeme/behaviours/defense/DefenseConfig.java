@@ -7,12 +7,12 @@ import com.deeme.modules.pvp.AntiPush;
 import com.deeme.modules.sentinel.Humanizer;
 import com.deeme.types.config.ExtraKeyConditions;
 import com.deeme.types.config.ExtraKeyConditionsSelectable;
+import com.deemeplus.general.configchanger.ExtraConfigChangerConfig;
 import com.deemeplus.general.movement.MovementConfig;
 
 import eu.darkbot.api.config.annotations.Configuration;
 import eu.darkbot.api.config.annotations.Dropdown;
 import eu.darkbot.api.config.annotations.Option;
-import eu.darkbot.api.config.annotations.Percentage;
 import eu.darkbot.api.config.annotations.Number;
 
 @Configuration("defense")
@@ -42,18 +42,17 @@ public class DefenseConfig {
     @Number(min = 1000, max = 4000, step = 100)
     public int rangeForAttackedEnemy = 1500;
 
+    @Option("defense.ignore_enemies")
+    public boolean ignoreEnemies = true;
+
     @Option("extra_movement_conditions")
     public MovementConfig movementConfig = new MovementConfig();
 
     @Option("ammo_config")
     public AmmoConfig ammoConfig = new AmmoConfig();
 
-    @Option("defense.ignore_enemies")
-    public boolean ignoreEnemies = true;
-
-    @Option("defense.run_config_min_health")
-    @Percentage
-    public double healthToChange = 0.0;
+    @Option("extra_config_changer")
+    public ExtraConfigChangerConfig extraConfigChangerConfig = new ExtraConfigChangerConfig();
 
     @Option("general.ability")
     public ExtraKeyConditions ability = new ExtraKeyConditions();

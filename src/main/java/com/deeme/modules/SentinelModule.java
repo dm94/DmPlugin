@@ -5,6 +5,7 @@ import com.deeme.types.ShipAttacker;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 import com.deeme.types.config.SentinelConfig;
+import com.deemeplus.general.configchanger.ExtraConfigChangerLogic;
 import com.deemeplus.general.movement.ExtraMovementLogic;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.Config;
@@ -77,6 +78,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
 
     private SentinelConfig sConfig;
     private ExtraMovementLogic extraMovementLogic;
+    private ExtraConfigChangerLogic extraConfigChangerLogic;
     private Player sentinel;
     private Main main;
     private SafetyFinder safety;
@@ -178,6 +180,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
 
         this.shipAttacker = new ShipAttacker(api, sConfig.ammoConfig, sConfig.humanizer);
         this.extraMovementLogic = new ExtraMovementLogic(api, sConfig.movementConfig);
+        this.extraConfigChangerLogic = new ExtraConfigChangerLogic(api, sConfig.extraConfigChangerConfig);
     }
 
     @Override
@@ -216,7 +219,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         pet.setEnabled(true);
         if ((sConfig.ignoreSecurity || safety.tick()) && (!sConfig.collectorActive || collectorModule.canRefresh())) {
             if (shipAround()) {
-                lastMap = heroapi.getMap() != null ? heroapi.getMap().getId() : null;
+                updateLastMap();
                 if (isAttacking()) {
                     currentStatus = State.HELPING_MASTER;
                     lastTimeAttack = System.currentTimeMillis();
@@ -277,6 +280,10 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                 }
             }
         }
+    }
+
+    private void updateLastMap() {
+        lastMap = heroapi.getMap() != null ? heroapi.getMap().getId() : null;
     }
 
     private void useSpecialItems() {
@@ -344,15 +351,14 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
             target = SharedFunctions.getAttacker(heroapi, npcs, heroapi);
         }
         if (target != null) {
+            setMode(extraConfigChangerLogic.getShipMode());
             if (target instanceof Npc) {
                 isNpc = true;
                 attacker.setTarget((Npc) target);
-                setMode(configOffensive.getValue(), (Npc) target);
                 attacker.tryLockAndAttack();
             } else {
                 isNpc = false;
                 shipAttacker.setTarget((Ship) target);
-                setMode(configOffensive.getValue());
                 shipAttacker.tryLockAndAttack();
             }
         }
@@ -448,14 +454,6 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                         sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(in.getInviter().getId()))))
                 .findFirst()
                 .ifPresent(main.guiManager.group::acceptInvite);
-    }
-
-    private void setMode(ShipMode config, Npc npc) {
-        if (npc != null) {
-            heroapi.setAttackMode(npc);
-        } else {
-            setMode(config);
-        }
     }
 
     private void setMode(ShipMode config) {
@@ -571,7 +569,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         } else if (heroapi.getLocationInfo().getCurrent().distanceTo(direction) > target.getInfo().getRadius() * 3) {
             setMode(configRoam.getValue());
         } else {
-            setMode(configOffensive.getValue());
+            setMode(extraConfigChangerLogic.getShipMode());
         }
     }
 }

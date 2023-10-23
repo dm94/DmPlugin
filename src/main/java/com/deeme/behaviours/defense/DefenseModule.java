@@ -4,44 +4,35 @@ import java.util.Collection;
 
 import com.deeme.types.ShipAttacker;
 import com.deemeplus.general.movement.ExtraMovementLogic;
+import com.deemeplus.general.configchanger.ExtraConfigChangerLogic;
 
 import eu.darkbot.api.PluginAPI;
-import eu.darkbot.api.config.ConfigSetting;
-import eu.darkbot.api.config.types.PercentRange;
-import eu.darkbot.api.config.types.ShipMode;
 import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.entities.Player;
 import eu.darkbot.api.game.entities.Ship;
 import eu.darkbot.api.game.items.SelectableItem.Special;
 import eu.darkbot.api.managers.BotAPI;
-import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.MovementAPI;
 import eu.darkbot.api.managers.PetAPI;
 import eu.darkbot.api.utils.Inject;
 import eu.darkbot.shared.modules.TemporalModule;
-import eu.darkbot.shared.utils.SafetyFinder;
-import eu.darkbot.shared.utils.SafetyFinder.Escaping;
 
 public class DefenseModule extends TemporalModule {
     protected final PluginAPI api;
     protected final HeroAPI heroapi;
     protected final MovementAPI movement;
-    protected final SafetyFinder safetyFinder;
     protected final Collection<? extends Player> players;
-    protected final ConfigSetting<ShipMode> configOffensive;
-    protected final ConfigSetting<ShipMode> configRun;
-    protected final ConfigSetting<PercentRange> repairHpRange;
     protected final PetAPI pet;
 
     private ShipAttacker shipAttacker;
     private DefenseConfig defenseConfig;
-    private boolean attackConfigLost = false;
     private Entity target = null;
 
     private long nextAttackCheck = 0;
     private ExtraMovementLogic extraMovementLogic;
+    private ExtraConfigChangerLogic extraConfigChangerLogic;
 
     private int timeOut = 0;
     protected static final int DISTANCE_TO_USE_VS_MODE = 1500;
@@ -57,17 +48,13 @@ public class DefenseModule extends TemporalModule {
         this.api = api;
         this.heroapi = hero;
         this.movement = api.requireAPI(MovementAPI.class);
-        this.safetyFinder = api.requireInstance(SafetyFinder.class);
         this.pet = api.getAPI(PetAPI.class);
         EntitiesAPI entities = api.requireAPI(EntitiesAPI.class);
-        ConfigAPI configApi = api.requireAPI(ConfigAPI.class);
         this.players = entities.getPlayers();
-        this.configOffensive = configApi.requireConfig("general.offensive");
-        this.configRun = configApi.requireConfig("general.run");
-        this.repairHpRange = configApi.requireConfig("general.safety.repair_hp_range");
         this.defenseConfig = defenseConfig;
         this.shipAttacker = new ShipAttacker(api, defenseConfig.ammoConfig, defenseConfig.humanizer);
         this.extraMovementLogic = new ExtraMovementLogic(api, defenseConfig.movementConfig);
+        this.extraConfigChangerLogic = new ExtraConfigChangerLogic(api, defenseConfig.extraConfigChangerConfig);
         this.target = target;
         this.nextAttackCheck = 0;
         this.timeOut = 0;
@@ -80,7 +67,7 @@ public class DefenseModule extends TemporalModule {
 
     @Override
     public String getStatus() {
-        return "Defense Mode | " + shipAttacker.getStatus() + " | " + safetyFinder.status() + " | Time out:" + timeOut
+        return "Defense Mode | " + shipAttacker.getStatus() + " | Time out:" + timeOut
                 + "/" + defenseConfig.maxSecondsTimeOut;
     }
 
@@ -157,18 +144,6 @@ public class DefenseModule extends TemporalModule {
     }
 
     private void setConfigToUse() {
-        if (heroapi.getHealth().hpPercent() <= defenseConfig.healthToChange) {
-            attackConfigLost = true;
-        }
-
-        if (attackConfigLost) {
-            heroapi.setMode(configRun.getValue());
-        } else {
-            if (safetyFinder.state() != Escaping.ENEMY) {
-                heroapi.setMode(configOffensive.getValue());
-            } else {
-                heroapi.setMode(configRun.getValue());
-            }
-        }
+        heroapi.setMode(extraConfigChangerLogic.getShipMode());
     }
 }
