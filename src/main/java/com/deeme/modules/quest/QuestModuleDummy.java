@@ -9,14 +9,17 @@ import java.util.Arrays;
 
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
+import com.deemeplus.modules.quest.config.Config;
 import com.deemeplus.modules.quest.QuestModule;
 import com.github.manolo8.darkbot.Main;
 
 import eu.darkbot.api.PluginAPI;
+import eu.darkbot.api.config.ConfigSetting;
+import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
 
 @Feature(name = "Quest Module [PLUS]", description = "For do quests")
-public class QuestModuleDummy implements Module {
+public class QuestModuleDummy implements Module, Configurable<Config> {
     private QuestModule privateModule;
 
     public QuestModuleDummy(Main main, PluginAPI api) {
@@ -58,5 +61,10 @@ public class QuestModuleDummy implements Module {
     @Override
     public boolean canRefresh() {
         return this.privateModule.canRefresh();
+    }
+
+    @Override
+    public void setConfig(ConfigSetting<Config> config) {
+        this.privateModule.setConfig(config);
     }
 }
