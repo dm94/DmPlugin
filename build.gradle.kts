@@ -48,6 +48,7 @@ tasks.register<proguard.gradle.ProGuardTask>("proguard") {
 
 tasks.register<Jar>("uberJar") {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    archiveFileName.set("DmPlugin.jar")
     from(sourceSets.main.get().output)
 
     dependsOn(configurations.runtimeClasspath)

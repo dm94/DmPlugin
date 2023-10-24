@@ -1,7 +1,7 @@
 {
   "name": "DmPlugin",
   "author": "Dm94Dani",
-  "version": "2.1.10",
+  "version": "2.2.0",
   "minVersion": "1.128",
   "supportedVersion": "1.129",
   "basePackage": "com.deeme",
@@ -11,6 +11,7 @@
     "com.deeme.modules.PVPModule",
     "com.deeme.modules.astral.AstralGate",
     "com.deeme.modules.genericgate.GenericGateDummy",
+    "com.deeme.modules.quest.QuestModuleDummy",
     "com.deeme.tasks.discord.Discord",
     "com.deeme.tasks.Ifttt",
     "com.deeme.tasks.SkylabSender",
