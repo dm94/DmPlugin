@@ -56,3 +56,14 @@ tasks.register<Jar>("uberJar") {
         configurations.runtimeClasspath.get().filter { it.name.equals("private.jar") }.map { zipTree(it) }
     })
 }
+
+tasks.register<Copy>("copyFile") {
+    dependsOn("uberJar")
+    from(layout.buildDirectory.file("DmPlugin.jar"))
+    into("DmPlugin.jar")
+}
+
+tasks.register<Exec>("signFile") {
+    dependsOn("copyFile")
+    commandLine("cmd", "/c", "sign.bat")
+}
