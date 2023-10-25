@@ -179,12 +179,12 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     }
 
     private boolean isReadyNormalCondtion(NormalCondition condition) {
-        return condition == null || !condition.active ||
+        return condition == null || (!condition.active && !config.orConditional) ||
                 condition.condition == null || condition.condition.get(api).allows();
     }
 
     private boolean isReadyNpcCondition(NpcCounterCondition npcCondition) {
-        return !npcCondition.active ||
+        return (!npcCondition.active && !config.orConditional) ||
                 npcCondition.npcCounter >= npcCondition.npcsToKill;
     }
 
@@ -210,7 +210,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     }
 
     private boolean isReadyResourceCondition() {
-        return !config.resourceCounterCondition.active
+        return (!config.resourceCounterCondition.active && !config.orConditional)
                 || config.resourceCounterCondition.resourcesFarmed >= config.resourceCounterCondition.resourcesToFarm;
     }
 
@@ -231,7 +231,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     }
 
     private boolean isReadyMapCondition() {
-        return !config.mapTimerCondition.active || (config.mapTimerCondition.mapTimeStart > 0
+        return (!config.mapTimerCondition.active && !config.orConditional) || (config.mapTimerCondition.mapTimeStart > 0
                 && (config.mapTimerCondition.mapTimeStart + (config.mapTimerCondition.timeInMap * 60000)) <= System
                         .currentTimeMillis());
     }
@@ -260,7 +260,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     }
 
     private boolean isReadyDeathCondition() {
-        return !config.deathsCondition.active
+        return (!config.deathsCondition.active && !config.orConditional)
                 || config.deathsCondition.maxDeaths >= repair.getDeathAmount();
     }
 
