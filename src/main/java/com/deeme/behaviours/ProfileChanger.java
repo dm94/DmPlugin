@@ -55,6 +55,8 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     private final Gui lostConnectionGUI;
     protected Collection<? extends Box> boxes;
 
+    private boolean defaultValue = true;
+
     public ProfileChanger(Main main, PluginAPI api) {
         this(main, api, api.requireAPI(AuthAPI.class),
                 api.requireAPI(BotAPI.class),
@@ -110,8 +112,10 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
                 nextCheck = System.currentTimeMillis() + (config.timeToCheck * 1000);
 
                 if (config.orConditional) {
+                    defaultValue = false;
                     orConditional();
                 } else {
+                    defaultValue = true;
                     andConditional();
                 }
             }
@@ -179,13 +183,20 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     }
 
     private boolean isReadyNormalCondtion(NormalCondition condition) {
-        return condition == null || (!condition.active && !config.orConditional) ||
+        if (!condition.active) {
+            return defaultValue;
+        }
+
+        return condition == null ||
                 condition.condition == null || condition.condition.get(api).allows();
     }
 
     private boolean isReadyNpcCondition(NpcCounterCondition npcCondition) {
-        return (!npcCondition.active && !config.orConditional) ||
-                npcCondition.npcCounter >= npcCondition.npcsToKill;
+        if (!npcCondition.active) {
+            return defaultValue;
+        }
+
+        return npcCondition.npcCounter >= npcCondition.npcsToKill;
     }
 
     private void checkNPC(NpcCounterCondition npcCondition) {
@@ -210,8 +221,11 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     }
 
     private boolean isReadyResourceCondition() {
-        return (!config.resourceCounterCondition.active && !config.orConditional)
-                || config.resourceCounterCondition.resourcesFarmed >= config.resourceCounterCondition.resourcesToFarm;
+        if (!config.resourceCounterCondition.active) {
+            return defaultValue;
+        }
+
+        return config.resourceCounterCondition.resourcesFarmed >= config.resourceCounterCondition.resourcesToFarm;
     }
 
     private void checkResource() {
@@ -231,14 +245,18 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     }
 
     private boolean isReadyMapCondition() {
-        return (!config.mapTimerCondition.active && !config.orConditional) || (config.mapTimerCondition.mapTimeStart > 0
+        if (!config.mapTimerCondition.active) {
+            return defaultValue;
+        }
+
+        return (config.mapTimerCondition.mapTimeStart > 0
                 && (config.mapTimerCondition.mapTimeStart + (config.mapTimerCondition.timeInMap * 60000)) <= System
                         .currentTimeMillis());
     }
 
     private boolean isReadyTimeCondition() {
         if (!config.timeCondition.active) {
-            return true;
+            return defaultValue;
         }
 
         LocalDateTime da = LocalDateTime.now();
@@ -260,8 +278,11 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     }
 
     private boolean isReadyDeathCondition() {
-        return (!config.deathsCondition.active && !config.orConditional)
-                || config.deathsCondition.maxDeaths >= repair.getDeathAmount();
+        if (!config.deathsCondition.active) {
+            return defaultValue;
+        }
+
+        return config.deathsCondition.maxDeaths >= repair.getDeathAmount();
     }
 
     private void resetCounters() {
