@@ -121,7 +121,13 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     @Override
     public void onStoppedBehavior() {
         updateResourceList();
-        config.mapTimerCondition.mapTimeStart = 0;
+
+        if (config.tickStopped) {
+            onTickBehavior();
+        } else {
+            config.mapTimerCondition.mapTimeStart = 0;
+        }
+
         if (config.closeBot) {
             stopCheck();
         }
