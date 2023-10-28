@@ -55,8 +55,6 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     private final Gui lostConnectionGUI;
     protected Collection<? extends Box> boxes;
 
-    private boolean defaultValue = true;
-
     public ProfileChanger(Main main, PluginAPI api) {
         this(main, api, api.requireAPI(AuthAPI.class),
                 api.requireAPI(BotAPI.class),
@@ -112,10 +110,8 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
                 nextCheck = System.currentTimeMillis() + (config.timeToCheck * 1000);
 
                 if (config.orConditional) {
-                    defaultValue = false;
                     orConditional();
                 } else {
-                    defaultValue = true;
                     andConditional();
                 }
             }
@@ -184,7 +180,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
 
     private boolean isReadyNormalCondtion(NormalCondition condition) {
         if (!condition.active) {
-            return defaultValue;
+            return !config.orConditional;
         }
 
         return condition == null ||
@@ -193,7 +189,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
 
     private boolean isReadyNpcCondition(NpcCounterCondition npcCondition) {
         if (!npcCondition.active) {
-            return defaultValue;
+            return !config.orConditional;
         }
 
         return npcCondition.npcCounter >= npcCondition.npcsToKill;
@@ -222,7 +218,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
 
     private boolean isReadyResourceCondition() {
         if (!config.resourceCounterCondition.active) {
-            return defaultValue;
+            return !config.orConditional;
         }
 
         return config.resourceCounterCondition.resourcesFarmed >= config.resourceCounterCondition.resourcesToFarm;
@@ -246,7 +242,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
 
     private boolean isReadyMapCondition() {
         if (!config.mapTimerCondition.active) {
-            return defaultValue;
+            return !config.orConditional;
         }
 
         return (config.mapTimerCondition.mapTimeStart > 0
@@ -256,7 +252,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
 
     private boolean isReadyTimeCondition() {
         if (!config.timeCondition.active) {
-            return defaultValue;
+            return !config.orConditional;
         }
 
         LocalDateTime da = LocalDateTime.now();
@@ -279,7 +275,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
 
     private boolean isReadyDeathCondition() {
         if (!config.deathsCondition.active) {
-            return defaultValue;
+            return !config.orConditional;
         }
 
         return config.deathsCondition.maxDeaths >= repair.getDeathAmount();
