@@ -189,8 +189,11 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
             return !config.orConditional;
         }
 
-        return condition == null ||
-                condition.condition == null || condition.condition.get(api).allows();
+        if (condition.condition == null) {
+            return false;
+        }
+
+        return condition.condition.get(api).allows();
     }
 
     private boolean isReadyNpcCondition(NpcCounterCondition npcCondition) {
@@ -284,7 +287,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
             return !config.orConditional;
         }
 
-        return config.deathsCondition.maxDeaths >= repair.getDeathAmount();
+        return repair.getDeathAmount() >= config.deathsCondition.maxDeaths;
     }
 
     private void resetCounters() {
