@@ -30,6 +30,9 @@ public class ProfileChangerConfig {
     @Option("profile_changer.only_one_condition")
     public boolean orConditional = false;
 
+    @Option("general.tick_stopped")
+    public boolean tickStopped = false;
+
     @Option("general.condition")
     public NormalCondition normalCondition = new NormalCondition();
 
