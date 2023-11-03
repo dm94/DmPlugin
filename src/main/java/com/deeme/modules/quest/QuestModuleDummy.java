@@ -12,15 +12,15 @@ import com.deeme.types.backpage.Utils;
 import com.deemeplus.modules.quest.config.Config;
 import com.deemeplus.modules.quest.QuestModule;
 import com.github.manolo8.darkbot.Main;
-import eu.darkbot.api.extensions.Task;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
+import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
 
 @Feature(name = "Quest Module [PLUS]", description = "For do quests")
-public class QuestModuleDummy implements Module, Task, Configurable<Config> {
+public class QuestModuleDummy implements Module, Behavior, Configurable<Config> {
     private QuestModule privateModule;
 
     public QuestModuleDummy(Main main, PluginAPI api) {
@@ -70,7 +70,7 @@ public class QuestModuleDummy implements Module, Task, Configurable<Config> {
     }
 
     @Override
-    public void onTickTask() {
-        this.privateModule.onTickTask();
+    public void onTickBehavior() {
+        this.privateModule.onTickBehavior();
     }
 }
