@@ -66,7 +66,7 @@ public class QuestModuleDummy implements Module, Behavior, Configurable<Config> 
 
     @Override
     public void setConfig(ConfigSetting<Config> config) {
-        this.privateModule.setConfig(config);
+        this.privateModule.setConfig(config.getValue());
     }
 
     @Override
