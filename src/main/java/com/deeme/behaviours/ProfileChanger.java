@@ -121,7 +121,13 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     @Override
     public void onStoppedBehavior() {
         updateResourceList();
-        config.mapTimerCondition.mapTimeStart = 0;
+
+        if (config.tickStopped) {
+            onTickBehavior();
+        } else {
+            config.mapTimerCondition.mapTimeStart = 0;
+        }
+
         if (config.closeBot) {
             stopCheck();
         }
@@ -179,13 +185,23 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     }
 
     private boolean isReadyNormalCondtion(NormalCondition condition) {
-        return condition == null || !condition.active ||
-                condition.condition == null || condition.condition.get(api).allows();
+        if (!condition.active) {
+            return !config.orConditional;
+        }
+
+        if (condition.condition == null) {
+            return false;
+        }
+
+        return condition.condition.get(api).allows();
     }
 
     private boolean isReadyNpcCondition(NpcCounterCondition npcCondition) {
-        return !npcCondition.active ||
-                npcCondition.npcCounter >= npcCondition.npcsToKill;
+        if (!npcCondition.active) {
+            return !config.orConditional;
+        }
+
+        return npcCondition.npcCounter >= npcCondition.npcsToKill;
     }
 
     private void checkNPC(NpcCounterCondition npcCondition) {
@@ -210,8 +226,11 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     }
 
     private boolean isReadyResourceCondition() {
-        return !config.resourceCounterCondition.active
-                || config.resourceCounterCondition.resourcesFarmed >= config.resourceCounterCondition.resourcesToFarm;
+        if (!config.resourceCounterCondition.active) {
+            return !config.orConditional;
+        }
+
+        return config.resourceCounterCondition.resourcesFarmed >= config.resourceCounterCondition.resourcesToFarm;
     }
 
     private void checkResource() {
@@ -231,14 +250,18 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     }
 
     private boolean isReadyMapCondition() {
-        return !config.mapTimerCondition.active || (config.mapTimerCondition.mapTimeStart > 0
+        if (!config.mapTimerCondition.active) {
+            return !config.orConditional;
+        }
+
+        return (config.mapTimerCondition.mapTimeStart > 0
                 && (config.mapTimerCondition.mapTimeStart + (config.mapTimerCondition.timeInMap * 60000)) <= System
                         .currentTimeMillis());
     }
 
     private boolean isReadyTimeCondition() {
         if (!config.timeCondition.active) {
-            return true;
+            return !config.orConditional;
         }
 
         LocalDateTime da = LocalDateTime.now();
@@ -260,8 +283,11 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     }
 
     private boolean isReadyDeathCondition() {
-        return !config.deathsCondition.active
-                || config.deathsCondition.maxDeaths >= repair.getDeathAmount();
+        if (!config.deathsCondition.active) {
+            return !config.orConditional;
+        }
+
+        return repair.getDeathAmount() >= config.deathsCondition.maxDeaths;
     }
 
     private void resetCounters() {
