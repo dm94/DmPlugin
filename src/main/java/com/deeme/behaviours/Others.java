@@ -2,18 +2,19 @@ package com.deeme.behaviours;
 
 import java.util.Collection;
 
+import com.deeme.behaviours.others.OthersConfig;
 import com.deeme.types.backpage.Utils;
 import com.github.manolo8.darkbot.Main;
+import com.github.manolo8.darkbot.config.PlayerInfo;
+import com.github.manolo8.darkbot.config.PlayerTag;
 import com.github.manolo8.darkbot.modules.DisconnectModule;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
-import eu.darkbot.api.config.annotations.Configuration;
-import eu.darkbot.api.config.annotations.Number;
-import eu.darkbot.api.config.annotations.Option;
 import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.game.entities.Player;
 import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
@@ -29,9 +30,9 @@ import eu.darkbot.api.managers.StatsAPI;
 import eu.darkbot.api.utils.Inject;
 
 @Feature(name = "Others", description = "Many options")
-public class Others implements Behavior, Configurable<Others.LCConfig> {
+public class Others implements Behavior, Configurable<OthersConfig> {
 
-    private LCConfig lcConfig;
+    private OthersConfig lcConfig;
     private final Main main;
     private long nextRefresh = 0;
     protected final PluginAPI api;
@@ -47,6 +48,7 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
     private static final int AMMO_CREDITS_COST = 100000;
 
     private Collection<? extends Portal> portals;
+    private final Collection<? extends Player> players;
 
     public Others(Main main, PluginAPI api) {
         this(main, api,
@@ -67,7 +69,7 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
         this.heroapi = api.getAPI(HeroAPI.class);
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
         this.portals = entities.getPortals();
-
+        this.players = entities.getPlayers();
         GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
         lostConnectionGUI = gameScreenAPI.getGui("lost_connection");
 
@@ -75,7 +77,7 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
     }
 
     @Override
-    public void setConfig(ConfigSetting<LCConfig> arg0) {
+    public void setConfig(ConfigSetting<OthersConfig> arg0) {
         this.lcConfig = arg0.getValue();
     }
 
@@ -95,11 +97,50 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
 
         autoBuyLogic();
         closeBotLogic();
+        tagClanMembers();
     }
 
     @Override
     public void onStoppedBehavior() {
         closeBotLogic();
+    }
+
+    private void tagClanMembers() {
+        if (!lcConfig.tagClanMembers.active || players == null || players.isEmpty()
+                || lcConfig.tagClanMembers.clanTag == null) {
+            return;
+        }
+
+        int id = heroapi.getEntityInfo().getClanId();
+
+        if (id == 0) {
+            return;
+        }
+
+        players.stream().filter(player -> player.getEntityInfo().getClanId() == id)
+                .forEach(player -> addTag(player, lcConfig.tagClanMembers.clanTag));
+    }
+
+    private void addTag(Player player, PlayerTag tag) {
+        if (player == null || tag == null) {
+            return;
+        }
+
+        PlayerInfo pl = null;
+
+        if (main.config.PLAYER_INFOS.containsKey(player.getId())) {
+            pl = main.config.PLAYER_INFOS.get(player.getId());
+        } else {
+            pl = new PlayerInfo(player);
+        }
+
+        if (pl == null) {
+            return;
+        }
+
+        pl.setTag(tag, -1L);
+
+        main.config.PLAYER_INFOS.put(player.getId(), pl);
     }
 
     private void closeBotLogic() {
@@ -145,29 +186,5 @@ public class Others implements Behavior, Configurable<Others.LCConfig> {
             nextRefresh = System.currentTimeMillis() + 120000;
             Main.API.handleRefresh();
         }
-    }
-
-    @Configuration("others")
-    public static class LCConfig {
-        @Option("others.max_deaths")
-        @Number(max = 99, step = 1)
-        public int maxDeathsKO = 0;
-
-        @Option("others.reload")
-        public boolean reloadIfCrash = false;
-
-        @Option("others.close_bot")
-        @Number(max = 120, step = 1)
-        public int closeBotMinutes = 0;
-
-        @Option("others.max_memory")
-        @Number(max = 6000, step = 100)
-        public int maxMemory = 0;
-
-        @Option("others.auto_buy_lcb10")
-        public boolean autoBuyLcb10 = false;
-
-        @Option("others.auto_buy_plt_2026")
-        public boolean autoBuyPlt2026 = false;
     }
 }
