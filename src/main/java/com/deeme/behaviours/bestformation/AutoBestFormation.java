@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
+import com.deeme.types.ConditionsManagement;
 import com.deeme.types.SharedFunctions;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
@@ -42,6 +43,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     protected final HeroAPI heroapi;
     protected final HeroItemsAPI items;
     protected final SafetyFinder safety;
+    private final ConditionsManagement conditionsManagement;
     private BestFormationConfig config;
     private Collection<? extends Npc> allNpcs;
     private Collection<? extends Portal> allPortals;
@@ -68,6 +70,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
         this.heroapi = api.getAPI(HeroAPI.class);
         this.safety = api.requireInstance(SafetyFinder.class);
         this.availableFormations = new ArrayList<>();
+        this.conditionsManagement = new ConditionsManagement(api, items);
 
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
         this.allNpcs = entities.getNpcs();
@@ -281,10 +284,11 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
             return false;
         }
 
-        if (items.useItem(formation, 500, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.NOT_SELECTED).isSuccessful()) {
+        if (this.conditionsManagement.useSelectableReadyWhenReady(formation)) {
             changeOffensiveConfig(formation);
             return true;
         }
+
         return false;
     }
 

@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.deeme.behaviours.ambulance.AmbulanceModule;
+import com.deeme.types.ConditionsManagement;
 import com.deeme.types.SharedFunctions;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
@@ -47,6 +48,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     private BestAbilityConfig config;
     private Collection<? extends Ship> allPlayers;
     private Collection<? extends Ship> allNPCs;
+    private final ConditionsManagement conditionsManagement;
 
     private final List<Ability> damageAbilities = Arrays.asList(Ability.SPEARHEAD_TARGET_MARKER, Ability.DIMINISHER,
             Ability.GOLIATH_X_FROZEN_CLAW, Ability.VENOM, Ability.TARTARUS_RAPID_FIRE,
@@ -90,6 +92,8 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
         this.group = api.getAPI(GroupAPI.class);
         this.safety = api.requireInstance(SafetyFinder.class);
 
+        this.conditionsManagement = new ConditionsManagement(api, items);
+
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
         this.allPlayers = entities.getPlayers();
         this.allNPCs = entities.getNpcs();
@@ -111,8 +115,8 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     public void onTickBehavior() {
         if (nextCheck < System.currentTimeMillis()) {
             nextCheck = System.currentTimeMillis() + (config.timeToCheck * 1000);
-            useSelectableReadyWhenReady(getBestAbility());
-            useSelectableReadyWhenReady(getAbilityAlwaysToUse());
+            this.conditionsManagement.useSelectableReadyWhenReady(getAbilityAlwaysToUse());
+            this.conditionsManagement.useSelectableReadyWhenReady(getBestAbility());
         }
     }
 
@@ -360,11 +364,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     private boolean isAvailable(Ability ability) {
         return ability != null && config.supportedAbilities != null
                 && config.supportedAbilities.stream().anyMatch(s -> s.name().equals(ability.name()))
-                && items.getItem(ability, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE).isPresent();
-    }
-
-    private boolean useSelectableReadyWhenReady(Ability selectableItem) {
-        return selectableItem != null
-                && items.useItem(selectableItem, 500, ItemFlag.USABLE, ItemFlag.READY).isSuccessful();
+                && items.getItem(ability, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE, ItemFlag.NOT_SELECTED)
+                        .isPresent();
     }
 }
