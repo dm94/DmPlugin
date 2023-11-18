@@ -642,7 +642,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
         Popups.of("Astral Gate",
                 new JOptionPane(
-                        "Manual action is needed. \n With the PLUS functions the bot will not need manual actions.",
+                        "Manual action is needed. \n With the PLUS functions the bot will not need manual actions. \n If you have access to the PLUS functions, activate in the configuration the option 'Auto choose the best option'.",
                         JOptionPane.INFORMATION_MESSAGE,
                         JOptionPane.DEFAULT_OPTION, null, new Object[] { discordBtn, closeBtn }))
                 .showAsync();
