@@ -5,6 +5,7 @@ import java.util.Arrays;
 
 import com.deeme.behaviours.ambulance.AmbulanceConfig;
 import com.deeme.behaviours.ambulance.AmbulanceModule;
+import com.deeme.types.ConditionsManagement;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 
@@ -31,6 +32,7 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
     protected final GroupAPI group;
     protected final BotAPI botApi;
     protected final HeroItemsAPI items;
+    private final ConditionsManagement conditionsManagement;
 
     private AmbulanceConfig config;
     private long nextCheck = 0;
@@ -54,6 +56,7 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
         this.group = groupAPI;
         this.botApi = api.getAPI(BotAPI.class);
         this.items = api.getAPI(HeroItemsAPI.class);
+        this.conditionsManagement = new ConditionsManagement(api, items);
     }
 
     @Override
@@ -128,12 +131,11 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
                 .isPresent()) {
             return Ability.AEGIS_REPAIR_POD;
         }
-        if (items.useItem(Ability.SOLACE, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE).isSuccessful()) {
+
+        if (this.conditionsManagement.useSelectableReadyWhenReady(Ability.SOLACE)) {
             return null;
         }
-        if (items.useItem(Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS, ItemFlag.USABLE, ItemFlag.READY,
-                ItemFlag.AVAILABLE)
-                .isSuccessful()) {
+        if (this.conditionsManagement.useSelectableReadyWhenReady(Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS)) {
             return null;
         }
         return null;
