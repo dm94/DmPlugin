@@ -2,6 +2,8 @@ package com.deeme.behaviours.ambulance;
 
 import java.util.Collection;
 
+import com.deeme.types.ConditionsManagement;
+
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.game.entities.Player;
 import eu.darkbot.api.game.group.GroupMember;
@@ -27,6 +29,7 @@ public class AmbulanceModule extends TemporalModule {
     protected final HeroItemsAPI items;
     protected final Collection<? extends Player> players;
     protected final PetAPI pet;
+    private final ConditionsManagement conditionsManagement;
 
     private int idMember = 0;
     private Ability abilityToUse = null;
@@ -71,6 +74,7 @@ public class AmbulanceModule extends TemporalModule {
         this.heroapi = api.getAPI(HeroAPI.class);
         this.items = api.getAPI(HeroItemsAPI.class);
         this.pet = api.getAPI(PetAPI.class);
+        this.conditionsManagement = new ConditionsManagement(api, items);
 
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
         this.idMember = idMember;
@@ -226,7 +230,7 @@ public class AmbulanceModule extends TemporalModule {
             return;
         }
 
-        abilityUsed = items.useItem(abilityToUse, 500, ItemFlag.USABLE, ItemFlag.READY).isSuccessful();
+        abilityUsed = conditionsManagement.useSelectableReadyWhenReady(abilityToUse);
     }
 
     private GroupMember getMember() {

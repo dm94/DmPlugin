@@ -1,5 +1,6 @@
 package com.deeme.modules.astral;
 
+import com.deeme.types.ConditionsManagement;
 import com.deeme.types.SharedFunctions;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
@@ -71,6 +72,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     protected ConfigSetting<Integer> maxCircleIterations;
     protected ConfigSetting<Boolean> runConfigInCircle;
     protected final ConfigSetting<Character> ammoKey;
+    private final ConditionsManagement conditionsManagement;
 
     protected AstralPlus astralPlus;
 
@@ -142,6 +144,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         this.pet = api.getAPI(PetAPI.class);
         this.starSystem = api.getAPI(StarSystemAPI.class);
         this.items = api.getAPI(HeroItemsAPI.class);
+        this.conditionsManagement = new ConditionsManagement(api, items);
 
         EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
         this.portals = entities.getPortals();
@@ -495,7 +498,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         }
 
         if (rocket != null && heroapi.getRocket() != null && !heroapi.getRocket().getId().equals(rocket.getId())) {
-            useSelectableReadyWhenReady(rocket);
+            conditionsManagement.useSelectableReadyWhenReady(rocket);
         }
     }
 
@@ -509,15 +512,14 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
             return;
         }
 
-        if (items.useItem(laser, 250, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.NOT_SELECTED)
-                .isSuccessful()) {
+        if (conditionsManagement.useSelectableReadyWhenReady(laser)) {
             changeAmmoKey(laser);
         }
     }
 
     private void changeAmmoKey(SelectableItem laser) {
         Character key = items.getKeyBind(laser);
-        if (ammoKey.getValue() != key) {
+        if (!ammoKey.getValue().equals(key)) {
             ammoKey.setValue(key);
         }
     }
@@ -541,26 +543,9 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         Lockable target = heroapi.getLocalTarget();
         if (target != null && target.isValid() && target instanceof Npc) {
             Npc npc = (Npc) target;
-            if (npc.getInfo().getAmmo().isPresent()) {
-                return npc.getInfo().getAmmo().get();
-            }
+            return npc.getInfo().getAmmo().orElse(null);
         }
         return null;
-    }
-
-    private boolean useSelectableReadyWhenReady(SelectableItem selectableItem) {
-        if (System.currentTimeMillis() - clickDelay < 1000) {
-            return false;
-        }
-        if (selectableItem == null) {
-            return false;
-        }
-
-        if (items.useItem(selectableItem, 250, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.NOT_SELECTED).isSuccessful()) {
-            clickDelay = System.currentTimeMillis();
-            return true;
-        }
-        return false;
     }
 
     private void goToAstral() {
@@ -581,7 +566,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
                     items.getItem(Cpu.ASTRAL_CPU, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.POSITIVE_QUANTITY)
                             .ifPresent(i -> {
                                 if (i.getQuantity() > astralConfig.minCPUs) {
-                                    useSelectableReadyWhenReady(Cpu.ASTRAL_CPU);
+                                    conditionsManagement.useSelectableReadyWhenReady(Cpu.ASTRAL_CPU);
                                 }
                             });
                 }
@@ -634,7 +619,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     private void activeAutoRocketCPU() {
         if (nextCPUCheck < System.currentTimeMillis()) {
             nextCPUCheck = System.currentTimeMillis() + 300000;
-            useSelectableReadyWhenReady(SelectableItem.Cpu.AROL_X);
+            conditionsManagement.useSelectableReadyWhenReady(SelectableItem.Cpu.AROL_X);
         }
     }
 
@@ -653,13 +638,11 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         });
 
         JButton discordBtn = new JButton("+Info");
-        discordBtn.addActionListener(e -> {
-            SystemUtils.openUrl(Utils.DISCORD_URL);
-        });
+        discordBtn.addActionListener(e -> SystemUtils.openUrl(Utils.DISCORD_URL));
 
         Popups.of("Astral Gate",
                 new JOptionPane(
-                        "Manual action is needed. \n With the PLUS functions the bot will not need manual actions.",
+                        "Manual action is needed. \n With the PLUS functions the bot will not need manual actions. \n If you have access to the PLUS functions, activate in the configuration the option 'Auto choose the best option'.",
                         JOptionPane.INFORMATION_MESSAGE,
                         JOptionPane.DEFAULT_OPTION, null, new Object[] { discordBtn, closeBtn }))
                 .showAsync();
