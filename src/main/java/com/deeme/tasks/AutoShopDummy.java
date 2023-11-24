@@ -44,11 +44,19 @@ public class AutoShopDummy implements Task, Configurable<Config> {
 
     @Override
     public void setConfig(ConfigSetting<Config> arg0) {
+        if (this.privateTask == null) {
+            return;
+        }
+
         this.privateTask.setConfig(arg0);
     }
 
     @Override
     public void onTickTask() {
+        if (this.privateTask == null) {
+            return;
+        }
+
         privateTask.onTickTask();
     }
 }

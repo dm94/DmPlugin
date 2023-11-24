@@ -47,26 +47,46 @@ public class GenericGateDummy implements Module, Configurable<Config>, NpcExtraP
 
     @Override
     public NpcExtraFlag[] values() {
+        if (this.privateModule == null) {
+            return new NpcExtraFlag[0];
+        }
+
         return this.privateModule.values();
     }
 
     @Override
     public void setConfig(ConfigSetting<Config> arg0) {
+        if (this.privateModule == null) {
+            return;
+        }
+
         this.privateModule.setConfig(arg0);
     }
 
     @Override
     public void onTickModule() {
+        if (this.privateModule == null) {
+            return;
+        }
+
         this.privateModule.onTickModule();
     }
 
     @Override
     public String getStatus() {
+        if (this.privateModule == null) {
+            return "";
+        }
+
         return this.privateModule.getStatus();
     }
 
     @Override
     public boolean canRefresh() {
+        if (this.privateModule == null) {
+            return true;
+        }
+
         return this.privateModule.canRefresh();
     }
 }

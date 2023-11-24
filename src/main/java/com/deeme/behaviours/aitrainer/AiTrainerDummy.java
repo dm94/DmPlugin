@@ -24,11 +24,19 @@ public class AiTrainerDummy implements Behavior, Task {
 
     @Override
     public void onTickTask() {
+        if (this.privateBehavior == null) {
+            return;
+        }
+
         this.privateBehavior.onTickTask();
     }
 
     @Override
     public void onTickBehavior() {
+        if (this.privateBehavior == null) {
+            return;
+        }
+
         this.privateBehavior.onTickBehavior();
     }
 

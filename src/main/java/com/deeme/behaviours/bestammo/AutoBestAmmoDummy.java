@@ -46,21 +46,37 @@ public class AutoBestAmmoDummy implements Behavior, Configurable<BestAmmoConfig>
 
     @Override
     public NpcExtraFlag[] values() {
+        if (this.privateBehaviour == null) {
+            return new NpcExtraFlag[0];
+        }
+
         return privateBehaviour.values();
     }
 
     @Override
     public void setConfig(ConfigSetting<BestAmmoConfig> arg0) {
+        if (this.privateBehaviour == null) {
+            return;
+        }
+
         privateBehaviour.setConfig(arg0);
     }
 
     @Override
     public void onTickBehavior() {
+        if (this.privateBehaviour == null) {
+            return;
+        }
+
         privateBehaviour.onTickBehavior();
     }
 
     @Override
     public void onStoppedBehavior() {
+        if (this.privateBehaviour == null) {
+            return;
+        }
+
         privateBehaviour.onStoppedBehavior();
     }
 
