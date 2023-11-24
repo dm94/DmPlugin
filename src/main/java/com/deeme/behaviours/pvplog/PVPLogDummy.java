@@ -18,11 +18,19 @@ public class PVPLogDummy implements Behavior, Task {
 
     @Override
     public void onTickTask() {
+        if (this.privateBehaviour == null) {
+            return;
+        }
+
         this.privateBehaviour.onTickTask();
     }
 
     @Override
     public void onTickBehavior() {
+        if (this.privateBehaviour == null) {
+            return;
+        }
+
         this.privateBehaviour.onTickBehavior();
     }
 
