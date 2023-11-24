@@ -43,11 +43,19 @@ public class AntiTrainDummy implements Behavior, Configurable<AntiTrainConfig> {
 
     @Override
     public void setConfig(ConfigSetting<AntiTrainConfig> arg0) {
+        if (this.privateBehaviour == null) {
+            return;
+        }
+
         privateBehaviour.setConfig(arg0);
     }
 
     @Override
     public void onTickBehavior() {
+        if (this.privateBehaviour == null) {
+            return;
+        }
+
         privateBehaviour.onTickBehavior();
     }
 
