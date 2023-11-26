@@ -14,6 +14,7 @@ import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.entities.Npc;
+import eu.darkbot.api.game.entities.Pet;
 import eu.darkbot.api.game.entities.Player;
 import eu.darkbot.api.game.entities.Ship;
 import eu.darkbot.api.game.group.GroupMember;
@@ -128,17 +129,14 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
     }
 
     private boolean hasPreviusTarget() {
-        if (target != null && target.isValid() && target.getId() != heroapi.getId()
-                && target.getLocationInfo().distanceTo(heroapi) < defenseConfig.rangeForAttackedEnemy) {
-            return true;
-        }
-
-        return false;
+        return target != null && target.isValid() && target.getId() != heroapi.getId() && !(target instanceof Pet)
+                && target.getLocationInfo().distanceTo(heroapi) < defenseConfig.rangeForAttackedEnemy;
     }
 
     private boolean friendUnderAttack() {
         List<Player> ships = players.stream()
                 .filter(Player::isValid)
+                .filter(s -> !(s instanceof Pet))
                 .filter(s -> (defenseConfig.helpList.contains(HelpList.CLAN)
                         && s.getEntityInfo().getClanId() == heroapi.getEntityInfo().getClanId())
                         || (defenseConfig.helpList.contains(HelpList.ALLY)
@@ -173,7 +171,7 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
             for (Player ship : ships) {
                 if (defenseConfig.helpAttack && ship.isAttacking() && ship.getTarget() != null) {
                     Entity tar = ship.getTarget();
-                    if (!(tar instanceof Npc)) {
+                    if (!(tar instanceof Npc) && !(tar instanceof Pet)) {
                         return ship.getTargetAs(Ship.class);
                     }
                 }
