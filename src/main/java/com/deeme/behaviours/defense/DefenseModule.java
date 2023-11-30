@@ -8,6 +8,7 @@ import com.deemeplus.general.configchanger.ExtraConfigChangerLogic;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.game.entities.Entity;
+import eu.darkbot.api.game.entities.Pet;
 import eu.darkbot.api.game.entities.Player;
 import eu.darkbot.api.game.entities.Ship;
 import eu.darkbot.api.game.items.SelectableItem.Special;
@@ -104,7 +105,8 @@ public class DefenseModule extends TemporalModule {
     private void timeOutCheck() {
         if (nextAttackCheck < System.currentTimeMillis()) {
             nextAttackCheck = System.currentTimeMillis() + 1000;
-            if (shipAttacker.getTarget() != null && heroapi.isAttacking(shipAttacker.getTarget())
+            if (shipAttacker.getTarget() != null && shipAttacker.getTarget().getHealth().hpDecreasedIn(1000)
+                    && heroapi.isAttacking(shipAttacker.getTarget())
                     && shipAttacker.getTarget().getLocationInfo()
                             .distanceTo(heroapi) < defenseConfig.rangeForAttackedEnemy) {
                 timeOut = 0;
@@ -120,12 +122,12 @@ public class DefenseModule extends TemporalModule {
 
     private boolean isUnderAttack() {
         if (target == null
-                || target.getId() == heroapi.getId() || !target.isValid()) {
+                || target.getId() == heroapi.getId() || !target.isValid() || target instanceof Pet) {
             return false;
         }
 
         if (shipAttacker.getTarget() != null && shipAttacker.getTarget().isValid()
-                && shipAttacker.getTarget().getId() != heroapi.getId()
+                && shipAttacker.getTarget().getId() != heroapi.getId() && !(shipAttacker.getTarget() instanceof Pet)
                 && (!defenseConfig.ignoreEnemies
                         || shipAttacker.getTarget().getLocationInfo()
                                 .distanceTo(heroapi) < defenseConfig.rangeForAttackedEnemy)) {
