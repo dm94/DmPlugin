@@ -62,10 +62,12 @@ public class ShipAttacker {
 
     private Random rnd;
 
-    protected boolean firstAttack;
-    protected long isAttacking;
-    protected int fixedTimes;
-    protected Character lastShot;
+    private int lastAttacked;
+
+    private boolean firstAttack;
+    private long isAttacking;
+    private int fixedTimes;
+    private Character lastShot;
 
     protected Character attackLaserKey;
 
@@ -111,7 +113,14 @@ public class ShipAttacker {
     }
 
     private void tryLockTarget() {
-        if (heroapi.getTarget() == target && firstAttack) {
+        if (target == null || !target.isValid()) {
+            return;
+        }
+
+        if (lastAttacked != target.getId()) {
+            lastAttacked = target.getId();
+            firstAttack = true;
+
             clickDelay = System.currentTimeMillis();
             if (humanizerConfig.addRandomTime) {
                 clickDelay = System.currentTimeMillis() + (rnd.nextInt(humanizerConfig.maxRandomTime) * 1000);
@@ -121,8 +130,9 @@ public class ShipAttacker {
         fixedTimes = 0;
         laserTime = 0;
         firstAttack = false;
-        if (heroapi.getLocationInfo().distanceTo(target) < 700) {
-            if (System.currentTimeMillis() - clickDelay > 500) {
+        if (heroapi.getLocationInfo().distanceTo(target) < 700
+                && (heroapi.getTarget() == null || heroapi.getTarget().getId() != target.getId())) {
+            if (System.currentTimeMillis() > clickDelay) {
                 heroapi.setLocalTarget(target);
                 target.trySelect(false);
                 clickDelay = System.currentTimeMillis();
@@ -152,6 +162,9 @@ public class ShipAttacker {
         if (System.currentTimeMillis() < laserTime) {
             return;
         }
+        if (clickDelay > System.currentTimeMillis()) {
+            return;
+        }
 
         if (!firstAttack) {
             firstAttack = true;
@@ -172,8 +185,9 @@ public class ShipAttacker {
     protected void sendAttack(long minWait, long bugTime, boolean normal) {
         laserTime = System.currentTimeMillis() + minWait;
         isAttacking = Math.max(isAttacking, laserTime + bugTime);
-        if (normal && ammoConfig.enableAmmoConfig) {
-            lastShot = getAttackKey();
+        lastShot = getAttackKey();
+
+        if (normal && lastShot != null) {
             API.keyboardClick(lastShot);
         } else if (API.hasCapability(Capability.ALL_KEYBINDS_SUPPORT)) {
             this.settingsProxy.pressKeybind(SettingsProxy.KeyBind.ATTACK_LASER);
@@ -188,7 +202,12 @@ public class ShipAttacker {
 
     private Character getAttackKey() {
         if (!ammoConfig.enableAmmoConfig) {
-            return attackLaserKey;
+            Character key = items.getKeyBind(heroapi.getLaser());
+            if (key != null) {
+                return key;
+            }
+
+            return settingsProxy.getCharacterOf(SettingsProxy.KeyBind.ATTACK_LASER).orElse(attackLaserKey);
         }
 
         Laser laser = getBestLaserAmmo();
