@@ -15,7 +15,7 @@ public class AmmoConfig {
 
     @Option("general.default_ammo")
     @Dropdown(options = LaserSupplier.class)
-    public String defaultLaser = "";
+    public String defaultLaser = "ammunition_laser_ucb-100";
 
     @Option("general.rsb")
     public boolean useRSB = false;
