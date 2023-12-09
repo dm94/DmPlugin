@@ -67,7 +67,6 @@ public class ShipAttacker {
     private boolean firstAttack;
     private long isAttacking;
     private int fixedTimes;
-    private Character lastShot;
 
     protected Character attackLaserKey;
 
@@ -166,11 +165,14 @@ public class ShipAttacker {
             return;
         }
 
+        SelectableItem lastLaser = getAttackItem();
+        if (!heroapi.getLaser().equals(lastLaser)) {
+            conditionsManagement.useSelectableReadyWhenReady(lastLaser);
+        }
+
         if (!firstAttack) {
             firstAttack = true;
             sendAttack(1500, 5000, true);
-        } else if (lastShot == null || !lastShot.equals(getAttackKey())) {
-            sendAttack(250, 5000, true);
         } else if (!heroapi.isAttacking(target) || !heroapi.isAiming(target)) {
             sendAttack(1500, 5000, false);
         } else if (target.getHealth().hpDecreasedIn(1500) || target.hasEffect(EntityEffect.NPC_ISH)
@@ -182,13 +184,12 @@ public class ShipAttacker {
         }
     }
 
-    protected void sendAttack(long minWait, long bugTime, boolean normal) {
+    private void sendAttack(long minWait, long bugTime, boolean normal) {
         laserTime = System.currentTimeMillis() + minWait;
         isAttacking = Math.max(isAttacking, laserTime + bugTime);
-        lastShot = getAttackKey();
 
-        if (normal && lastShot != null) {
-            API.keyboardClick(lastShot);
+        if (normal) {
+            API.keyboardClick(attackLaserKey);
         } else if (API.hasCapability(Capability.ALL_KEYBINDS_SUPPORT)) {
             this.settingsProxy.pressKeybind(SettingsProxy.KeyBind.ATTACK_LASER);
         } else if (target != null && target.isValid()) {
@@ -200,26 +201,18 @@ public class ShipAttacker {
         return laserSupplier.get();
     }
 
-    private Character getAttackKey() {
+    private SelectableItem getAttackItem() {
         if (!ammoConfig.enableAmmoConfig) {
-            Character key = items.getKeyBind(heroapi.getLaser());
-            if (key != null) {
-                return key;
-            }
-
-            return settingsProxy.getCharacterOf(SettingsProxy.KeyBind.ATTACK_LASER).orElse(attackLaserKey);
+            return null;
         }
 
         Laser laser = getBestLaserAmmo();
         if (laser != null) {
-            Character key = items.getKeyBind(laser);
-            if (key != null) {
-                return key;
-            }
+            return laser;
         }
 
         if (ammoConfig != null) {
-            return ammoConfig.ammoKey;
+            return SharedFunctions.getItemById(ammoConfig.defaultLaser);
         }
 
         return null;
