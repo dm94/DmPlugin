@@ -75,7 +75,7 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
     public ExternalChat(PluginAPI api, AuthAPI auth) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
             throw new SecurityException();
-        VerifierChecker.checkAuthenticity(auth);
+        VerifierChecker.requireAuthenticity(auth);
 
         this.extensionsAPI = api.getAPI(ExtensionsAPI.class);
         Utils.discordCheck(extensionsAPI.getFeatureInfo(this.getClass()), auth.getAuthId());

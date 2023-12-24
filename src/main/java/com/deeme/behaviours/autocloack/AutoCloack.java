@@ -37,7 +37,7 @@ public class AutoCloack implements Behavior, Configurable<AutoCloackConfig> {
     public AutoCloack(PluginAPI api, HeroAPI hero, AuthAPI auth, HeroItemsAPI items) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
             throw new SecurityException();
-        VerifierChecker.checkAuthenticity(auth);
+        VerifierChecker.requireAuthenticity(auth);
 
         Utils.discordCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
         Utils.showDonateDialog(auth.getAuthId());
