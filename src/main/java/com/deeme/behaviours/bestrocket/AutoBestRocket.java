@@ -1,6 +1,9 @@
 package com.deeme.behaviours.bestrocket;
 
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
 
 import com.deeme.types.SharedFunctions;
 import com.deeme.types.VerifierChecker;
@@ -37,6 +40,16 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
     private final HeroItemsAPI items;
     protected final ConfigSetting<PercentRange> repairHpRange;
     private BestRocketConfig config;
+
+    List<SelectableItem> damageOrder = Arrays.asList(Rocket.SP_100X, Rocket.PLT_3030, Rocket.PLT_2021,
+            Rocket.BDR_1211,
+            Rocket.PLT_2026,
+            Rocket.R_310);
+    List<SelectableItem> damageOrderNPCs = Arrays.asList(Rocket.BDR_1211, Rocket.SP_100X,
+            Rocket.PLT_3030,
+            Rocket.PLT_2021,
+            Rocket.PLT_2026,
+            Rocket.R_310);
 
     public AutoBestRocket(PluginAPI api) {
         this(api, api.requireAPI(AuthAPI.class),
@@ -77,11 +90,7 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
     public void onTickBehavior() {
         Lockable target = heroapi.getLocalTarget();
         if (target != null && target.isValid() && heroapi.isAttacking(target)) {
-            if (target instanceof Npc) {
-                changeRocket(SharedFunctions.getItemById(config.npcRocket));
-            } else {
-                changeRocket(getBestRocketPVP(target));
-            }
+            changeRocket(getBestRocket(target, target instanceof Npc));
         }
     }
 
@@ -92,27 +101,41 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
         items.useItem(rocket, 500, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.NOT_SELECTED);
     }
 
-    private Rocket getBestRocketPVP(Lockable target) {
-        if (config.useICRorDCR && !hasISH() && shouldFocusSpeed(target)) {
-            if (isAvailable(Rocket.R_IC3)) {
-                return Rocket.R_IC3;
-            } else if (isAvailable(Rocket.DCR_250)) {
-                return Rocket.DCR_250;
+    private SelectableItem getBestRocket(Lockable target, boolean isNpc) {
+        if (!hasISH()) {
+            if (shouldFocusSpeed(target)) {
+                if (ableToUse(Rocket.R_IC3, isNpc)) {
+                    return Rocket.R_IC3;
+                } else if (ableToUse(Rocket.DCR_250, isNpc)) {
+                    return Rocket.DCR_250;
+                } else if (ableToUse(Rocket.K_300M, isNpc)) {
+                    return Rocket.K_300M;
+                } else if (ableToUse(Rocket.RC_100, isNpc)) {
+                    return Rocket.RC_100;
+                }
+            }
+            if (ableToUse(Rocket.PLD_8, isNpc) && shouldUsePLD(target)) {
+                return Rocket.PLD_8;
+            }
+
+            if (ableToUse(Rocket.AGT_500, isNpc) && shouldUseAGT()) {
+                return Rocket.AGT_500;
             }
         }
-        if (config.usePLD && isAvailable(Rocket.PLD_8) && shouldUsePLD(target)) {
-            return Rocket.PLD_8;
-        }
-        if (isAvailable(Rocket.PLT_3030)) {
-            return Rocket.PLT_3030;
-        } else if (isAvailable(Rocket.PLT_2021)) {
-            return Rocket.PLT_2021;
-        } else if (isAvailable(Rocket.PLT_2026)) {
-            return Rocket.PLT_2026;
-        } else if (isAvailable(Rocket.R_310)) {
-            return Rocket.R_310;
-        }
-        return null;
+
+        return getBestRocketByDamage(isNpc);
+    }
+
+    private SelectableItem getBestRocketByDamage(boolean isNpc) {
+        return (isNpc ? damageOrderNPCs : damageOrder).stream()
+                .filter(rocket -> ableToUse(rocket, isNpc))
+                .min(Comparator.comparing(i -> damageOrder.indexOf(i)))
+                .orElse(SharedFunctions.getItemById(config.npcRocket));
+    }
+
+    private boolean shouldUseAGT() {
+        Lockable target = heroapi.getLocalTarget();
+        return target != null && target.isValid() && heroapi.distanceTo(target) <= 500;
     }
 
     private boolean hasISH() {
@@ -131,18 +154,21 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
     }
 
     private boolean shouldUsePLD(Lockable target) {
-        if (hasISH()) {
-            return false;
-        }
-
         return target instanceof Movable && ((Movable) target).isAiming(heroapi)
                 && heroapi.getHealth().hpPercent() < 0.5;
     }
 
-    private boolean isAvailable(Rocket rocket) {
-        return rocket != null
+    private boolean ableToUse(SelectableItem rocket, boolean isNpc) {
+        if (isNpc) {
+            return ableToUse(rocket, config.rocketsToUseNPCs);
+        }
+
+        return ableToUse(rocket, config.rocketsToUsePlayers);
+    }
+
+    private boolean ableToUse(SelectableItem rocket, Set<SupportedRockets> rockets) {
+        return rocket != null && rockets.stream().anyMatch(s -> s.getId() != null && s.getId().equals(rocket.getId()))
                 && items.getItem(rocket, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE,
                         ItemFlag.POSITIVE_QUANTITY).isPresent();
     }
-
 }
