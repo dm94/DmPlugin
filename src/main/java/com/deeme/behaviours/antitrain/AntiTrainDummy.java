@@ -16,7 +16,7 @@ import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.utils.Inject;
 
-@Feature(name = "Anti Train [PLUS]", description = "Some options for combating trains")
+@Feature(name = "Anti Train", description = "Some options for combating trains")
 public class AntiTrainDummy implements Behavior, Configurable<AntiTrainConfig> {
     private AntiTrain privateBehaviour;
 
@@ -31,14 +31,10 @@ public class AntiTrainDummy implements Behavior, Configurable<AntiTrainConfig> {
         }
 
         VerifierChecker.requireAuthenticity(auth);
-        ExtensionsAPI extensionsAPI = api.getAPI(ExtensionsAPI.class);
-        Utils.discordDonorCheck(extensionsAPI.getFeatureInfo(this.getClass()), auth.getAuthId());
+        Utils.discordCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
+        Utils.showDonateDialog(auth.getAuthId());
 
-        try {
-            this.privateBehaviour = new AntiTrain(api);
-        } catch (Exception e) {
-            extensionsAPI.getFeatureInfo(this.getClass()).addFailure("Error", e.getMessage());
-        }
+        this.privateBehaviour = new AntiTrain(api);
     }
 
     @Override

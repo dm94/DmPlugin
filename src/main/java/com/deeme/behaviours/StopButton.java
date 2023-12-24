@@ -45,7 +45,7 @@ public class StopButton implements Behavior, ExtraMenus {
     public StopButton(PluginAPI api, AuthAPI auth, BotAPI bot) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
             throw new SecurityException();
-        VerifierChecker.checkAuthenticity(auth);
+        VerifierChecker.requireAuthenticity(auth);
 
         Utils.showDonateDialog(auth.getAuthId());
 

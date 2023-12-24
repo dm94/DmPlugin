@@ -32,7 +32,7 @@ public class CustomEvents implements Behavior, Configurable<CustomEventsConfig> 
     public CustomEvents(PluginAPI api, AuthAPI auth, HeroItemsAPI heroItems) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
             throw new SecurityException();
-        VerifierChecker.checkAuthenticity(auth);
+        VerifierChecker.requireAuthenticity(auth);
 
         Utils.showDonateDialog(auth.getAuthId());
 

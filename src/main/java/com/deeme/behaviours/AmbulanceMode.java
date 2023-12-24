@@ -47,7 +47,7 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
     public AmbulanceMode(PluginAPI api, HeroAPI hero, AuthAPI auth, GroupAPI groupAPI) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
             throw new SecurityException();
-        VerifierChecker.checkAuthenticity(auth);
+        VerifierChecker.requireAuthenticity(auth);
 
         Utils.showDonateDialog(auth.getAuthId());
 
