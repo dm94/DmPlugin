@@ -34,11 +34,7 @@ public class AntiTrainDummy implements Behavior, Configurable<AntiTrainConfig> {
         Utils.discordCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
         Utils.showDonateDialog(auth.getAuthId());
 
-        try {
-            this.privateBehaviour = new AntiTrain(api);
-        } catch (Exception e) {
-            extensionsAPI.getFeatureInfo(this.getClass()).addFailure("Error", e.getMessage());
-        }
+        this.privateBehaviour = new AntiTrain(api);
     }
 
     @Override
