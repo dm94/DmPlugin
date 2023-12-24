@@ -31,6 +31,7 @@ public class AntiTrainDummy implements Behavior, Configurable<AntiTrainConfig> {
         }
 
         VerifierChecker.requireAuthenticity(auth);
+        Utils.discordCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
         Utils.showDonateDialog(auth.getAuthId());
 
         try {
