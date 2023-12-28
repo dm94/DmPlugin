@@ -51,6 +51,8 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
             Rocket.PLT_2026,
             Rocket.R_310);
 
+    private static final int SR5_MIN_SHIELD = 500000;
+
     public AutoBestRocket(PluginAPI api) {
         this(api, api.requireAPI(AuthAPI.class),
                 api.requireAPI(BotAPI.class), api.requireAPI(HeroItemsAPI.class));
@@ -102,25 +104,32 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
     }
 
     private SelectableItem getBestRocket(Lockable target, boolean isNpc) {
-        if (!hasISH()) {
-            if (shouldFocusSpeed(target)) {
-                if (ableToUse(Rocket.R_IC3, isNpc)) {
-                    return Rocket.R_IC3;
-                } else if (ableToUse(Rocket.DCR_250, isNpc)) {
-                    return Rocket.DCR_250;
-                } else if (ableToUse(Rocket.K_300M, isNpc)) {
-                    return Rocket.K_300M;
-                } else if (ableToUse(Rocket.RC_100, isNpc)) {
-                    return Rocket.RC_100;
-                }
-            }
-            if (ableToUse(Rocket.PLD_8, isNpc) && shouldUsePLD(target)) {
-                return Rocket.PLD_8;
-            }
+        if (hasISH(target)) {
+            return SharedFunctions.getItemById(config.npcRocket);
+        }
 
-            if (ableToUse(Rocket.AGT_500, isNpc) && shouldUseAGT()) {
-                return Rocket.AGT_500;
+        if (shouldFocusSpeed(target)) {
+            if (ableToUse(Rocket.R_IC3, isNpc)) {
+                return Rocket.R_IC3;
+            } else if (ableToUse(Rocket.DCR_250, isNpc)) {
+                return Rocket.DCR_250;
+            } else if (ableToUse(Rocket.K_300M, isNpc)) {
+                return Rocket.K_300M;
+            } else if (ableToUse(Rocket.RC_100, isNpc)) {
+                return Rocket.RC_100;
             }
+        }
+
+        if (shouldUseSR5(target, isNpc)) {
+            return Rocket.SR_5;
+        }
+
+        if (shouldUsePLD(target, isNpc)) {
+            return Rocket.PLD_8;
+        }
+
+        if (shouldUseAGT(target, isNpc)) {
+            return Rocket.AGT_500;
         }
 
         return getBestRocketByDamage(isNpc);
@@ -133,15 +142,17 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
                 .orElse(SharedFunctions.getItemById(config.npcRocket));
     }
 
-    private boolean shouldUseAGT() {
-        Lockable target = heroapi.getLocalTarget();
-        return target != null && target.isValid() && heroapi.distanceTo(target) <= 500;
+    private boolean shouldUseAGT(Lockable target, boolean isNpc) {
+        if (!ableToUse(Rocket.AGT_500, isNpc)) {
+            return false;
+        }
+
+        return heroapi.distanceTo(target) <= 500;
     }
 
-    private boolean hasISH() {
-        Lockable target = heroapi.getLocalTarget();
-        return target != null && target.isValid() && (target.hasEffect(EntityEffect.ISH)
-                || target.hasEffect(EntityEffect.NPC_ISH) || target.hasEffect(EntityEffect.PET_SPAWN));
+    private boolean hasISH(Lockable target) {
+        return target.hasEffect(EntityEffect.ISH)
+                || target.hasEffect(EntityEffect.NPC_ISH) || target.hasEffect(EntityEffect.PET_SPAWN);
     }
 
     private boolean shouldFocusSpeed(Lockable target) {
@@ -153,9 +164,21 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
                         && heroapi.getHealth().hpPercent() < repairHpRange.getValue().getMin());
     }
 
-    private boolean shouldUsePLD(Lockable target) {
+    private boolean shouldUsePLD(Lockable target, boolean isNpc) {
+        if (!ableToUse(Rocket.PLD_8, isNpc)) {
+            return false;
+        }
+
         return target instanceof Movable && ((Movable) target).isAiming(heroapi)
                 && heroapi.getHealth().hpPercent() < 0.5;
+    }
+
+    private boolean shouldUseSR5(Lockable target, boolean isNpc) {
+        if (!ableToUse(Rocket.SR_5, isNpc)) {
+            return false;
+        }
+
+        return target.getHealth().getShield() > SR5_MIN_SHIELD;
     }
 
     private boolean ableToUse(SelectableItem rocket, boolean isNpc) {
