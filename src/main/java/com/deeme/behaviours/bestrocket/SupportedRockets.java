@@ -19,6 +19,7 @@ public enum SupportedRockets implements SelectableItem {
     DCR_250(true),
     BDR_1211,
     R_IC3(true),
+    SR_5(true),
     K_300M(true),
     SP_100X(true),
     AGT_500,
