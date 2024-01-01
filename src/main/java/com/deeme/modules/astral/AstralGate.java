@@ -4,6 +4,7 @@ import com.deeme.types.ConditionsManagement;
 import com.deeme.types.SharedFunctions;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
+import com.deeme.types.suppliers.BestRocketSupplier;
 import com.deemeplus.modules.astral.AstralPlus;
 import com.deemeplus.modules.astral.PortalInfo;
 import com.github.manolo8.darkbot.config.NpcExtraFlag;
@@ -92,7 +93,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     protected boolean repairShield = false;
     protected boolean waveHasBeenAwaited = false;
 
-    private RocketSupplier rocketSupplier;
+    private BestRocketSupplier rocketSupplier;
     private AmmoSupplier ammoSupplier;
     private AstralConfig astralConfig;
 
@@ -158,20 +159,19 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
         ConfigSetting<Boolean> devStuffConfig = configApi.requireConfig("bot_settings.other.dev_stuff");
 
-        this.rocketSupplier = new RocketSupplier(heroapi, items);
         this.ammoSupplier = new AmmoSupplier(items);
         this.devStuff = devStuffConfig.getValue();
 
         this.currentStatus = State.WAIT;
         this.showDialog = false;
         this.warningDisplayed = false;
-        initAstralPlus();
+        initAstral();
     }
 
     @Override
     public void setConfig(ConfigSetting<AstralConfig> arg0) {
         this.astralConfig = arg0.getValue();
-        initAstralPlus();
+        initAstral();
     }
 
     @Override
@@ -232,11 +232,12 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         }
     }
 
-    private void initAstralPlus() {
+    private void initAstral() {
         if (astralPlus != null || astralConfig == null) {
             return;
         }
 
+        this.rocketSupplier = new BestRocketSupplier(api, this.astralConfig.defaultRocket);
         this.astralPlus = new AstralPlus(api, devStuff, this.astralConfig.customItemPriority);
         fillPortalInfo();
     }
@@ -487,13 +488,17 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
     private void changeRocket(boolean bestRocket) {
         SelectableItem rocket = null;
+        if (this.rocketSupplier == null) {
+            return;
+        }
+
         if (bestRocket) {
-            rocket = rocketSupplier.get();
+            rocket = rocketSupplier.getBestRocket(heroapi.getLocalTarget(), false);
         } else {
             rocket = SharedFunctions.getItemById(astralConfig.defaultRocket);
             if (rocket == null
                     || items.getItem(rocket, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.POSITIVE_QUANTITY).isEmpty()) {
-                rocket = rocketSupplier.getReverse();
+                rocket = rocketSupplier.getWorstRocket(false);
             }
         }
 
@@ -504,16 +509,12 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
     private void changeLaser(SelectableItem laser) {
         SelectableItem configuredLaserNpc = getLaserConfiguredFromNPC();
-        if (configuredLaserNpc != null) {
-            laser = configuredLaserNpc;
+        if (configuredLaserNpc == null) {
+            configuredLaserNpc = laser;
         }
 
-        if (laser == null) {
-            return;
-        }
-
-        if (conditionsManagement.useSelectableReadyWhenReady(laser)) {
-            changeAmmoKey(laser);
+        if (conditionsManagement.useSelectableReadyWhenReady(configuredLaserNpc)) {
+            changeAmmoKey(configuredLaserNpc);
         }
     }
 
