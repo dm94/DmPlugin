@@ -51,11 +51,12 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
     @Override
     public void setConfig(ConfigSetting<BestRocketConfig> arg0) {
         this.bestRocketSupplier.setConfig(arg0);
+        this.config = arg0.getValue();
     }
 
     @Override
     public void onStoppedBehavior() {
-        if (config.tickStopped) {
+        if (config != null && config.tickStopped) {
             onTickBehavior();
         }
     }
