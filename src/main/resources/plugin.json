@@ -13,7 +13,6 @@
     "com.deeme.modules.genericgate.GenericGateDummy",
     "com.deeme.modules.quest.QuestModuleDummy",
     "com.deeme.tasks.discord.Discord",
-    "com.deeme.tasks.Ifttt",
     "com.deeme.tasks.SkylabSender",
     "com.deeme.tasks.WeeklySchedule",
     "com.deeme.tasks.AutoChangeMap",

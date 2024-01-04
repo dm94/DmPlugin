@@ -1,11 +1,9 @@
 package com.deeme.behaviours.profilechanger;
 
-import com.deeme.types.gui.ConfigSupplier;
-import com.github.manolo8.darkbot.config.ConfigManager;
-
 import eu.darkbot.api.config.annotations.Configuration;
 import eu.darkbot.api.config.annotations.Dropdown;
 import eu.darkbot.api.config.annotations.Option;
+import eu.darkbot.shared.config.ProfileNames;
 import eu.darkbot.api.config.annotations.Number;
 
 @Configuration("profile_changer")
@@ -18,8 +16,8 @@ public class ProfileChangerConfig {
     public int timeToCheck = 60;
 
     @Option("general.bot_profile")
-    @Dropdown(options = ConfigSupplier.class)
-    public String BOT_PROFILE = ConfigManager.DEFAULT;
+    @Dropdown(options = ProfileNames.class)
+    public String BOT_PROFILE = "";
 
     @Option("profile_changer.close_bot")
     public boolean closeBot = false;
