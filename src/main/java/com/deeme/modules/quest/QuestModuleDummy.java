@@ -46,31 +46,55 @@ public class QuestModuleDummy implements Module, Behavior, Configurable<Config> 
 
     @Override
     public void onTickModule() {
+        if (this.privateModule == null) {
+            return;
+        }
+
         this.privateModule.tick();
     }
 
     @Override
     public String getStatus() {
+        if (this.privateModule == null) {
+            return "Loading";
+        }
+
         return this.privateModule.getStatus();
     }
 
     @Override
     public String getStoppedStatus() {
+        if (this.privateModule == null) {
+            return "Loading";
+        }
+
         return this.privateModule.getStatus();
     }
 
     @Override
     public boolean canRefresh() {
+        if (this.privateModule == null) {
+            return false;
+        }
+
         return this.privateModule.canRefresh();
     }
 
     @Override
     public void setConfig(ConfigSetting<Config> config) {
+        if (this.privateModule == null) {
+            return;
+        }
+
         this.privateModule.setConfig(config.getValue());
     }
 
     @Override
     public void onTickBehavior() {
+        if (this.privateModule == null) {
+            return;
+        }
+
         this.privateModule.onTickBehavior();
     }
 }
