@@ -7,6 +7,9 @@ import eu.darkbot.api.utils.Inject;
 
 import java.util.Arrays;
 
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 import com.deemeplus.modules.quest.config.Config;
@@ -18,10 +21,12 @@ import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.extensions.InstructionProvider;
 
 @Feature(name = "Quest Module [PLUS]", description = "For do quests")
-public class QuestModuleDummy implements Module, Behavior, Configurable<Config> {
+public class QuestModuleDummy implements Module, Behavior, Configurable<Config>, InstructionProvider {
     private QuestModule privateModule;
+    private JLabel label = new JLabel("");
 
     public QuestModuleDummy(Main main, PluginAPI api) {
         this(main, api, api.requireAPI(AuthAPI.class));
@@ -42,6 +47,9 @@ public class QuestModuleDummy implements Module, Behavior, Configurable<Config> 
         } catch (Exception e) {
             extensionsAPI.getFeatureInfo(this.getClass()).addFailure("Error", e.getMessage());
         }
+
+        label.setText(
+                "The first time, delete the NPC list and send the bot to the map where you want the quest to be done");
     }
 
     @Override
@@ -64,11 +72,12 @@ public class QuestModuleDummy implements Module, Behavior, Configurable<Config> 
 
     @Override
     public String getStoppedStatus() {
-        if (this.privateModule == null) {
-            return "Loading";
-        }
+        return getStatus();
+    }
 
-        return this.privateModule.getStatus();
+    @Override
+    public JComponent beforeConfig() {
+        return this.label;
     }
 
     @Override
