@@ -75,16 +75,15 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.showDonateDialog(auth.getAuthId());
+        this.extensionsAPI = api.getAPI(ExtensionsAPI.class);
+        this.featureInfo = extensionsAPI.getFeatureInfo(this.getClass());
+        Utils.showDonateDialog(featureInfo, auth.getAuthId());
 
         this.main = main;
         this.api = api;
         this.heroapi = api.getAPI(HeroAPI.class);
         this.botApi = api.getAPI(BotAPI.class);
-        this.extensionsAPI = api.getAPI(ExtensionsAPI.class);
         this.backpage = api.getAPI(BackpageAPI.class);
-
-        this.featureInfo = extensionsAPI.getFeatureInfo(this.getClass());
 
         GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
         lostConnectionGUI = gameScreenAPI.getGui("lost_connection");

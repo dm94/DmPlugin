@@ -18,6 +18,7 @@ import eu.darkbot.api.extensions.InstructionProvider;
 import eu.darkbot.api.extensions.Task;
 import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BackpageAPI;
+import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.StatsAPI;
 import eu.darkbot.api.utils.Inject;
 
@@ -72,7 +73,7 @@ public class SkylabSender implements Task, Configurable<SkylabSender.SkylabConfi
         }
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.showDonateDialog(auth.getAuthId());
+        Utils.showDonateDialog(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
         this.main = main;
         this.backpageManager = main.backpage;

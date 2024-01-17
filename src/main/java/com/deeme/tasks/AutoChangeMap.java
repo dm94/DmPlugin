@@ -21,6 +21,7 @@ import eu.darkbot.api.extensions.Task;
 import eu.darkbot.api.game.other.GameMap;
 import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.ConfigAPI;
+import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.RepairAPI;
 import eu.darkbot.api.managers.StarSystemAPI;
@@ -60,7 +61,7 @@ public class AutoChangeMap implements Task, Configurable<ChangeMapConfig> {
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.showDonateDialog(auth.getAuthId());
+        Utils.showDonateDialog(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
         this.api = api;
         this.hero = hero;

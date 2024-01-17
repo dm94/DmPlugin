@@ -25,6 +25,7 @@ import eu.darkbot.api.events.EventHandler;
 import eu.darkbot.api.events.Listener;
 import eu.darkbot.api.extensions.ExtraMenus;
 import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.extensions.FeatureInfo;
 import eu.darkbot.api.extensions.Task;
 import eu.darkbot.api.game.other.Gui;
 import eu.darkbot.api.managers.AuthAPI;
@@ -78,8 +79,9 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
         VerifierChecker.requireAuthenticity(auth);
 
         this.extensionsAPI = api.getAPI(ExtensionsAPI.class);
-        Utils.discordCheck(extensionsAPI.getFeatureInfo(this.getClass()), auth.getAuthId());
-        Utils.showDonateDialog(auth.getAuthId());
+        FeatureInfo feature = extensionsAPI.getFeatureInfo(this.getClass());
+        Utils.discordCheck(feature, auth.getAuthId());
+        Utils.showDonateDialog(feature, auth.getAuthId());
 
         this.api = api;
         GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);

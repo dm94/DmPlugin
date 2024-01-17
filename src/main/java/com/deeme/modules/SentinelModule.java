@@ -16,6 +16,7 @@ import eu.darkbot.api.config.types.NpcFlag;
 import eu.darkbot.api.config.types.ShipMode;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.extensions.FeatureInfo;
 import eu.darkbot.api.extensions.Module;
 import eu.darkbot.api.extensions.InstructionProvider;
 import eu.darkbot.api.game.entities.Entity;
@@ -136,8 +137,10 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
 
         VerifierChecker.requireAuthenticity(auth);
 
-        Utils.discordCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
-        Utils.showDonateDialog(auth.getAuthId());
+        ExtensionsAPI extensionsAPI = api.getAPI(ExtensionsAPI.class);
+        FeatureInfo feature = extensionsAPI.getFeatureInfo(this.getClass());
+        Utils.discordCheck(feature, auth.getAuthId());
+        Utils.showDonateDialog(feature, auth.getAuthId());
 
         this.main = main;
         this.currentStatus = State.INIT;

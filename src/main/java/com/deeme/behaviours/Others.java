@@ -23,6 +23,7 @@ import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BackpageAPI;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
+import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.GameScreenAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
@@ -59,7 +60,8 @@ public class Others implements Behavior, Configurable<OthersConfig> {
 
     @Inject
     public Others(Main main, PluginAPI api, BotAPI bot, StatsAPI stats, HeroItemsAPI heroItems) {
-        Utils.showDonateDialog(api.getAPI(AuthAPI.class).getAuthId());
+        Utils.showDonateDialog(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()),
+                api.getAPI(AuthAPI.class).getAuthId());
         this.main = main;
         this.api = api;
         this.bot = bot;

@@ -14,6 +14,7 @@ import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Module;
 import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.extensions.FeatureInfo;
 import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.entities.Player;
 import eu.darkbot.api.game.entities.Portal;
@@ -92,8 +93,10 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
 
         VerifierChecker.requireAuthenticity(auth);
 
-        Utils.discordCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
-        Utils.showDonateDialog(auth.getAuthId());
+        ExtensionsAPI extensionsAPI = api.getAPI(ExtensionsAPI.class);
+        FeatureInfo feature = extensionsAPI.getFeatureInfo(this.getClass());
+        Utils.discordCheck(feature, auth.getAuthId());
+        Utils.showDonateDialog(feature, auth.getAuthId());
 
         this.api = api;
         this.heroapi = hero;

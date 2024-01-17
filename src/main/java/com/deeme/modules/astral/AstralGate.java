@@ -14,6 +14,7 @@ import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.config.types.NpcFlag;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.extensions.FeatureInfo;
 import eu.darkbot.api.extensions.Module;
 import eu.darkbot.api.extensions.InstructionProvider;
 import eu.darkbot.api.game.entities.Entity;
@@ -132,8 +133,11 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
         VerifierChecker.requireAuthenticity(auth);
 
-        Utils.discordCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
-        Utils.showDonateDialog(auth.getAuthId());
+        ExtensionsAPI extensionsAPi = api.getAPI(ExtensionsAPI.class);
+        FeatureInfo featureInfo = extensionsAPi.getFeatureInfo(this.getClass());
+
+        Utils.discordCheck(featureInfo, auth.getAuthId());
+        Utils.showDonateDialog(featureInfo, auth.getAuthId());
 
         this.api = api;
         this.auth = auth;
