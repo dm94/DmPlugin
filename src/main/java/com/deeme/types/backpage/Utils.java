@@ -22,7 +22,6 @@ public class Utils {
     public static synchronized void discordCheck(FeatureInfo featureInfo, String authID) {
         if (!Backpage.isInDiscord(authID)) {
             String discordTag = Backpage.getDiscordTagExternal(authID);
-            showNeedDiscordDialog(discordTag);
             featureInfo
                     .addFailure("To use this option you need to be on my discord",
                             "ID: " + discordTag);
@@ -32,19 +31,10 @@ public class Utils {
     public static synchronized void discordDonorCheck(FeatureInfo featureInfo, String authID) {
         if (!Backpage.isDonor(authID)) {
             String discordTag = Backpage.getDiscordTagExternal(authID);
-            showDiscordDonorDialog(discordTag);
             featureInfo
                     .addFailure("[PLUS] Only some people can use this feature.",
                             "ID: " + discordTag);
         }
-    }
-
-    public static void showNeedDiscordDialog(String discordTag) {
-        showDiscordDialog("To use this option you need to be on my discord. ID: " + discordTag);
-    }
-
-    public static void showDiscordDonorDialog(String discordTag) {
-        showDiscordDialog("[PLUS] Only some people can use this feature. ID: " + discordTag);
     }
 
     public static void showDiscordDialog(String text) {
