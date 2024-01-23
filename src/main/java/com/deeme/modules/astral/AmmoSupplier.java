@@ -1,9 +1,11 @@
 package com.deeme.modules.astral;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import eu.darkbot.api.extensions.selectors.PrioritizedSupplier;
+import eu.darkbot.api.game.items.Item;
 import eu.darkbot.api.game.items.ItemCategory;
 import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.game.items.SelectableItem.Laser;
@@ -20,22 +22,21 @@ public class AmmoSupplier implements PrioritizedSupplier<SelectableItem> {
     }
 
     public SelectableItem get() {
-        try {
-            return items.getItems(ItemCategory.LASERS).stream()
-                    .filter(item -> item.isUsable() && item.getQuantity() > 100)
-                    .min(Comparator.comparing(i -> damageOrder.indexOf(i.getId()))).orElse(null);
-        } catch (Exception e) {
-            return null;
-        }
+        return getAmmoAvailable().stream().min(Comparator.comparing(i -> damageOrder.indexOf(i.getId())))
+                .orElse(null);
     }
 
     public SelectableItem getReverse() {
+        return getAmmoAvailable().stream().max(Comparator.comparing(i -> damageOrder.indexOf(i.getId())))
+                .orElse(null);
+    }
+
+    private List<? extends Item> getAmmoAvailable() {
         try {
             return items.getItems(ItemCategory.LASERS).stream()
-                    .filter(item -> item.isUsable() && item.getQuantity() > 100)
-                    .max(Comparator.comparing(i -> damageOrder.indexOf(i.getId()))).orElse(null);
+                    .filter(item -> item.isUsable() && item.getQuantity() > 100).toList();
         } catch (Exception e) {
-            return null;
+            return Collections.emptyList();
         }
     }
 }
