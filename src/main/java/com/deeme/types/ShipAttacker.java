@@ -166,7 +166,7 @@ public class ShipAttacker {
         }
 
         SelectableItem lastLaser = getAttackItem();
-        if (!heroapi.getLaser().equals(lastLaser)) {
+        if (lastLaser != null && (heroapi.getLaser() == null || !heroapi.getLaser().equals(lastLaser))) {
             conditionsManagement.useSelectableReadyWhenReady(lastLaser);
         }
 
