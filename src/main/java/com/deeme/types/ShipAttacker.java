@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Random;
+import java.util.Optional;
 
 import static com.github.manolo8.darkbot.Main.API;
 
@@ -165,9 +166,9 @@ public class ShipAttacker {
             return;
         }
 
-        SelectableItem lastLaser = getAttackItem();
-        if (!heroapi.getLaser().equals(lastLaser)) {
-            conditionsManagement.useSelectableReadyWhenReady(lastLaser);
+        Optional<SelectableItem> lastLaser = getAttackItem();
+        if (lastLaser.isPresent() && (heroapi.getLaser() == null || !heroapi.getLaser().equals(lastLaser.get()))) {
+            conditionsManagement.useSelectableReadyWhenReady(lastLaser.get());
         }
 
         if (!firstAttack) {
@@ -201,21 +202,21 @@ public class ShipAttacker {
         return laserSupplier.get();
     }
 
-    private SelectableItem getAttackItem() {
+    private Optional<SelectableItem> getAttackItem() {
         if (!ammoConfig.enableAmmoConfig) {
-            return null;
+            return Optional.empty();
         }
 
         Laser laser = getBestLaserAmmo();
         if (laser != null) {
-            return laser;
+            return Optional.of(laser);
         }
 
         if (ammoConfig != null) {
-            return SharedFunctions.getItemById(ammoConfig.defaultLaser);
+            return Optional.ofNullable(SharedFunctions.getItemById(ammoConfig.defaultLaser));
         }
 
-        return null;
+        return Optional.empty();
     }
 
     public boolean useKeyWithConditions(ExtraKeyConditions extra, SelectableItem selectableItem) {
