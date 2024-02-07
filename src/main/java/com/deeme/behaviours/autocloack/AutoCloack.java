@@ -19,7 +19,7 @@ import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
 import eu.darkbot.api.utils.Inject;
 
-@Feature(name = "Auto Cloack", description = "Auto Cloack additional config")
+@Feature(name = "Auto Cloak", description = "Auto Cloak additional config")
 public class AutoCloack implements Behavior, Configurable<AutoCloackConfig> {
     protected final PluginAPI api;
     protected final HeroAPI heroapi;
