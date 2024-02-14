@@ -33,7 +33,7 @@ public class Utils {
             String discordTag = Backpage.getDiscordTagExternal(authID);
             featureInfo
                     .addFailure("[PLUS] Only some people can use this feature.",
-                            "ID: " + featureInfo.getPluginInfo().getVersion().toString());
+                            "ID: " + discordTag);
         }
     }
 
