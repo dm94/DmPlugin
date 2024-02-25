@@ -6,6 +6,7 @@ import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.utils.Inject;
 
 import java.util.Arrays;
+import java.util.Collection;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -20,11 +21,12 @@ import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Configurable;
+import eu.darkbot.api.extensions.ExtraMenus;
 import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.extensions.InstructionProvider;
 
 @Feature(name = "Quest Module [PLUS]", description = "For do quests")
-public class QuestModuleDummy implements Module, Behavior, Configurable<Config>, InstructionProvider {
+public class QuestModuleDummy implements Module, Behavior, Configurable<Config>, InstructionProvider, ExtraMenus {
     private QuestModule privateModule;
     private JLabel label = new JLabel("");
 
@@ -105,5 +107,18 @@ public class QuestModuleDummy implements Module, Behavior, Configurable<Config>,
         }
 
         this.privateModule.onTickBehavior();
+    }
+
+    @Override
+    public Collection<JComponent> getExtraMenuItems(PluginAPI api) {
+        return Arrays.asList(
+                createSeparator("Quest Module - Debug"),
+                create("Clear NPC List", e -> {
+                    if (this.privateModule == null) {
+                        return;
+                    }
+
+                    this.privateModule.clearNpcList();
+                }));
     }
 }
