@@ -40,12 +40,11 @@ import eu.darkbot.shared.utils.SafetyFinder.Escaping;
 @Feature(name = "Auto Best Ability", description = "Auto use the best ability. Can use almost all abilities")
 public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig> {
 
-    protected final PluginAPI api;
-    protected final BotAPI bot;
-    protected final HeroAPI heroapi;
-    protected final GroupAPI group;
-    protected final HeroItemsAPI items;
-    protected final SafetyFinder safety;
+    private final BotAPI bot;
+    private final HeroAPI heroapi;
+    private final GroupAPI group;
+    private final HeroItemsAPI items;
+    private final SafetyFinder safety;
     private BestAbilityConfig config;
     private Collection<? extends Ship> allPlayers;
     private Collection<? extends Ship> allNPCs;
@@ -84,18 +83,17 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.showDonateDialog(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
+        Utils.showDonateDialog(api.requireAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
-        this.api = api;
         this.bot = bot;
         this.items = items;
-        this.heroapi = api.getAPI(HeroAPI.class);
-        this.group = api.getAPI(GroupAPI.class);
+        this.heroapi = api.requireAPI(HeroAPI.class);
+        this.group = api.requireAPI(GroupAPI.class);
         this.safety = api.requireInstance(SafetyFinder.class);
 
         this.conditionsManagement = new ConditionsManagement(api, items);
 
-        EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
+        EntitiesAPI entities = api.requireAPI(EntitiesAPI.class);
         this.allPlayers = entities.getPlayers();
         this.allNPCs = entities.getNpcs();
     }

@@ -41,8 +41,7 @@ import static com.github.manolo8.darkbot.Main.API;
 @Feature(name = "ExternalChat", description = "Allows you to use the chat")
 public class ExternalChat implements Task, Listener, ExtraMenus {
 
-    protected final PluginAPI api;
-    protected final ExtensionsAPI extensionsAPI;
+    private final ExtensionsAPI extensionsAPI;
 
     private JPanel mainPanel;
     private JTextArea globalChatTextArea;
@@ -64,9 +63,9 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
 
     private LinkedList<String> pendingMessages = new LinkedList<>();
 
-    protected static final int INPUT_WIDTH_OFFSET = 20;
-    protected static final int INPUT_BOTTOM_OFFSET = 15;
-    protected static final int INPUT_HEIGHT = 15;
+    private static final int INPUT_WIDTH_OFFSET = 20;
+    private static final int INPUT_BOTTOM_OFFSET = 15;
+    private static final int INPUT_HEIGHT = 15;
 
     public ExternalChat(PluginAPI api) {
         this(api, api.requireAPI(AuthAPI.class));
@@ -78,13 +77,12 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
             throw new SecurityException();
         VerifierChecker.requireAuthenticity(auth);
 
-        this.extensionsAPI = api.getAPI(ExtensionsAPI.class);
+        this.extensionsAPI = api.requireAPI(ExtensionsAPI.class);
         FeatureInfo feature = extensionsAPI.getFeatureInfo(this.getClass());
         Utils.discordCheck(feature, auth.getAuthId());
         Utils.showDonateDialog(feature, auth.getAuthId());
 
-        this.api = api;
-        GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
+        GameScreenAPI gameScreenAPI = api.requireAPI(GameScreenAPI.class);
         this.chatGui = gameScreenAPI.getGui("chat");
         this.rnd = new Random();
 

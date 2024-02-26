@@ -41,7 +41,7 @@ public class QuestModuleDummy implements Module, Behavior, Configurable<Config>,
         }
 
         VerifierChecker.requireAuthenticity(auth);
-        ExtensionsAPI extensionsAPI = api.getAPI(ExtensionsAPI.class);
+        ExtensionsAPI extensionsAPI = api.requireAPI(ExtensionsAPI.class);
         Utils.discordDonorCheck(extensionsAPI.getFeatureInfo(this.getClass()), auth.getAuthId());
 
         try {

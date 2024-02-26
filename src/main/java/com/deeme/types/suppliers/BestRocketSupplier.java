@@ -21,14 +21,11 @@ import eu.darkbot.api.game.other.Movable;
 import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
-import eu.darkbot.api.managers.MovementAPI;
 
 public class BestRocketSupplier {
-    protected final PluginAPI api;
-    protected final HeroAPI heroapi;
-    protected final MovementAPI movement;
+    private final HeroAPI heroapi;
     private final HeroItemsAPI items;
-    protected final ConfigSetting<PercentRange> repairHpRange;
+    private final ConfigSetting<PercentRange> repairHpRange;
     private BestRocketConfig config;
     private String defaultRocket = "";
 
@@ -51,12 +48,10 @@ public class BestRocketSupplier {
     }
 
     public BestRocketSupplier(PluginAPI api) {
-        this.api = api;
         this.items = api.requireAPI(HeroItemsAPI.class);
-        this.heroapi = api.getAPI(HeroAPI.class);
-        this.movement = api.getAPI(MovementAPI.class);
+        this.heroapi = api.requireAPI(HeroAPI.class);
 
-        ConfigAPI configAPI = api.getAPI(ConfigAPI.class);
+        ConfigAPI configAPI = api.requireAPI(ConfigAPI.class);
         this.repairHpRange = configAPI.requireConfig("general.safety.repair_hp_range");
     }
 

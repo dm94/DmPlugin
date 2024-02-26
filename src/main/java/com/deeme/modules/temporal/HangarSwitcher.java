@@ -16,13 +16,12 @@ import eu.darkbot.api.utils.Inject;
 import eu.darkbot.shared.modules.TemporalModule;
 
 public class HangarSwitcher extends TemporalModule {
-    protected final PluginAPI api;
-    protected final HeroAPI heroapi;
-    protected final BackpageAPI backpageAPI;
-    protected final PetAPI pet;
+    private final HeroAPI heroapi;
+    private final BackpageAPI backpageAPI;
+    private final PetAPI pet;
 
-    protected final Gui lostConnectionGUI;
-    protected final Gui logout;
+    private final Gui lostConnectionGUI;
+    private final Gui logout;
 
     private Integer activeHangar = null;
     private Integer hangarToChage = null;
@@ -69,14 +68,13 @@ public class HangarSwitcher extends TemporalModule {
         this.main = m;
         this.hangarManager = main.backpage.hangarManager;
 
-        this.api = api;
-        this.heroapi = api.getAPI(HeroAPI.class);
-        this.backpageAPI = api.getAPI(BackpageAPI.class);
-        this.pet = api.getAPI(PetAPI.class);
+        this.heroapi = api.requireAPI(HeroAPI.class);
+        this.backpageAPI = api.requireAPI(BackpageAPI.class);
+        this.pet = api.requireAPI(PetAPI.class);
         this.hangarToChage = hangar;
         this.checkCount = 0;
 
-        GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
+        GameScreenAPI gameScreenAPI = api.requireAPI(GameScreenAPI.class);
         this.lostConnectionGUI = gameScreenAPI.getGui("lost_connection");
         this.logout = gameScreenAPI.getGui("logout");
 

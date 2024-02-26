@@ -45,31 +45,22 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     private Ship target;
     private ShipAttacker shipAttacker;
 
-    protected final PluginAPI api;
-    protected final HeroAPI heroapi;
-    protected final MovementAPI movement;
-    protected final StarSystemAPI starSystem;
-    protected final BotAPI bot;
-    protected final PetAPI pet;
+    private final PluginAPI api;
+    private final HeroAPI heroapi;
+    private final MovementAPI movement;
+    private final StarSystemAPI starSystem;
+    private final BotAPI bot;
+    private final PetAPI pet;
 
-    protected final Collection<? extends Portal> portals;
-    protected final Collection<? extends Player> players;
+    private final Collection<? extends Portal> portals;
+    private final Collection<? extends Player> players;
 
-    protected final ConfigSetting<Integer> workingMap;
-
-    protected boolean firstAttack;
-    protected long isAttacking;
-    protected int fixedTimes;
-    protected Character lastShot;
-    protected long laserTime;
-    protected long fixTimes;
-    protected long clickDelay;
-    protected long lastTimeAttack = 0;
+    private final ConfigSetting<Integer> workingMap;
 
     private SafetyFinder safety;
     private ExtraMovementLogic extraMovementLogic;
     private ExtraConfigChangerLogic extraConfigChangerLogic;
-    protected CollectorModule collectorModule;
+    private CollectorModule collectorModule;
 
     private long nextAttackCheck = 0;
     private int timeOut = 0;
@@ -93,7 +84,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
 
         VerifierChecker.requireAuthenticity(auth);
 
-        ExtensionsAPI extensionsAPI = api.getAPI(ExtensionsAPI.class);
+        ExtensionsAPI extensionsAPI = api.requireAPI(ExtensionsAPI.class);
         FeatureInfo feature = extensionsAPI.getFeatureInfo(this.getClass());
         Utils.discordCheck(feature, auth.getAuthId());
         Utils.showDonateDialog(feature, auth.getAuthId());
@@ -102,12 +93,12 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         this.heroapi = hero;
         this.safety = safety;
         this.movement = movement;
-        this.starSystem = api.getAPI(StarSystemAPI.class);
-        this.bot = api.getAPI(BotAPI.class);
-        this.pet = api.getAPI(PetAPI.class);
+        this.starSystem = api.requireAPI(StarSystemAPI.class);
+        this.bot = api.requireAPI(BotAPI.class);
+        this.pet = api.requireAPI(PetAPI.class);
         this.workingMap = configApi.requireConfig("general.working_map");
 
-        EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
+        EntitiesAPI entities = api.requireAPI(EntitiesAPI.class);
         this.portals = entities.getPortals();
         this.players = entities.getPlayers();
 
@@ -146,7 +137,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
             return;
 
         this.shipAttacker = new ShipAttacker(api, pvpConfig.ammoConfig, pvpConfig.humanizer);
-        this.antiPushLogic = new AntiPushLogic(this.heroapi, api.getAPI(StatsAPI.class), this.pvpConfig.antiPush);
+        this.antiPushLogic = new AntiPushLogic(this.heroapi, api.requireAPI(StatsAPI.class), this.pvpConfig.antiPush);
         this.extraMovementLogic = new ExtraMovementLogic(api, pvpConfig.movementConfig);
         this.extraConfigChangerLogic = new ExtraConfigChangerLogic(api, pvpConfig.extraConfigChangerConfig);
     }
@@ -167,7 +158,6 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     }
 
     private void attackLogic() {
-        lastTimeAttack = System.currentTimeMillis();
         if (pvpConfig.changeConfig) {
             heroapi.setMode(extraConfigChangerLogic.getShipMode());
         }

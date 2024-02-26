@@ -37,12 +37,12 @@ import javax.swing.JLabel;
 
 @Feature(name = "WeeklySchedule", description = "Use different module, map for a weekly schedule")
 public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, InstructionProvider {
-    protected final PluginAPI api;
-    protected final ExtensionsAPI extensionsAPI;
-    protected final HeroAPI heroapi;
-    protected final BotAPI botApi;
-    protected final BackpageAPI backpage;
-    protected final FeatureInfo featureInfo;
+    private final PluginAPI api;
+    private final ExtensionsAPI extensionsAPI;
+    private final HeroAPI heroapi;
+    private final BotAPI botApi;
+    private final BackpageAPI backpage;
+    private final FeatureInfo featureInfo;
 
     private WeeklyConfig weeklyConfig;
     private Main main;
@@ -75,17 +75,17 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
-        this.extensionsAPI = api.getAPI(ExtensionsAPI.class);
+        this.extensionsAPI = api.requireAPI(ExtensionsAPI.class);
         this.featureInfo = extensionsAPI.getFeatureInfo(this.getClass());
         Utils.showDonateDialog(featureInfo, auth.getAuthId());
 
         this.main = main;
         this.api = api;
-        this.heroapi = api.getAPI(HeroAPI.class);
-        this.botApi = api.getAPI(BotAPI.class);
-        this.backpage = api.getAPI(BackpageAPI.class);
+        this.heroapi = api.requireAPI(HeroAPI.class);
+        this.botApi = api.requireAPI(BotAPI.class);
+        this.backpage = api.requireAPI(BackpageAPI.class);
 
-        GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
+        GameScreenAPI gameScreenAPI = api.requireAPI(GameScreenAPI.class);
         lostConnectionGUI = gameScreenAPI.getGui("lost_connection");
 
         this.nextCheck = 0;

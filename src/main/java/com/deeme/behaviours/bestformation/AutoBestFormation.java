@@ -40,17 +40,16 @@ import eu.darkbot.shared.utils.SafetyFinder.Escaping;
 @Feature(name = "Auto Best Formation", description = "Automatically switches formations")
 public class AutoBestFormation implements Behavior, Configurable<BestFormationConfig>, NpcExtraProvider {
 
-    protected final PluginAPI api;
-    protected final HeroAPI heroapi;
-    protected final HeroItemsAPI items;
-    protected final SafetyFinder safety;
+    private final HeroAPI heroapi;
+    private final HeroItemsAPI items;
+    private final SafetyFinder safety;
     private final ConditionsManagement conditionsManagement;
     private BestFormationConfig config;
     private Collection<? extends Npc> allNpcs;
     private Collection<? extends Portal> allPortals;
     private long nextCheck = 0;
 
-    protected final ConfigSetting<Config.ShipConfig> configOffensive;
+    private final ConfigSetting<Config.ShipConfig> configOffensive;
 
     private ArrayList<Formation> availableFormations = new ArrayList<>();
 
@@ -64,20 +63,19 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.showDonateDialog(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
+        Utils.showDonateDialog(api.requireAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
-        this.api = api;
         this.items = items;
-        this.heroapi = api.getAPI(HeroAPI.class);
+        this.heroapi = api.requireAPI(HeroAPI.class);
         this.safety = api.requireInstance(SafetyFinder.class);
         this.availableFormations = new ArrayList<>();
         this.conditionsManagement = new ConditionsManagement(api, items);
 
-        EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
+        EntitiesAPI entities = api.requireAPI(EntitiesAPI.class);
         this.allNpcs = entities.getNpcs();
         this.allPortals = entities.getPortals();
 
-        ConfigAPI configApi = api.getAPI(ConfigAPI.class);
+        ConfigAPI configApi = api.requireAPI(ConfigAPI.class);
         this.configOffensive = configApi.requireConfig("general.offensive");
     }
 

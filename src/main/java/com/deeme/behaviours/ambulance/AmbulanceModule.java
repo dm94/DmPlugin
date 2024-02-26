@@ -22,13 +22,12 @@ import eu.darkbot.api.utils.Inject;
 import eu.darkbot.shared.modules.TemporalModule;
 
 public class AmbulanceModule extends TemporalModule {
-    protected final PluginAPI api;
-    protected final HeroAPI heroapi;
-    protected final MovementAPI movement;
-    protected final GroupAPI groupAPI;
-    protected final HeroItemsAPI items;
-    protected final Collection<? extends Player> players;
-    protected final PetAPI pet;
+    private final HeroAPI heroapi;
+    private final MovementAPI movement;
+    private final GroupAPI groupAPI;
+    private final HeroItemsAPI items;
+    private final Collection<? extends Player> players;
+    private final PetAPI pet;
     private final ConditionsManagement conditionsManagement;
 
     private int idMember = 0;
@@ -68,15 +67,14 @@ public class AmbulanceModule extends TemporalModule {
     public AmbulanceModule(PluginAPI api, BotAPI bot, int idMember, Ability abilityToUse, boolean returnToTarget,
             double healthToRepair) {
         super(bot);
-        this.api = api;
-        this.movement = api.getAPI(MovementAPI.class);
-        this.groupAPI = api.getAPI(GroupAPI.class);
-        this.heroapi = api.getAPI(HeroAPI.class);
-        this.items = api.getAPI(HeroItemsAPI.class);
-        this.pet = api.getAPI(PetAPI.class);
+        this.movement = api.requireAPI(MovementAPI.class);
+        this.groupAPI = api.requireAPI(GroupAPI.class);
+        this.heroapi = api.requireAPI(HeroAPI.class);
+        this.items = api.requireAPI(HeroItemsAPI.class);
+        this.pet = api.requireAPI(PetAPI.class);
         this.conditionsManagement = new ConditionsManagement(api, items);
 
-        EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
+        EntitiesAPI entities = api.requireAPI(EntitiesAPI.class);
         this.idMember = idMember;
         this.abilityToUse = abilityToUse;
         this.players = entities.getPlayers();

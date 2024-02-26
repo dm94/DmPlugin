@@ -20,7 +20,6 @@ import eu.darkbot.api.utils.Inject;
 @Feature(name = "CustomEvents", description = "Another custom events")
 public class CustomEvents implements Behavior, Configurable<CustomEventsConfig> {
     private CustomEventsConfig config;
-    protected long clickDelay;
     private ConditionsManagement conditionsManagement;
 
     public CustomEvents(PluginAPI api) {
@@ -35,7 +34,7 @@ public class CustomEvents implements Behavior, Configurable<CustomEventsConfig> 
             throw new SecurityException();
         VerifierChecker.requireAuthenticity(auth);
 
-        Utils.showDonateDialog(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
+        Utils.showDonateDialog(api.requireAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
         this.conditionsManagement = new ConditionsManagement(api, heroItems);
     }

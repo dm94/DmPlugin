@@ -21,12 +21,11 @@ import eu.darkbot.api.utils.Inject;
 
 @Feature(name = "Auto Cloak", description = "Auto Cloak additional config")
 public class AutoCloack implements Behavior, Configurable<AutoCloackConfig> {
-    protected final PluginAPI api;
-    protected final HeroAPI heroapi;
+    private final HeroAPI heroapi;
 
     private ConditionsManagement conditionsManagement;
 
-    protected long lastTimeAttack = 0;
+    private long lastTimeAttack = 0;
     private AutoCloackConfig config;
 
     public AutoCloack(PluginAPI api) {
@@ -40,13 +39,12 @@ public class AutoCloack implements Behavior, Configurable<AutoCloackConfig> {
             throw new SecurityException();
         VerifierChecker.requireAuthenticity(auth);
 
-        ExtensionsAPI extensionsAPi = api.getAPI(ExtensionsAPI.class);
+        ExtensionsAPI extensionsAPi = api.requireAPI(ExtensionsAPI.class);
         FeatureInfo featureInfo = extensionsAPi.getFeatureInfo(this.getClass());
 
         Utils.discordCheck(featureInfo, auth.getAuthId());
         Utils.showDonateDialog(featureInfo, auth.getAuthId());
 
-        this.api = api;
         this.heroapi = hero;
         this.conditionsManagement = new ConditionsManagement(api, items);
     }

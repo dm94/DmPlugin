@@ -30,11 +30,10 @@ import eu.darkbot.api.utils.Inject;
 
 @Feature(name = "AutoChangeMap", description = "Automatically changes map every x amount of time or deaths")
 public class AutoChangeMap implements Task, Configurable<ChangeMapConfig> {
-    protected final PluginAPI api;
-    protected final StatsAPI stats;
-    protected final HeroAPI hero;
-    protected final RepairAPI repair;
-    protected final StarSystemAPI star;
+    private final PluginAPI api;
+    private final HeroAPI hero;
+    private final RepairAPI repair;
+    private final StarSystemAPI star;
 
     private ChangeMapConfig changeMapConfig;
 
@@ -61,11 +60,10 @@ public class AutoChangeMap implements Task, Configurable<ChangeMapConfig> {
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.showDonateDialog(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
+        Utils.showDonateDialog(api.requireAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
         this.api = api;
         this.hero = hero;
-        this.stats = stats;
         this.repair = repair;
         this.star = star;
         this.mapsAlreadyUsed = new ArrayList<>();

@@ -27,11 +27,10 @@ import eu.darkbot.api.utils.Inject;
 @Feature(name = "StopButton", description = "Add a button to stop the bot completely")
 public class StopButton implements Behavior, ExtraMenus {
 
-    protected final PluginAPI api;
-    protected final BotAPI bot;
-    protected final HeroAPI heroapi;
-    protected final MovementAPI movement;
-    protected Collection<? extends Portal> portals;
+    private final BotAPI bot;
+    private final HeroAPI heroapi;
+    private final MovementAPI movement;
+    private Collection<? extends Portal> portals;
     private final Gui lostConnectionGUI;
 
     private boolean stopBot = false;
@@ -48,16 +47,15 @@ public class StopButton implements Behavior, ExtraMenus {
             throw new SecurityException();
         VerifierChecker.requireAuthenticity(auth);
 
-        Utils.showDonateDialog(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
+        Utils.showDonateDialog(api.requireAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
-        this.api = api;
         this.bot = bot;
-        this.heroapi = api.getAPI(HeroAPI.class);
-        this.movement = api.getAPI(MovementAPI.class);
-        EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
+        this.heroapi = api.requireAPI(HeroAPI.class);
+        this.movement = api.requireAPI(MovementAPI.class);
+        EntitiesAPI entities = api.requireAPI(EntitiesAPI.class);
         this.portals = entities.getPortals();
 
-        GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
+        GameScreenAPI gameScreenAPI = api.requireAPI(GameScreenAPI.class);
         lostConnectionGUI = gameScreenAPI.getGui("lost_connection");
     }
 
@@ -87,9 +85,7 @@ public class StopButton implements Behavior, ExtraMenus {
     public Collection<JComponent> getExtraMenuItems(PluginAPI pluginAPI) {
         return Arrays.asList(
                 createSeparator("StopButton"),
-                create("Stop Bot", e -> {
-                    stopBot = true;
-                }), create("Stop Bot + Close", e -> {
+                create("Stop Bot", e -> stopBot = true), create("Stop Bot + Close", e -> {
                     stopBot = true;
                     closeBot = true;
                 }));

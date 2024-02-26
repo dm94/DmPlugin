@@ -9,8 +9,6 @@ import com.github.manolo8.darkbot.core.api.Capability;
 import com.github.manolo8.darkbot.core.objects.facades.SettingsProxy;
 
 import eu.darkbot.api.PluginAPI;
-import eu.darkbot.api.config.ConfigSetting;
-import eu.darkbot.api.config.types.PercentRange;
 import eu.darkbot.api.config.types.ShipMode;
 import eu.darkbot.api.config.types.ShipMode.ShipModeImpl;
 import eu.darkbot.api.game.entities.Pet;
@@ -23,7 +21,6 @@ import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.game.items.SelectableItem.Formation;
 import eu.darkbot.api.game.items.SelectableItem.Laser;
-import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.GroupAPI;
@@ -40,26 +37,22 @@ import java.util.Optional;
 import static com.github.manolo8.darkbot.Main.API;
 
 public class ShipAttacker {
-    protected final PluginAPI api;
-    protected final HeroAPI heroapi;
-    protected final HeroItemsAPI items;
-    protected final MovementAPI movement;
-    protected final ConfigAPI configAPI;
-    protected final GroupAPI group;
-    protected final BotAPI bot;
-    protected final SettingsProxy settingsProxy;
-    protected final ConfigSetting<PercentRange> repairHpRange;
-    protected final Collection<? extends Player> allShips;
-    protected final Collection<? extends Portal> allPortals;
+    private final HeroAPI heroapi;
+    private final HeroItemsAPI items;
+    private final MovementAPI movement;
+    private final ConfigAPI configAPI;
+    private final GroupAPI group;
+    private final SettingsProxy settingsProxy;
+    private final Collection<? extends Player> allShips;
+    private final Collection<? extends Portal> allPortals;
 
     private DefenseLaserSupplier laserSupplier;
     private ConditionsManagement conditionsManagement;
     private Ship target;
 
-    protected long laserTime;
-    protected long fixTimes;
-    protected long clickDelay;
-    protected long keyDelay;
+    private long laserTime;
+    private long clickDelay;
+    private long keyDelay;
 
     private Random rnd;
 
@@ -69,30 +62,26 @@ public class ShipAttacker {
     private long isAttacking;
     private int fixedTimes;
 
-    protected Character attackLaserKey;
+    private Character attackLaserKey;
 
     private Humanizer humanizerConfig;
     private AmmoConfig ammoConfig;
 
     public ShipAttacker(PluginAPI api, AmmoConfig ammoConfig, Humanizer humanizerConfig) {
-        this.api = api;
-        this.heroapi = api.getAPI(HeroAPI.class);
-        this.movement = api.getAPI(MovementAPI.class);
-        this.configAPI = api.getAPI(ConfigAPI.class);
-        this.group = api.getAPI(GroupAPI.class);
-        this.bot = api.getAPI(BotAPI.class);
-        EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
+        this.heroapi = api.requireAPI(HeroAPI.class);
+        this.movement = api.requireAPI(MovementAPI.class);
+        this.configAPI = api.requireAPI(ConfigAPI.class);
+        this.group = api.requireAPI(GroupAPI.class);
+        EntitiesAPI entities = api.requireAPI(EntitiesAPI.class);
         this.allShips = entities.getPlayers();
         this.allPortals = entities.getPortals();
         this.rnd = new Random();
-        this.items = api.getAPI(HeroItemsAPI.class);
+        this.items = api.requireAPI(HeroItemsAPI.class);
         this.humanizerConfig = new Humanizer();
         this.humanizerConfig.maxRandomTime = 0;
 
         this.settingsProxy = api.requireInstance(SettingsProxy.class);
         attackLaserKey = settingsProxy.getCharacterOf(SettingsProxy.KeyBind.ATTACK_LASER).orElse(null);
-
-        this.repairHpRange = configAPI.requireConfig("general.safety.repair_hp_range");
 
         this.conditionsManagement = new ConditionsManagement(api, items);
         this.humanizerConfig = humanizerConfig;
@@ -198,7 +187,7 @@ public class ShipAttacker {
         }
     }
 
-    protected Laser getBestLaserAmmo() {
+    private Laser getBestLaserAmmo() {
         return laserSupplier.get();
     }
 

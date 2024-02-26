@@ -32,7 +32,7 @@ public class AutoShopDummy implements Task, Configurable<Config> {
         }
 
         VerifierChecker.requireAuthenticity(auth);
-        ExtensionsAPI extensionsAPI = api.getAPI(ExtensionsAPI.class);
+        ExtensionsAPI extensionsAPI = api.requireAPI(ExtensionsAPI.class);
         Utils.discordDonorCheck(extensionsAPI.getFeatureInfo(this.getClass()), auth.getAuthId());
 
         try {
@@ -57,6 +57,6 @@ public class AutoShopDummy implements Task, Configurable<Config> {
             return;
         }
 
-        privateTask.onTickTask();
+        this.privateTask.onTickTask();
     }
 }

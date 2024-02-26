@@ -10,8 +10,8 @@ import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.managers.HeroItemsAPI;
 
 public class ConditionsManagement {
-    protected final PluginAPI api;
-    protected final HeroItemsAPI items;
+    private final PluginAPI api;
+    private final HeroItemsAPI items;
 
     public ConditionsManagement(PluginAPI api, HeroItemsAPI heroItems) {
         this.api = api;

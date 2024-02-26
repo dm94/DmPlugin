@@ -40,11 +40,11 @@ import eu.darkbot.api.utils.Inject;
 @Feature(name = "ProfileChanger", description = "Change the profile to another one when completing a task")
 public class ProfileChanger implements Behavior, Configurable<ProfileChangerConfig> {
 
-    protected final PluginAPI api;
-    protected final BotAPI bot;
-    protected final HeroAPI hero;
-    protected final RepairAPI repair;
-    protected final StatsAPI stats;
+    private final PluginAPI api;
+    private final BotAPI bot;
+    private final HeroAPI hero;
+    private final RepairAPI repair;
+    private final StatsAPI stats;
 
     private ProfileChangerConfig config;
     private Main main;
@@ -54,7 +54,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     private boolean resourceListUpdated = false;
     private final ConfigSetting<Map<String, BoxInfo>> boxInfos;
     private final Gui lostConnectionGUI;
-    protected Collection<? extends Box> boxes;
+    private Collection<? extends Box> boxes;
 
     public ProfileChanger(Main main, PluginAPI api) {
         this(main, api, api.requireAPI(AuthAPI.class),
@@ -69,22 +69,22 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.showDonateDialog(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
+        Utils.showDonateDialog(api.requireAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
         this.main = main;
         this.api = api;
         this.bot = bot;
         this.hero = hero;
         this.stats = stats;
-        this.repair = api.getAPI(RepairAPI.class);
+        this.repair = api.requireAPI(RepairAPI.class);
 
-        ConfigAPI configApi = api.getAPI(ConfigAPI.class);
+        ConfigAPI configApi = api.requireAPI(ConfigAPI.class);
         this.boxInfos = configApi.requireConfig("collect.box_infos");
 
-        EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
+        EntitiesAPI entities = api.requireAPI(EntitiesAPI.class);
         this.boxes = entities.getBoxes();
 
-        GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
+        GameScreenAPI gameScreenAPI = api.requireAPI(GameScreenAPI.class);
         lostConnectionGUI = gameScreenAPI.getGui("lost_connection");
 
         this.resourceListUpdated = false;

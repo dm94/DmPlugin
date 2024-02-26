@@ -32,7 +32,7 @@ public class AntiTrainDummy implements Behavior, Configurable<AntiTrainConfig> {
         }
 
         VerifierChecker.requireAuthenticity(auth);
-        ExtensionsAPI extensionsAPi = api.getAPI(ExtensionsAPI.class);
+        ExtensionsAPI extensionsAPi = api.requireAPI(ExtensionsAPI.class);
         FeatureInfo featureInfo = extensionsAPi.getFeatureInfo(this.getClass());
 
         Utils.discordCheck(featureInfo, auth.getAuthId());
@@ -47,7 +47,7 @@ public class AntiTrainDummy implements Behavior, Configurable<AntiTrainConfig> {
             return;
         }
 
-        privateBehaviour.setConfig(arg0);
+        this.privateBehaviour.setConfig(arg0);
     }
 
     @Override
@@ -56,7 +56,7 @@ public class AntiTrainDummy implements Behavior, Configurable<AntiTrainConfig> {
             return;
         }
 
-        privateBehaviour.onTickBehavior();
+        this.privateBehaviour.onTickBehavior();
     }
 
 }

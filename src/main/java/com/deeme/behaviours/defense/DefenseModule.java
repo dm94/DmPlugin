@@ -1,7 +1,5 @@
 package com.deeme.behaviours.defense;
 
-import java.util.Collection;
-
 import com.deeme.types.ShipAttacker;
 import com.deemeplus.general.movement.ExtraMovementLogic;
 import com.deemeplus.general.configchanger.ExtraConfigChangerLogic;
@@ -9,11 +7,9 @@ import com.deemeplus.general.configchanger.ExtraConfigChangerLogic;
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.entities.Pet;
-import eu.darkbot.api.game.entities.Player;
 import eu.darkbot.api.game.entities.Ship;
 import eu.darkbot.api.game.items.SelectableItem.Special;
 import eu.darkbot.api.managers.BotAPI;
-import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.MovementAPI;
 import eu.darkbot.api.managers.PetAPI;
@@ -21,11 +17,9 @@ import eu.darkbot.api.utils.Inject;
 import eu.darkbot.shared.modules.TemporalModule;
 
 public class DefenseModule extends TemporalModule {
-    protected final PluginAPI api;
-    protected final HeroAPI heroapi;
-    protected final MovementAPI movement;
-    protected final Collection<? extends Player> players;
-    protected final PetAPI pet;
+    private final HeroAPI heroapi;
+    private final MovementAPI movement;
+    private final PetAPI pet;
 
     private ShipAttacker shipAttacker;
     private DefenseConfig defenseConfig;
@@ -36,7 +30,6 @@ public class DefenseModule extends TemporalModule {
     private ExtraConfigChangerLogic extraConfigChangerLogic;
 
     private int timeOut = 0;
-    protected static final int DISTANCE_TO_USE_VS_MODE = 1500;
 
     public DefenseModule(PluginAPI api, DefenseConfig defenseConfig, Entity target) {
         this(api, api.requireAPI(BotAPI.class),
@@ -46,12 +39,9 @@ public class DefenseModule extends TemporalModule {
     @Inject
     public DefenseModule(PluginAPI api, BotAPI bot, HeroAPI hero, DefenseConfig defenseConfig, Entity target) {
         super(bot);
-        this.api = api;
         this.heroapi = hero;
         this.movement = api.requireAPI(MovementAPI.class);
-        this.pet = api.getAPI(PetAPI.class);
-        EntitiesAPI entities = api.requireAPI(EntitiesAPI.class);
-        this.players = entities.getPlayers();
+        this.pet = api.requireAPI(PetAPI.class);
         this.defenseConfig = defenseConfig;
         this.shipAttacker = new ShipAttacker(api, defenseConfig.ammoConfig, defenseConfig.humanizer);
         this.extraMovementLogic = new ExtraMovementLogic(api, defenseConfig.movementConfig);
