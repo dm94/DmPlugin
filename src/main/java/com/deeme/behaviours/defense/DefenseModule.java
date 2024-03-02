@@ -2,7 +2,7 @@ package com.deeme.behaviours.defense;
 
 import com.deeme.types.ShipAttacker;
 import com.deemeplus.general.movement.ExtraMovementLogic;
-import com.deemeplus.general.configchanger.ExtraConfigChangerLogic;
+import com.deemeplus.general.configchanger.ExtraCChangerLogic;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.game.entities.Entity;
@@ -27,7 +27,7 @@ public class DefenseModule extends TemporalModule {
 
     private long nextAttackCheck = 0;
     private ExtraMovementLogic extraMovementLogic;
-    private ExtraConfigChangerLogic extraConfigChangerLogic;
+    private ExtraCChangerLogic extraConfigChangerLogic;
 
     private int timeOut = 0;
 
@@ -45,7 +45,7 @@ public class DefenseModule extends TemporalModule {
         this.defenseConfig = defenseConfig;
         this.shipAttacker = new ShipAttacker(api, defenseConfig.ammoConfig, defenseConfig.humanizer);
         this.extraMovementLogic = new ExtraMovementLogic(api, defenseConfig.movementConfig);
-        this.extraConfigChangerLogic = new ExtraConfigChangerLogic(api, defenseConfig.extraConfigChangerConfig);
+        this.extraConfigChangerLogic = new ExtraCChangerLogic(api, defenseConfig.extraConfigChangerConfig);
         this.target = target;
         this.nextAttackCheck = 0;
         this.timeOut = 0;

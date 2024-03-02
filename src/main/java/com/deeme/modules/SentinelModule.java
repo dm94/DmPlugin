@@ -5,10 +5,9 @@ import com.deeme.types.ShipAttacker;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 import com.deeme.types.config.SentinelConfig;
-import com.deemeplus.general.configchanger.ExtraConfigChangerLogic;
+import com.deemeplus.general.configchanger.ExtraCChangerLogic;
 import com.deemeplus.general.movement.ExtraMovementLogic;
 import com.github.manolo8.darkbot.Main;
-import com.github.manolo8.darkbot.config.Config;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -75,7 +74,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
 
     private SentinelConfig sConfig;
     private ExtraMovementLogic extraMovementLogic;
-    private ExtraConfigChangerLogic extraConfigChangerLogic;
+    private ExtraCChangerLogic extraConfigChangerLogic;
     private Player sentinel;
     private Main main;
     private SafetyFinder safety;
@@ -174,7 +173,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
 
         this.shipAttacker = new ShipAttacker(api, sConfig.ammoConfig, sConfig.humanizer);
         this.extraMovementLogic = new ExtraMovementLogic(api, sConfig.movementConfig);
-        this.extraConfigChangerLogic = new ExtraConfigChangerLogic(api, sConfig.extraConfigChangerConfig);
+        this.extraConfigChangerLogic = new ExtraCChangerLogic(api, sConfig.extraConfigChangerConfig);
     }
 
     @Override

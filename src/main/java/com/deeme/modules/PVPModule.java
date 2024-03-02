@@ -6,7 +6,7 @@ import com.deeme.types.SharedFunctions;
 import com.deeme.types.ShipAttacker;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
-import com.deemeplus.general.configchanger.ExtraConfigChangerLogic;
+import com.deemeplus.general.configchanger.ExtraCChangerLogic;
 import com.deemeplus.general.movement.ExtraMovementLogic;
 
 import eu.darkbot.api.PluginAPI;
@@ -59,7 +59,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
 
     private SafetyFinder safety;
     private ExtraMovementLogic extraMovementLogic;
-    private ExtraConfigChangerLogic extraConfigChangerLogic;
+    private ExtraCChangerLogic extraConfigChangerLogic;
     private CollectorModule collectorModule;
 
     private long nextAttackCheck = 0;
@@ -139,7 +139,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         this.shipAttacker = new ShipAttacker(api, pvpConfig.ammoConfig, pvpConfig.humanizer);
         this.antiPushLogic = new AntiPushLogic(this.heroapi, api.requireAPI(StatsAPI.class), this.pvpConfig.antiPush);
         this.extraMovementLogic = new ExtraMovementLogic(api, pvpConfig.movementConfig);
-        this.extraConfigChangerLogic = new ExtraConfigChangerLogic(api, pvpConfig.extraConfigChangerConfig);
+        this.extraConfigChangerLogic = new ExtraCChangerLogic(api, pvpConfig.extraConfigChangerConfig);
     }
 
     @Override
