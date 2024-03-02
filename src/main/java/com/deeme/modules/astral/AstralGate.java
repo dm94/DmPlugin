@@ -516,9 +516,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
     private void changeAmmoKey(SelectableItem laser) {
         Character key = items.getKeyBind(laser);
-        if (!ammoKey.getValue().equals(key)) {
-            ammoKey.setValue(key);
-        }
+        ammoKey.setValue(key);
     }
 
     private void changeLaser(boolean bestLaser) {
