@@ -15,7 +15,6 @@ import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 import com.deemeplus.modules.quest.config.Config;
 import com.deemeplus.modules.quest.QuestModule;
-import com.github.manolo8.darkbot.Main;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -30,12 +29,12 @@ public class QuestModuleDummy implements Module, Behavior, Configurable<Config>,
     private QuestModule privateModule;
     private JLabel label = new JLabel("");
 
-    public QuestModuleDummy(Main main, PluginAPI api) {
-        this(main, api, api.requireAPI(AuthAPI.class));
+    public QuestModuleDummy(PluginAPI api) {
+        this(api, api.requireAPI(AuthAPI.class));
     }
 
     @Inject
-    public QuestModuleDummy(Main main, PluginAPI api, AuthAPI auth) {
+    public QuestModuleDummy(PluginAPI api, AuthAPI auth) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) {
             throw new SecurityException();
         }
@@ -45,7 +44,7 @@ public class QuestModuleDummy implements Module, Behavior, Configurable<Config>,
         Utils.discordDonorCheck(extensionsAPI.getFeatureInfo(this.getClass()), auth.getAuthId());
 
         try {
-            this.privateModule = new QuestModule(main, api);
+            this.privateModule = new QuestModule(api);
         } catch (Exception e) {
             extensionsAPI.getFeatureInfo(this.getClass()).addFailure("Error", e.getMessage());
         }
