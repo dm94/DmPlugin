@@ -19,6 +19,7 @@ public class HangarSwitcher extends TemporalModule {
     private final HeroAPI heroapi;
     private final BackpageAPI backpageAPI;
     private final PetAPI pet;
+    private final PluginAPI api;
 
     private final Gui lostConnectionGUI;
     private final Gui logout;
@@ -68,6 +69,7 @@ public class HangarSwitcher extends TemporalModule {
         this.main = m;
         this.hangarManager = main.backpage.hangarManager;
 
+        this.api = api;
         this.heroapi = api.requireAPI(HeroAPI.class);
         this.backpageAPI = api.requireAPI(BackpageAPI.class);
         this.pet = api.requireAPI(PetAPI.class);
@@ -146,7 +148,7 @@ public class HangarSwitcher extends TemporalModule {
                                 this.activeHangar = null;
                             }
                         }
-                    } else if (!heroapi.isAttacking() && !SharedFunctions.hasAttacker(heroapi, main)) {
+                    } else if (!heroapi.isAttacking() && !SharedFunctions.hasAttacker(heroapi, api)) {
                         disconnect();
                     } else {
                         goBack();
