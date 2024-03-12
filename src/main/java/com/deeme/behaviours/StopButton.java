@@ -56,7 +56,7 @@ public class StopButton implements Behavior, ExtraMenus {
         this.portals = entities.getPortals();
 
         GameScreenAPI gameScreenAPI = api.requireAPI(GameScreenAPI.class);
-        lostConnectionGUI = gameScreenAPI.getGui("lost_connection");
+        this.lostConnectionGUI = gameScreenAPI.getGui("lost_connection");
     }
 
     @Override
@@ -78,6 +78,10 @@ public class StopButton implements Behavior, ExtraMenus {
 
     @Override
     public void onStoppedBehavior() {
+        if (!stopBot) {
+            return;
+        }
+
         stopCheck();
     }
 
@@ -98,10 +102,10 @@ public class StopButton implements Behavior, ExtraMenus {
             return;
         }
 
-        if (heroapi.distanceTo(p) < 200) {
-            movement.jumpPortal(p);
+        if (this.heroapi.distanceTo(p) < 200) {
+            this.movement.jumpPortal(p);
         } else {
-            movement.moveTo(p);
+            this.movement.moveTo(p);
         }
     }
 
@@ -115,7 +119,7 @@ public class StopButton implements Behavior, ExtraMenus {
     }
 
     private boolean isDisconnect() {
-        return lostConnectionGUI != null && lostConnectionGUI.isVisible();
+        return this.lostConnectionGUI != null && this.lostConnectionGUI.isVisible();
     }
 
 }
