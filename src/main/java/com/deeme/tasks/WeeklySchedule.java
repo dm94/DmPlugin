@@ -23,6 +23,7 @@ import eu.darkbot.api.game.other.Gui;
 import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BackpageAPI;
 import eu.darkbot.api.managers.BotAPI;
+import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.GameScreenAPI;
 import eu.darkbot.api.managers.HeroAPI;
@@ -43,6 +44,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
     private final BotAPI botApi;
     private final BackpageAPI backpage;
     private final FeatureInfo featureInfo;
+    private final ConfigAPI configAPI;
 
     private WeeklyConfig weeklyConfig;
     private Main main;
@@ -84,6 +86,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
         this.heroapi = api.requireAPI(HeroAPI.class);
         this.botApi = api.requireAPI(BotAPI.class);
         this.backpage = api.requireAPI(BackpageAPI.class);
+        this.configAPI = api.requireAPI(ConfigAPI.class);
 
         GameScreenAPI gameScreenAPI = api.requireAPI(GameScreenAPI.class);
         lostConnectionGUI = gameScreenAPI.getGui("lost_connection");
@@ -225,7 +228,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
     private void setProfile() {
         if (extensionsAPI.getFeatureInfo(this.getClass()).isEnabled() && profileToUse != null
                 && heroapi.getMap() != null && !heroapi.getMap().isGG()) {
-            main.setConfig(profileToUse.BOT_PROFILE);
+            this.configAPI.setConfigProfile(profileToUse.BOT_PROFILE);
         }
     }
 
