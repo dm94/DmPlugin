@@ -96,6 +96,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
         EntitiesAPI entities = api.requireAPI(EntitiesAPI.class);
         this.allPlayers = entities.getPlayers();
         this.allNPCs = entities.getNpcs();
+        this.nextCheck = 0;
     }
 
     @Override
@@ -112,15 +113,15 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
 
     @Override
     public void onTickBehavior() {
-        if (nextCheck < System.currentTimeMillis()) {
-            nextCheck = System.currentTimeMillis() + (config.timeToCheck * 1000);
+        if (this.nextCheck < System.currentTimeMillis()) {
+            this.nextCheck = System.currentTimeMillis() + (this.config.timeToCheck * 1000);
             this.conditionsManagement.useSelectableReadyWhenReady(getAbilityAlwaysToUse());
             this.conditionsManagement.useSelectableReadyWhenReady(getBestAbility());
         }
     }
 
     private Ability getAbilityAlwaysToUse() {
-        if (config.abilitiesToUseEverytime == null) {
+        if (this.config.abilitiesToUseEverytime == null) {
             return null;
         }
 
@@ -129,7 +130,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
                     .filter(Item::isReadyToUse)
                     .map(s -> s.getAs(Ability.class))
                     .filter(s -> s != null
-                            && config.abilitiesToUseEverytime.stream()
+                            && this.config.abilitiesToUseEverytime.stream()
                                     .anyMatch(a -> a != null && a.name().equals(s.name())))
                     .findFirst().orElse(null);
         } catch (Exception e) {
@@ -245,7 +246,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
             if (!config.npcEnabled && heroapi.getLocalTarget() instanceof Npc) {
                 return false;
             }
-            return (heroapi.isAttacking() && target.getHealth() != null
+            return (this.heroapi.isAttacking() && target.getHealth() != null
                     && target.getHealth().getHp() >= this.config.minHealthToUseDamage);
         }
 
@@ -257,38 +258,38 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     }
 
     private boolean isInRange() {
-        Lockable target = heroapi.getLocalTarget();
-        return (target != null && target.isValid() && heroapi.distanceTo(target) < 650);
+        Lockable target = this.heroapi.getLocalTarget();
+        return (target != null && target.isValid() && this.heroapi.distanceTo(target) < 650);
     }
 
     private boolean shouldFocusSpeed() {
-        if (safety.state() == Escaping.ENEMY) {
+        if (this.safety.state() == Escaping.ENEMY) {
             return true;
         }
 
-        Lockable target = heroapi.getLocalTarget();
+        Lockable target = this.heroapi.getLocalTarget();
 
         if (target != null && target.isValid()) {
-            if (!config.npcEnabled && heroapi.getLocalTarget() instanceof Npc) {
+            if (!config.npcEnabled && this.heroapi.getLocalTarget() instanceof Npc) {
                 return false;
             }
 
             double speed = target instanceof Movable ? ((Movable) target).getSpeed() : 0;
-            return heroapi.distanceTo(target) >= 650 || speed > heroapi.getSpeed();
+            return this.heroapi.distanceTo(target) >= 650 || speed > this.heroapi.getSpeed();
         }
         return false;
     }
 
     private boolean shouldFocusHealth(boolean needLock) {
-        if (bot.getModule() != null && bot.getModule().getClass() == AmbulanceModule.class) {
+        if (this.bot.getModule() != null && this.bot.getModule().getClass() == AmbulanceModule.class) {
             return false;
-        } else if (heroapi.getEffects() != null
+        } else if (this.heroapi.getEffects() != null
                 && heroapi.getEffects().toString().contains("76")) {
             return false;
-        } else if (heroapi.getHealth().hpPercent() <= this.config.minHealthToUseHealth) {
+        } else if (this.heroapi.getHealth().hpPercent() <= this.config.minHealthToUseHealth) {
             return true;
-        } else if (group.hasGroup()) {
-            for (GroupMember member : group.getMembers()) {
+        } else if (this.group.hasGroup()) {
+            for (GroupMember member : this.group.getMembers()) {
                 if (!member.isDead() && member.isAttacked() && (!needLock || member.isLocked())
                         && member.getMemberInfo().hpPercent() <= this.config.minHealthToUseHealth) {
                     return true;
@@ -300,11 +301,11 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     }
 
     private boolean shouldFocusHelpTank() {
-        if (heroapi.getHealth().shieldPercent() <= this.config.minHealthToUseHealth) {
+        if (this.heroapi.getHealth().shieldPercent() <= this.config.minHealthToUseHealth) {
             return false;
-        } else if (group.hasGroup()) {
-            for (GroupMember member : group.getMembers()) {
-                if (!member.isDead() && member.isAttacked() && member.getLocation().distanceTo(heroapi) < 1000) {
+        } else if (this.group.hasGroup()) {
+            for (GroupMember member : this.group.getMembers()) {
+                if (!member.isDead() && member.isAttacked() && member.getLocation().distanceTo(this.heroapi) < 1000) {
                     return true;
                 }
             }
@@ -314,10 +315,10 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     }
 
     private boolean shouldFocusShield() {
-        if (heroapi.getHealth().shieldPercent() <= this.config.minHealthToUseHealth) {
+        if (this.heroapi.getHealth().shieldPercent() <= this.config.minHealthToUseHealth) {
             return true;
-        } else if (group.hasGroup()) {
-            for (GroupMember member : group.getMembers()) {
+        } else if (this.group.hasGroup()) {
+            for (GroupMember member : this.group.getMembers()) {
                 if (!member.isDead() && member.isAttacked() && member.isLocked()
                         && member.getMemberInfo().shieldPercent() <= this.config.minHealthToUseHealth) {
                     return true;
@@ -329,41 +330,38 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     }
 
     private boolean shouldUseOrcusAssimilate() {
-        if (!isAvailable(Ability.ORCUS_ASSIMILATE)) {
-            return false;
-        }
-        if (allNPCs == null || allNPCs.isEmpty()) {
+        if (!isAvailable(Ability.ORCUS_ASSIMILATE) || this.allNPCs == null || this.allNPCs.isEmpty()) {
             return false;
         }
 
-        if (heroapi.getHealth().hpPercent() > this.config.minHealthToUseHealth) {
+        if (this.heroapi.getHealth().hpPercent() > this.config.minHealthToUseHealth) {
             return false;
         }
 
-        Entity target = SharedFunctions.getAttacker(heroapi, allNPCs, heroapi);
-        return target != null;
+        return SharedFunctions.getAttacker(this.heroapi, this.allNPCs, this.heroapi) != null;
     }
 
     private boolean shouldFocusEvade() {
-        if (allPlayers == null || allPlayers.isEmpty()) {
+        if (this.allPlayers == null || this.allPlayers.isEmpty()) {
             return false;
         }
-        Entity target = SharedFunctions.getAttacker(heroapi, allPlayers, heroapi);
+        Entity target = SharedFunctions.getAttacker(this.heroapi, this.allPlayers, this.heroapi);
 
-        if (config.npcEnabled && target == null) {
+        if (this.config.npcEnabled && target == null) {
             if (heroapi.getHealth().hpPercent() > this.config.minHealthToUseHealth) {
                 return false;
             }
 
-            target = SharedFunctions.getAttacker(heroapi, allNPCs, heroapi);
+            target = SharedFunctions.getAttacker(this.heroapi, this.allNPCs, this.heroapi);
         }
         return target != null;
     }
 
     private boolean isAvailable(Ability ability) {
-        return ability != null && config.supportedAbilities != null
-                && config.supportedAbilities.stream().anyMatch(s -> s.name().equals(ability.name()))
-                && items.getItem(ability, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE, ItemFlag.NOT_SELECTED)
+        return ability != null && this.config.supportedAbilities != null
+                && this.config.supportedAbilities.stream().anyMatch(s -> s.name().equals(ability.name()))
+                && this.items
+                        .getItem(ability, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE, ItemFlag.NOT_SELECTED)
                         .isPresent();
     }
 }

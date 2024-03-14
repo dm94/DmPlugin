@@ -1,6 +1,5 @@
 package com.deeme.types;
 
-import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.core.entities.Pet;
 
 import eu.darkbot.api.PluginAPI;

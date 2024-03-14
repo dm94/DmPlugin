@@ -31,8 +31,8 @@ version = "2.1.10"
 description = "DmPlugin"
 
 dependencies {
-    api("eu.darkbot.DarkBotAPI", "darkbot-impl", "0.9.0")
-    api("eu.darkbot", "DarkBot", "b902589e05")
+    api("eu.darkbot.DarkBotAPI", "darkbot-impl", "0.9.4")
+    api("eu.darkbot", "DarkBot", "a5df42628b")
     implementation(files("private.jar"))
 }
 
