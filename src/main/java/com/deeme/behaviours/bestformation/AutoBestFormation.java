@@ -50,6 +50,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     private long nextCheck = 0;
 
     private final ConfigSetting<Config.ShipConfig> configOffensive;
+    private final int MAX_DISTANTE = 610;
 
     private ArrayList<Formation> availableFormations = new ArrayList<>();
 
@@ -219,14 +220,13 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
             return false;
         }
 
-        double distance = heroapi.getLocationInfo().getCurrent().distanceTo(target.getLocationInfo());
         double speed = target instanceof Movable ? ((Movable) target).getSpeed() : 0;
-        return distance > 500 && (speed >= heroapi.getSpeed() || heroapi.isInFormation(Formation.WHEEL));
+        return !isInRange(MAX_DISTANTE) && (speed >= getRealSpeed() || heroapi.isInFormation(Formation.WHEEL));
 
     }
 
     private boolean shouldUseDrill() {
-        return hasFormation(Formation.DRILL) && !shouldFocusSpeed() && !isInRange(500);
+        return hasFormation(Formation.DRILL) && !shouldFocusSpeed() && !isInRange(MAX_DISTANTE);
     }
 
     private boolean shouldUseDiamond() {
@@ -271,7 +271,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     }
 
     private boolean shouldUseBat() {
-        return hasFormation(Formation.BAT) && !isInRange(500);
+        return hasFormation(Formation.BAT) && !isInRange(MAX_DISTANTE);
     }
 
     private boolean useSelectableReadyWhenReady(Formation formation) {
@@ -356,17 +356,42 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
 
     private boolean isInRange(int range) {
         Lockable target = heroapi.getLocalTarget();
-        return (target != null && target.isValid() && heroapi.distanceTo(target) < range);
+        return (target != null && target.isValid() && heroapi.distanceTo(target) <= range);
     }
 
     private boolean isFaster() {
         Lockable target = heroapi.getLocalTarget();
 
         if (target == null || !target.isValid()) {
-            return false;
+            return true;
         }
 
         double speed = target instanceof Movable ? ((Movable) target).getSpeed() : 0;
-        return speed > heroapi.getSpeed();
+        return speed > getRealSpeed();
+    }
+
+    private double getRealSpeed() {
+        double speed = heroapi.getSpeed();
+
+        Formation formation = heroapi.getFormation();
+
+        if (formation == null) {
+            return speed;
+        }
+
+        if (formation.getId().equals(Formation.DOME.getId())) {
+            return speed * 1.5;
+        }
+        if (formation.getId().equals(Formation.CRAB.getId()) || formation.getId().equals(Formation.BAT.getId())) {
+            return speed * 1.15;
+        }
+        if (formation.getId().equals(Formation.RING.getId()) || formation.getId().equals(Formation.DRILL.getId())) {
+            return speed * 1.05;
+        }
+        if (formation.equals(Formation.WHEEL)) {
+            return speed * 0.95;
+        }
+
+        return speed;
     }
 }
