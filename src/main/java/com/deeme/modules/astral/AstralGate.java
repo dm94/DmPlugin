@@ -450,12 +450,16 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         }
         direction = getBestDir(targetLoc, angle, angleDiff, distance);
 
-        while (!movement.canMove(direction) && distance < 10000)
+        while (!canMoveFix(direction) && distance < 10000) {
             direction.toAngle(targetLoc, angle += backwards ? -0.3 : 0.3, distance += 2);
-        if (distance >= 10000)
+        }
+        if (distance >= 10000) {
             direction.toAngle(targetLoc, angle, 500);
+        }
 
-        movement.moveTo(direction);
+        if (canMoveFix(direction)) {
+            movement.moveTo(direction);
+        }
     }
 
     private Location getBestDir(Locatable targetLoc, double angle, double angleDiff, double distance) {
@@ -476,7 +480,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     }
 
     private double score(Locatable loc) {
-        return (movement.canMove(loc) ? 0 : -1000) - npcs.stream()
+        return (canMoveFix(loc) ? 0 : -1000) - npcs.stream()
                 .filter(n -> attacker.getTarget() != n)
                 .mapToDouble(n -> Math.max(0, n.getInfo().getRadius() - n.distanceTo(loc)))
                 .sum();
@@ -606,7 +610,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     private void goToTheMiddle() {
         Locatable loc = Locatable.of(starSystem.getCurrentMapBounds().getWidth() / 2,
                 starSystem.getCurrentMapBounds().getHeight() / 2);
-        if (!movement.isMoving() && heroapi.distanceTo(loc) > 500) {
+        if (!movement.isMoving() && heroapi.distanceTo(loc) > 500 && canMoveFix(loc)) {
             movement.moveTo(loc);
         }
     }
@@ -616,6 +620,19 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
             nextCPUCheck = System.currentTimeMillis() + 300000;
             conditionsManagement.useSelectableReadyWhenReady(SelectableItem.Cpu.AROL_X);
         }
+    }
+
+    private boolean canMoveFix(Locatable loc) {
+        if (!movement.canMove(loc)) {
+            return false;
+        }
+
+        int radiationOffSet = 10;
+
+        return movement.canMove(loc.getX() + radiationOffSet, loc.getY())
+                && movement.canMove(loc.getX(), loc.getY() + radiationOffSet)
+                && movement.canMove(loc.getX() - radiationOffSet, loc.getY())
+                && movement.canMove(loc.getX(), loc.getY() - radiationOffSet);
     }
 
     private void showWarningDialog() {
