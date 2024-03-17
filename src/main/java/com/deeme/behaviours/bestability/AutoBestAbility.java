@@ -195,17 +195,15 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
             return Optional.empty();
         }
 
-        return Optional.of(getAbilityAvailableFromList(HEALTH_ABILITIES_WITHOUT_LOCK).orElseGet(() -> {
-            if (shouldFocusHealth(true)) {
-                if (isAvailable(Ability.AEGIS_HP_REPAIR)) {
-                    return Ability.AEGIS_HP_REPAIR;
-                } else if (isAvailable(Ability.HAMMERCLAW_PLUS_REALLOCATE)) {
-                    return Ability.HAMMERCLAW_PLUS_REALLOCATE;
-                }
+        if (shouldFocusHealth(true)) {
+            if (isAvailable(Ability.AEGIS_HP_REPAIR)) {
+                return Optional.of(Ability.AEGIS_HP_REPAIR);
+            } else if (isAvailable(Ability.HAMMERCLAW_PLUS_REALLOCATE)) {
+                return Optional.of(Ability.HAMMERCLAW_PLUS_REALLOCATE);
             }
+        }
 
-            return null;
-        }));
+        return getAbilityAvailableFromList(HEALTH_ABILITIES_WITHOUT_LOCK);
     }
 
     private Optional<Ability> getSpeedAbility() {
