@@ -3,6 +3,7 @@ package com.deeme.behaviours.bestability;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import com.deeme.behaviours.ambulance.AmbulanceModule;
 import com.deeme.types.ConditionsManagement;
@@ -50,25 +51,34 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     private Collection<? extends Ship> allNPCs;
     private final ConditionsManagement conditionsManagement;
 
-    private final List<Ability> damageAbilities = Arrays.asList(Ability.SPEARHEAD_TARGET_MARKER, Ability.DIMINISHER,
+    private final List<Ability> DAMAGE_ABILITIES = Arrays.asList(Ability.SPEARHEAD_TARGET_MARKER, Ability.DIMINISHER,
             Ability.GOLIATH_X_FROZEN_CLAW, Ability.VENOM, Ability.TARTARUS_RAPID_FIRE,
             Ability.DISRUPTOR_SHIELD_DISARRAY, Ability.HECATE_PARTICLE_BEAM, Ability.KERES_SPR, Ability.ZEPHYR_TBR,
-            Ability.HOLO_ENEMY_REVERSAL);
+            Ability.HOLO_ENEMY_REVERSAL, Ability.TARTARUS_PLUS_RAPID_FIRE,
+            Ability.BASILISK_HEIGHTENED_VALOUR, Ability.KERES_SPR, Ability.RETIARUS_CHS,
+            Ability.TEMPEST_VOLT_DISCHARGE, Ability.HECATE_PLUS_PARTICLE_BEAM_PLUS, Ability.SPEARHEAD_PLUS_JAMX_CREED,
+            Ability.SPEARHEAD_PLUS_NEUTRALIZING_MARKER);
 
-    private final List<Ability> speedAbilities = Arrays.asList(Ability.CITADEL_TRAVEL, Ability.LIGHTNING,
-            Ability.TARTARUS_SPEED_BOOST, Ability.KERES_SPR, Ability.MIMESIS_PHASE_OUT,
-            Ability.ZEPHYR_MMT, Ability.PUSAT_PLUS_SPEED_SAP, Ability.RETIARUS_SPC);
+    private final List<Ability> DAMAGE_RANGE_ABILITIES = Arrays.asList(Ability.SOLARIS_INC,
+            Ability.SOLARIS_PLUS_INCINERATE_PLUS, Ability.BASILISK_NOXIOUS_NEBULA, Ability.TEMPEST_VOLTAGE_LINK);
 
-    private final List<Ability> healthAbilitiesWithoutLock = Arrays.asList(Ability.AEGIS_REPAIR_POD,
+    private final List<Ability> SPEED_ABILITIES = Arrays.asList(Ability.CITADEL_TRAVEL, Ability.LIGHTNING,
+            Ability.TARTARUS_SPEED_BOOST, Ability.KERES_SLE, Ability.MIMESIS_PHASE_OUT,
+            Ability.ZEPHYR_MMT, Ability.PUSAT_PLUS_SPEED_SAP, Ability.RETIARUS_SPC, Ability.TARTARUS_PLUS_SPEED_BOOST);
+
+    private final List<Ability> HEALTH_ABILITIES_WITHOUT_LOCK = Arrays.asList(Ability.AEGIS_REPAIR_POD,
             Ability.LIBERATOR_PLUS_SELF_REPAIR, Ability.SOLACE, Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS);
 
-    private final List<Ability> evadeAbilities = Arrays.asList(Ability.SPEARHEAD_JAM_X,
+    private final List<Ability> EVADE_ABILITIES = Arrays.asList(Ability.SPEARHEAD_JAM_X,
             Ability.SPEARHEAD_ULTIMATE_CLOAK, Ability.BERSERKER_RVG, Ability.MIMESIS_SCRAMBLE,
-            Ability.DISRUPTOR_DDOL);
+            Ability.DISRUPTOR_DDOL, Ability.SPEARHEAD_PLUS_NEUTRALIZING_MARKER);
 
-    private final List<Ability> evadeLastInstanceAbilities = Arrays.asList(Ability.CITADEL_PLUS_PRISMATIC_ENDURANCE,
+    private final List<Ability> EVADE_LAST_INSTANCE_ABILITIES = Arrays.asList(Ability.CITADEL_PLUS_PRISMATIC_ENDURANCE,
             Ability.CITADEL_FORTIFY, Ability.DISRUPTOR_REDIRECT, Ability.SPECTRUM,
+            Ability.SPECTRUM_PLUS_PRISMATIC_REFLECTING,
             Ability.SENTINEL, Ability.BERSERKER_BSK);
+
+    private final List<Ability> ALL_TIME_ABILITIES = Arrays.asList(Ability.SPEARHEAD_DOUBLE_MINIMAP);
 
     private long nextCheck = 0;
 
@@ -139,99 +149,110 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     }
 
     private Ability getBestAbility() {
-        Ability healthAbility = getHealthAbility();
-        if (healthAbility != null) {
-            return healthAbility;
-        }
+        return getHealthAbility()
+                .orElse(getShieldAbility()
+                        .orElse(getSpeedAbility()
+                                .orElse(getSpeedAbility()
+                                        .orElse(getEvadeAbility()
+                                                .orElse(getTankAbility()
+                                                        .orElse(getEvadeAbilityLastInstance()
+                                                                .orElse(getDamageAbility()
+                                                                        .orElse(getAllTimeAbility()
+                                                                                .orElseGet(() -> {
+                                                                                    if (shouldUseVoltBackup()) {
+                                                                                        return Ability.TEMPEST_VOLT_BACKUP;
+                                                                                    }
+                                                                                    return null;
+                                                                                })))))))));
+    }
 
-        if (isAvailable(Ability.AEGIS_HP_REPAIR) && shouldFocusHealth(true)) {
-            return Ability.AEGIS_HP_REPAIR;
-        }
-
+    private Optional<Ability> getShieldAbility() {
         if (shouldFocusShield()) {
             if (isAvailable(Ability.AEGIS_SHIELD_REPAIR)) {
-                return Ability.AEGIS_SHIELD_REPAIR;
+                return Optional.of(Ability.AEGIS_SHIELD_REPAIR);
             } else if (isAvailable(Ability.SENTINEL)) {
-                return Ability.SENTINEL;
+                return Optional.of(Ability.SENTINEL);
             }
         }
 
-        Ability speedAbility = getSpeedAbility();
-        if (speedAbility != null) {
-            return speedAbility;
-        }
+        return Optional.empty();
+    }
 
-        Ability evadeAbility = getEvadeAbility();
-        if (evadeAbility != null) {
-            return evadeAbility;
-        }
-
+    private Optional<Ability> getTankAbility() {
         if (shouldFocusHelpTank()) {
             if (isAvailable(Ability.CITADEL_DRAW_FIRE)) {
-                return Ability.CITADEL_DRAW_FIRE;
+                return Optional.of(Ability.CITADEL_DRAW_FIRE);
             } else if (isAvailable(Ability.CITADEL_PROTECTION)) {
-                return Ability.CITADEL_PROTECTION;
+                return Optional.of(Ability.CITADEL_PROTECTION);
             }
         }
 
-        Ability evadeAbilityLastInstance = getEvadeAbilityLastInstance();
-        if (evadeAbilityLastInstance != null) {
-            return evadeAbilityLastInstance;
-        }
-
-        return getDamageAbility();
+        return Optional.empty();
     }
 
-    private Ability getHealthAbility() {
+    private Optional<Ability> getHealthAbility() {
         if (!shouldFocusHealth(false)) {
-            return null;
+            return Optional.empty();
         }
 
-        return getAbilityAvailableFromList(healthAbilitiesWithoutLock);
+        return Optional.of(getAbilityAvailableFromList(HEALTH_ABILITIES_WITHOUT_LOCK).orElseGet(() -> {
+            if (shouldFocusHealth(true)) {
+                if (isAvailable(Ability.AEGIS_HP_REPAIR)) {
+                    return Ability.AEGIS_HP_REPAIR;
+                } else if (isAvailable(Ability.HAMMERCLAW_PLUS_REALLOCATE)) {
+                    return Ability.HAMMERCLAW_PLUS_REALLOCATE;
+                }
+            }
+
+            return null;
+        }));
     }
 
-    private Ability getSpeedAbility() {
+    private Optional<Ability> getSpeedAbility() {
         if (!shouldFocusSpeed()) {
-            return null;
+            return Optional.empty();
         }
 
-        return getAbilityAvailableFromList(speedAbilities);
+        return getAbilityAvailableFromList(SPEED_ABILITIES);
     }
 
-    private Ability getEvadeAbility() {
+    private Optional<Ability> getEvadeAbility() {
         if (!shouldFocusEvade()) {
-            return null;
+            return Optional.empty();
         }
 
-        return getAbilityAvailableFromList(evadeAbilities);
+        return getAbilityAvailableFromList(EVADE_ABILITIES);
     }
 
-    private Ability getEvadeAbilityLastInstance() {
+    private Optional<Ability> getEvadeAbilityLastInstance() {
         if (!shouldFocusEvade()) {
-            return null;
+            return Optional.empty();
         }
 
         if (shouldUseOrcusAssimilate()) {
-            return Ability.ORCUS_ASSIMILATE;
+            return Optional.of(Ability.ORCUS_ASSIMILATE);
         }
 
-        return getAbilityAvailableFromList(evadeLastInstanceAbilities);
+        return getAbilityAvailableFromList(EVADE_LAST_INSTANCE_ABILITIES);
     }
 
-    private Ability getDamageAbility() {
+    private Optional<Ability> getAllTimeAbility() {
+        return getAbilityAvailableFromList(ALL_TIME_ABILITIES);
+    }
+
+    private Optional<Ability> getDamageAbility() {
         if (!shouldFocusDamage() || hasISH()) {
-            return null;
+            return Optional.empty();
         }
 
         if (isInRange()) {
-            if (isAvailable(Ability.SOLARIS_INC)) {
-                return Ability.SOLARIS_INC;
-            } else if (isAvailable(Ability.SOLARIS_PLUS_INCINERATE_PLUS)) {
-                return Ability.SOLARIS_PLUS_INCINERATE_PLUS;
+            Optional<Ability> rangeAbility = getAbilityAvailableFromList(DAMAGE_RANGE_ABILITIES);
+            if (rangeAbility.isPresent()) {
+                return rangeAbility;
             }
         }
 
-        return getAbilityAvailableFromList(damageAbilities);
+        return getAbilityAvailableFromList(DAMAGE_ABILITIES);
     }
 
     private boolean hasISH() {
@@ -253,8 +274,8 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
         return false;
     }
 
-    private Ability getAbilityAvailableFromList(List<Ability> abilities) {
-        return abilities.stream().filter(this::isAvailable).findFirst().orElse(null);
+    private Optional<Ability> getAbilityAvailableFromList(List<Ability> abilities) {
+        return abilities.stream().filter(this::isAvailable).findFirst();
     }
 
     private boolean isInRange() {
@@ -298,6 +319,10 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
         }
 
         return false;
+    }
+
+    private boolean shouldUseVoltBackup() {
+        return this.heroapi.getHealth().hpPercent() < 0.1;
     }
 
     private boolean shouldFocusHelpTank() {
