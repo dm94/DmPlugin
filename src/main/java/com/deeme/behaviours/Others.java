@@ -23,6 +23,7 @@ import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BackpageAPI;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
+import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.GameScreenAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
@@ -35,12 +36,11 @@ public class Others implements Behavior, Configurable<OthersConfig> {
     private OthersConfig lcConfig;
     private final Main main;
     private long nextRefresh = 0;
-    protected final PluginAPI api;
-    protected final StatsAPI stats;
-    protected final BotAPI bot;
-    protected final HeroItemsAPI items;
-    protected final HeroAPI heroapi;
-    protected final BackpageAPI backpage;
+    private final StatsAPI stats;
+    private final BotAPI bot;
+    private final HeroItemsAPI items;
+    private final HeroAPI heroapi;
+    private final BackpageAPI backpage;
     private final Gui lostConnectionGUI;
     private long lastLoggedIn = 0;
 
@@ -59,18 +59,18 @@ public class Others implements Behavior, Configurable<OthersConfig> {
 
     @Inject
     public Others(Main main, PluginAPI api, BotAPI bot, StatsAPI stats, HeroItemsAPI heroItems) {
-        Utils.showDonateDialog(api.getAPI(AuthAPI.class).getAuthId());
+        Utils.showDonateDialog(api.requireAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()),
+                api.requireAPI(AuthAPI.class).getAuthId());
         this.main = main;
-        this.api = api;
         this.bot = bot;
         this.stats = stats;
         this.items = heroItems;
-        this.backpage = api.getAPI(BackpageAPI.class);
-        this.heroapi = api.getAPI(HeroAPI.class);
-        EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
+        this.backpage = api.requireAPI(BackpageAPI.class);
+        this.heroapi = api.requireAPI(HeroAPI.class);
+        EntitiesAPI entities = api.requireAPI(EntitiesAPI.class);
         this.portals = entities.getPortals();
         this.players = entities.getPlayers();
-        GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
+        GameScreenAPI gameScreenAPI = api.requireAPI(GameScreenAPI.class);
         lostConnectionGUI = gameScreenAPI.getGui("lost_connection");
 
         this.lastLoggedIn = 0;

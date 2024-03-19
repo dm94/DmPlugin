@@ -29,7 +29,7 @@ public class Utils {
     }
 
     public static synchronized void discordDonorCheck(FeatureInfo featureInfo, String authID) {
-        if (!Backpage.isDonor(authID)) {
+        if (!Backpage.isDonor(authID, featureInfo.getPluginInfo().getVersion().toString().trim())) {
             String discordTag = Backpage.getDiscordTagExternal(authID);
             featureInfo
                     .addFailure("[PLUS] Only some people can use this feature.",
@@ -52,8 +52,8 @@ public class Utils {
                 .showAsync();
     }
 
-    public static void showDonateDialog(String authId) {
-        if (Backpage.isDonor(authId)) {
+    public static void showDonateDialog(FeatureInfo featureInfo, String authId) {
+        if (Backpage.isDonor(authId, featureInfo.getPluginInfo().getVersion().toString().trim())) {
             return;
         }
 
@@ -65,7 +65,7 @@ public class Utils {
             JButton closeBtn = new JButton("Close");
             donateBtn.addActionListener(e -> {
                 SystemUtils.openUrl(
-                        "https://ko-fi.com/deeme");
+                        featureInfo.getPluginInfo().getDonationURL().toString());
                 SwingUtilities.getWindowAncestor(donateBtn).setVisible(false);
             });
             closeBtn.addActionListener(e -> SwingUtilities.getWindowAncestor(closeBtn).setVisible(false));

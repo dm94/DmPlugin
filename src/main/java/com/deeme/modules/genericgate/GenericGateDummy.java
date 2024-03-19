@@ -35,7 +35,7 @@ public class GenericGateDummy implements Module, Configurable<Config>, NpcExtraP
         }
 
         VerifierChecker.requireAuthenticity(auth);
-        ExtensionsAPI extensionsAPI = api.getAPI(ExtensionsAPI.class);
+        ExtensionsAPI extensionsAPI = api.requireAPI(ExtensionsAPI.class);
         Utils.discordDonorCheck(extensionsAPI.getFeatureInfo(this.getClass()), auth.getAuthId());
 
         try {

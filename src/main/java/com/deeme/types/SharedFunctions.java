@@ -1,8 +1,8 @@
 package com.deeme.types;
 
-import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.core.entities.Pet;
 
+import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.config.types.NpcInfo;
 import eu.darkbot.api.game.entities.Ship;
@@ -26,9 +26,9 @@ public class SharedFunctions {
         throw new IllegalStateException("Utility class");
     }
 
-    public static Ship getAttacker(Ship assaulted, Main main) {
-        HeroAPI hero = main.pluginAPI.getAPI(HeroAPI.class);
-        EntitiesAPI entities = main.pluginAPI.getAPI(EntitiesAPI.class);
+    public static Ship getAttacker(Ship assaulted, PluginAPI api) {
+        HeroAPI hero = api.getAPI(HeroAPI.class);
+        EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
         return getAttacker(assaulted, entities.getShips(), hero);
     }
 
@@ -52,9 +52,8 @@ public class SharedFunctions {
                 .findFirst().orElse(null);
     }
 
-    public static boolean hasAttacker(Ship assaulted, Main main) {
-        Ship ship = getAttacker(assaulted, main);
-        return ship != null;
+    public static boolean hasAttacker(Ship assaulted, PluginAPI api) {
+        return getAttacker(assaulted, api) != null;
     }
 
     public static boolean isNpcByName(ConfigAPI config, String name) {

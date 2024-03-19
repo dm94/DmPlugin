@@ -23,6 +23,7 @@ import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
+import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.GroupAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.MovementAPI;
@@ -38,14 +39,14 @@ import java.util.stream.Collectors;
 
 @Feature(name = "Defense Mode", description = "Add enemy defense options")
 public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
-    protected final PluginAPI api;
-    protected final HeroAPI heroapi;
-    protected final MovementAPI movement;
-    protected final GroupAPI group;
-    protected final ConfigAPI configApi;
-    protected final BotAPI botApi;
-    protected final StatsAPI stats;
-    protected final Collection<? extends Player> players;
+    private final PluginAPI api;
+    private final HeroAPI heroapi;
+    private final MovementAPI movement;
+    private final GroupAPI group;
+    private final ConfigAPI configApi;
+    private final BotAPI botApi;
+    private final StatsAPI stats;
+    private final Collection<? extends Player> players;
 
     private DefenseConfig defenseConfig;
     private AntiPushLogic antiPushLogic;
@@ -68,15 +69,15 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
 
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.showDonateDialog(auth.getAuthId());
+        Utils.showDonateDialog(api.requireAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
         this.api = api;
         this.heroapi = hero;
         this.movement = movement;
         this.configApi = configApi;
-        this.stats = api.getAPI(StatsAPI.class);
-        this.botApi = api.getAPI(BotAPI.class);
-        this.group = api.getAPI(GroupAPI.class);
+        this.stats = api.requireAPI(StatsAPI.class);
+        this.botApi = api.requireAPI(BotAPI.class);
+        this.group = api.requireAPI(GroupAPI.class);
         this.players = entities.getPlayers();
         setup();
     }

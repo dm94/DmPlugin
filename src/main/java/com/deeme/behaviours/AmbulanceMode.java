@@ -19,6 +19,7 @@ import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem.Ability;
 import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BotAPI;
+import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.GroupAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
@@ -27,11 +28,11 @@ import eu.darkbot.api.utils.Inject;
 @Feature(name = "Ambulance Mode", description = "Turn your ship into an ambulance for the members of your group.")
 public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
 
-    protected final PluginAPI api;
-    protected final HeroAPI heroapi;
-    protected final GroupAPI group;
-    protected final BotAPI botApi;
-    protected final HeroItemsAPI items;
+    private final PluginAPI api;
+    private final HeroAPI heroapi;
+    private final GroupAPI group;
+    private final BotAPI botApi;
+    private final HeroItemsAPI items;
     private final ConditionsManagement conditionsManagement;
 
     private AmbulanceConfig config;
@@ -49,13 +50,13 @@ public class AmbulanceMode implements Behavior, Configurable<AmbulanceConfig> {
             throw new SecurityException();
         VerifierChecker.requireAuthenticity(auth);
 
-        Utils.showDonateDialog(auth.getAuthId());
+        Utils.showDonateDialog(api.requireAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
         this.api = api;
         this.heroapi = hero;
         this.group = groupAPI;
-        this.botApi = api.getAPI(BotAPI.class);
-        this.items = api.getAPI(HeroItemsAPI.class);
+        this.botApi = api.requireAPI(BotAPI.class);
+        this.items = api.requireAPI(HeroItemsAPI.class);
         this.conditionsManagement = new ConditionsManagement(api, items);
     }
 

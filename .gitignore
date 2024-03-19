@@ -31,4 +31,5 @@ dmplugin.properties
 dmplugin.xml
 module_dmplugin.xml
 target/
+gradle/
 .keystore

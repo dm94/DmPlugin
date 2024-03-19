@@ -23,6 +23,7 @@ import eu.darkbot.api.game.other.Gui;
 import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BackpageAPI;
 import eu.darkbot.api.managers.BotAPI;
+import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.GameScreenAPI;
 import eu.darkbot.api.managers.HeroAPI;
@@ -37,12 +38,13 @@ import javax.swing.JLabel;
 
 @Feature(name = "WeeklySchedule", description = "Use different module, map for a weekly schedule")
 public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, InstructionProvider {
-    protected final PluginAPI api;
-    protected final ExtensionsAPI extensionsAPI;
-    protected final HeroAPI heroapi;
-    protected final BotAPI botApi;
-    protected final BackpageAPI backpage;
-    protected final FeatureInfo featureInfo;
+    private final PluginAPI api;
+    private final ExtensionsAPI extensionsAPI;
+    private final HeroAPI heroapi;
+    private final BotAPI botApi;
+    private final BackpageAPI backpage;
+    private final FeatureInfo featureInfo;
+    private final ConfigAPI configAPI;
 
     private WeeklyConfig weeklyConfig;
     private Main main;
@@ -75,18 +77,18 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.showDonateDialog(auth.getAuthId());
+        this.extensionsAPI = api.requireAPI(ExtensionsAPI.class);
+        this.featureInfo = extensionsAPI.getFeatureInfo(this.getClass());
+        Utils.showDonateDialog(featureInfo, auth.getAuthId());
 
         this.main = main;
         this.api = api;
-        this.heroapi = api.getAPI(HeroAPI.class);
-        this.botApi = api.getAPI(BotAPI.class);
-        this.extensionsAPI = api.getAPI(ExtensionsAPI.class);
-        this.backpage = api.getAPI(BackpageAPI.class);
+        this.heroapi = api.requireAPI(HeroAPI.class);
+        this.botApi = api.requireAPI(BotAPI.class);
+        this.backpage = api.requireAPI(BackpageAPI.class);
+        this.configAPI = api.requireAPI(ConfigAPI.class);
 
-        this.featureInfo = extensionsAPI.getFeatureInfo(this.getClass());
-
-        GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
+        GameScreenAPI gameScreenAPI = api.requireAPI(GameScreenAPI.class);
         lostConnectionGUI = gameScreenAPI.getGui("lost_connection");
 
         this.nextCheck = 0;
@@ -226,7 +228,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
     private void setProfile() {
         if (extensionsAPI.getFeatureInfo(this.getClass()).isEnabled() && profileToUse != null
                 && heroapi.getMap() != null && !heroapi.getMap().isGG()) {
-            main.setConfig(profileToUse.BOT_PROFILE);
+            this.configAPI.setConfigProfile(profileToUse.BOT_PROFILE);
         }
     }
 

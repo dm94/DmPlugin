@@ -18,6 +18,7 @@ import eu.darkbot.api.extensions.InstructionProvider;
 import eu.darkbot.api.extensions.Task;
 import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BackpageAPI;
+import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.StatsAPI;
 import eu.darkbot.api.utils.Inject;
 
@@ -32,11 +33,10 @@ import javax.swing.JLabel;
 
 @Feature(name = "Skylab", description = "Control the skylab")
 public class SkylabSender implements Task, Configurable<SkylabSender.SkylabConfig>, InstructionProvider {
-    protected final Main main;
-    protected final BackpageManager backpageManager;
+    private final BackpageManager backpageManager;
 
-    protected final StatsAPI stats;
-    protected final BackpageAPI backpage;
+    private final StatsAPI stats;
+    private final BackpageAPI backpage;
 
     private SkylabConfig config;
     private long nextCheck = 0;
@@ -72,12 +72,11 @@ public class SkylabSender implements Task, Configurable<SkylabSender.SkylabConfi
         }
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.showDonateDialog(auth.getAuthId());
+        Utils.showDonateDialog(api.requireAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
-        this.main = main;
         this.backpageManager = main.backpage;
-        this.stats = api.getAPI(StatsAPI.class);
-        this.backpage = api.getAPI(BackpageAPI.class);
+        this.stats = api.requireAPI(StatsAPI.class);
+        this.backpage = api.requireAPI(BackpageAPI.class);
         this.nextCheck = 0;
     }
 

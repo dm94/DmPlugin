@@ -9,8 +9,8 @@ import eu.darkbot.api.managers.StatsAPI;
 
 public class AntiPushLogic {
     private AntiPush config;
-    protected final StatsAPI stats;
-    protected final HeroAPI heroapi;
+    private final StatsAPI stats;
+    private final HeroAPI heroapi;
 
     public AntiPushLogic(HeroAPI heroapi, StatsAPI stats, AntiPush config) {
         this.heroapi = heroapi;

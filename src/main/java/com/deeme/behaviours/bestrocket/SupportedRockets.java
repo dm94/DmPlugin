@@ -34,7 +34,7 @@ public enum SupportedRockets implements SelectableItem {
     }
 
     SupportedRockets(boolean isSpecial) {
-        this.id = (isSpecial ? PREFIX_SPECIAL : PREFIX) + name().toLowerCase(Locale.ROOT).replaceAll("_", "-");
+        this.id = (isSpecial ? PREFIX_SPECIAL : PREFIX) + name().toLowerCase(Locale.ROOT).replace("_", "-");
     }
 
     @Override

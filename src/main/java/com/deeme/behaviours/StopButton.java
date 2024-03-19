@@ -18,6 +18,7 @@ import eu.darkbot.api.game.other.Gui;
 import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
+import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.GameScreenAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.MovementAPI;
@@ -26,11 +27,10 @@ import eu.darkbot.api.utils.Inject;
 @Feature(name = "StopButton", description = "Add a button to stop the bot completely")
 public class StopButton implements Behavior, ExtraMenus {
 
-    protected final PluginAPI api;
-    protected final BotAPI bot;
-    protected final HeroAPI heroapi;
-    protected final MovementAPI movement;
-    protected Collection<? extends Portal> portals;
+    private final BotAPI bot;
+    private final HeroAPI heroapi;
+    private final MovementAPI movement;
+    private Collection<? extends Portal> portals;
     private final Gui lostConnectionGUI;
 
     private boolean stopBot = false;
@@ -47,17 +47,16 @@ public class StopButton implements Behavior, ExtraMenus {
             throw new SecurityException();
         VerifierChecker.requireAuthenticity(auth);
 
-        Utils.showDonateDialog(auth.getAuthId());
+        Utils.showDonateDialog(api.requireAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
-        this.api = api;
         this.bot = bot;
-        this.heroapi = api.getAPI(HeroAPI.class);
-        this.movement = api.getAPI(MovementAPI.class);
-        EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
+        this.heroapi = api.requireAPI(HeroAPI.class);
+        this.movement = api.requireAPI(MovementAPI.class);
+        EntitiesAPI entities = api.requireAPI(EntitiesAPI.class);
         this.portals = entities.getPortals();
 
-        GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
-        lostConnectionGUI = gameScreenAPI.getGui("lost_connection");
+        GameScreenAPI gameScreenAPI = api.requireAPI(GameScreenAPI.class);
+        this.lostConnectionGUI = gameScreenAPI.getGui("lost_connection");
     }
 
     @Override
@@ -79,6 +78,10 @@ public class StopButton implements Behavior, ExtraMenus {
 
     @Override
     public void onStoppedBehavior() {
+        if (!stopBot) {
+            return;
+        }
+
         stopCheck();
     }
 
@@ -86,9 +89,7 @@ public class StopButton implements Behavior, ExtraMenus {
     public Collection<JComponent> getExtraMenuItems(PluginAPI pluginAPI) {
         return Arrays.asList(
                 createSeparator("StopButton"),
-                create("Stop Bot", e -> {
-                    stopBot = true;
-                }), create("Stop Bot + Close", e -> {
+                create("Stop Bot", e -> stopBot = true), create("Stop Bot + Close", e -> {
                     stopBot = true;
                     closeBot = true;
                 }));
@@ -101,10 +102,10 @@ public class StopButton implements Behavior, ExtraMenus {
             return;
         }
 
-        if (heroapi.distanceTo(p) < 200) {
-            movement.jumpPortal(p);
+        if (this.heroapi.distanceTo(p) < 200) {
+            this.movement.jumpPortal(p);
         } else {
-            movement.moveTo(p);
+            this.movement.moveTo(p);
         }
     }
 
@@ -118,7 +119,7 @@ public class StopButton implements Behavior, ExtraMenus {
     }
 
     private boolean isDisconnect() {
-        return lostConnectionGUI != null && lostConnectionGUI.isVisible();
+        return this.lostConnectionGUI != null && this.lostConnectionGUI.isVisible();
     }
 
 }

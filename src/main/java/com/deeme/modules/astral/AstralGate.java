@@ -15,6 +15,7 @@ import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.config.types.NpcFlag;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.extensions.FeatureInfo;
 import eu.darkbot.api.extensions.Module;
 import eu.darkbot.api.extensions.InstructionProvider;
 import eu.darkbot.api.game.entities.Entity;
@@ -61,37 +62,31 @@ import javax.swing.SwingUtilities;
 
 @Feature(name = "Astral Gate", description = "For the astral gate and another GGs")
 public class AstralGate implements Module, InstructionProvider, Configurable<AstralConfig>, NpcExtraProvider {
-    protected final PluginAPI api;
-    protected final HeroAPI heroapi;
-    protected final BotAPI bot;
-    protected final MovementAPI movement;
-    protected final AttackAPI attacker;
-    protected final PetAPI pet;
-    protected final HeroItemsAPI items;
-    protected final StarSystemAPI starSystem;
-    protected final AuthAPI auth;
-    protected ConfigSetting<Integer> maxCircleIterations;
-    protected ConfigSetting<Boolean> runConfigInCircle;
-    protected final ConfigSetting<Character> ammoKey;
+    private final PluginAPI api;
+    private final HeroAPI heroapi;
+    private final BotAPI bot;
+    private final MovementAPI movement;
+    private final AttackAPI attacker;
+    private final PetAPI pet;
+    private final HeroItemsAPI items;
+    private final StarSystemAPI starSystem;
+    private ConfigSetting<Integer> maxCircleIterations;
+    private final ConfigSetting<Character> ammoKey;
     private final ConditionsManagement conditionsManagement;
 
-    protected AstralPlus astralPlus;
+    private AstralPlus astralPlus;
 
-    protected Collection<? extends Portal> portals;
-    protected Collection<? extends Npc> npcs;
+    private Collection<? extends Portal> portals;
+    private Collection<? extends Npc> npcs;
 
-    protected boolean backwards = false;
-    protected long maximumWaitingTime = 0;
-    protected long lastTimeAttack = 0;
-    protected long clickDelay;
-    protected long chooseClickDelay = 0;
-    protected long nextCPUCheck = 0;
-    protected long nextWaveCheck = 0;
+    private boolean backwards = false;
+    private long nextCPUCheck = 0;
+    private long nextWaveCheck = 0;
 
-    protected int waitTime = 20000;
+    private int waitTime = 20000;
 
-    protected boolean repairShield = false;
-    protected boolean waveHasBeenAwaited = false;
+    private boolean repairShield = false;
+    private boolean waveHasBeenAwaited = false;
 
     private BestRocketSupplier rocketSupplier;
     private AmmoSupplier ammoSupplier;
@@ -133,28 +128,29 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
         VerifierChecker.requireAuthenticity(auth);
 
-        Utils.discordCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
-        Utils.showDonateDialog(auth.getAuthId());
+        ExtensionsAPI extensionsAPi = api.requireAPI(ExtensionsAPI.class);
+        FeatureInfo featureInfo = extensionsAPi.getFeatureInfo(this.getClass());
+
+        Utils.discordCheck(featureInfo, auth.getAuthId());
+        Utils.showDonateDialog(featureInfo, auth.getAuthId());
 
         this.api = api;
-        this.auth = auth;
-        this.bot = api.getAPI(BotAPI.class);
-        this.heroapi = api.getAPI(HeroAPI.class);
-        this.movement = api.getAPI(MovementAPI.class);
-        this.attacker = api.getAPI(AttackAPI.class);
-        this.pet = api.getAPI(PetAPI.class);
-        this.starSystem = api.getAPI(StarSystemAPI.class);
-        this.items = api.getAPI(HeroItemsAPI.class);
+        this.bot = api.requireAPI(BotAPI.class);
+        this.heroapi = api.requireAPI(HeroAPI.class);
+        this.movement = api.requireAPI(MovementAPI.class);
+        this.attacker = api.requireAPI(AttackAPI.class);
+        this.pet = api.requireAPI(PetAPI.class);
+        this.starSystem = api.requireAPI(StarSystemAPI.class);
+        this.items = api.requireAPI(HeroItemsAPI.class);
         this.conditionsManagement = new ConditionsManagement(api, items);
 
-        EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
+        EntitiesAPI entities = api.requireAPI(EntitiesAPI.class);
         this.portals = entities.getPortals();
         this.npcs = entities.getNpcs();
 
-        ConfigAPI configApi = api.getAPI(ConfigAPI.class);
+        ConfigAPI configApi = api.requireAPI(ConfigAPI.class);
 
         this.maxCircleIterations = configApi.requireConfig("loot.max_circle_iterations");
-        this.runConfigInCircle = configApi.requireConfig("loot.run_config_in_circle");
         this.ammoKey = configApi.requireConfig("loot.ammo_key");
 
         ConfigSetting<Boolean> devStuffConfig = configApi.requireConfig("bot_settings.other.dev_stuff");
@@ -454,12 +450,16 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         }
         direction = getBestDir(targetLoc, angle, angleDiff, distance);
 
-        while (!movement.canMove(direction) && distance < 10000)
+        while (!canMoveFix(direction) && distance < 10000) {
             direction.toAngle(targetLoc, angle += backwards ? -0.3 : 0.3, distance += 2);
-        if (distance >= 10000)
+        }
+        if (distance >= 10000) {
             direction.toAngle(targetLoc, angle, 500);
+        }
 
-        movement.moveTo(direction);
+        if (canMoveFix(direction)) {
+            movement.moveTo(direction);
+        }
     }
 
     private Location getBestDir(Locatable targetLoc, double angle, double angleDiff, double distance) {
@@ -480,7 +480,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     }
 
     private double score(Locatable loc) {
-        return (movement.canMove(loc) ? 0 : -1000) - npcs.stream()
+        return (canMoveFix(loc) ? 0 : -1000) - npcs.stream()
                 .filter(n -> attacker.getTarget() != n)
                 .mapToDouble(n -> Math.max(0, n.getInfo().getRadius() - n.distanceTo(loc)))
                 .sum();
@@ -520,9 +520,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
 
     private void changeAmmoKey(SelectableItem laser) {
         Character key = items.getKeyBind(laser);
-        if (!ammoKey.getValue().equals(key)) {
-            ammoKey.setValue(key);
-        }
+        ammoKey.setValue(key);
     }
 
     private void changeLaser(boolean bestLaser) {
@@ -612,7 +610,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     private void goToTheMiddle() {
         Locatable loc = Locatable.of(starSystem.getCurrentMapBounds().getWidth() / 2,
                 starSystem.getCurrentMapBounds().getHeight() / 2);
-        if (!movement.isMoving() && heroapi.distanceTo(loc) > 500) {
+        if (!movement.isMoving() && heroapi.distanceTo(loc) > 500 && canMoveFix(loc)) {
             movement.moveTo(loc);
         }
     }
@@ -622,6 +620,19 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
             nextCPUCheck = System.currentTimeMillis() + 300000;
             conditionsManagement.useSelectableReadyWhenReady(SelectableItem.Cpu.AROL_X);
         }
+    }
+
+    private boolean canMoveFix(Locatable loc) {
+        if (!movement.canMove(loc)) {
+            return false;
+        }
+
+        int radiationOffSet = 10;
+
+        return movement.canMove(loc.getX() + radiationOffSet, loc.getY())
+                && movement.canMove(loc.getX(), loc.getY() + radiationOffSet)
+                && movement.canMove(loc.getX() - radiationOffSet, loc.getY())
+                && movement.canMove(loc.getX(), loc.getY() - radiationOffSet);
     }
 
     private void showWarningDialog() {

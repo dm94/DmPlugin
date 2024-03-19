@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import eu.darkbot.api.extensions.selectors.PrioritizedSupplier;
 import eu.darkbot.api.game.items.Item;
 import eu.darkbot.api.game.items.ItemCategory;
@@ -34,7 +36,7 @@ public class AmmoSupplier implements PrioritizedSupplier<SelectableItem> {
     private List<? extends Item> getAmmoAvailable() {
         try {
             return items.getItems(ItemCategory.LASERS).stream()
-                    .filter(item -> item.isUsable() && item.getQuantity() > 100).toList();
+                    .filter(item -> item.isUsable() && item.getQuantity() > 100).collect(Collectors.toList());
         } catch (Exception e) {
             return Collections.emptyList();
         }

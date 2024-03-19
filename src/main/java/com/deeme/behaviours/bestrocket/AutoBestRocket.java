@@ -16,6 +16,7 @@ import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.game.other.Lockable;
 import eu.darkbot.api.managers.AuthAPI;
+import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
 import eu.darkbot.api.utils.Inject;
@@ -23,8 +24,7 @@ import eu.darkbot.api.utils.Inject;
 @Feature(name = "Auto Best Rocket", description = "Automatically switches rockets. Will use all available rockets")
 public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> {
 
-    protected final PluginAPI api;
-    protected final HeroAPI heroapi;
+    private final HeroAPI heroapi;
     private final HeroItemsAPI items;
     private BestRocketConfig config;
     private BestRocketSupplier bestRocketSupplier;
@@ -39,11 +39,10 @@ public class AutoBestRocket implements Behavior, Configurable<BestRocketConfig> 
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.showDonateDialog(auth.getAuthId());
+        Utils.showDonateDialog(api.requireAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
-        this.api = api;
         this.items = api.requireAPI(HeroItemsAPI.class);
-        this.heroapi = api.getAPI(HeroAPI.class);
+        this.heroapi = api.requireAPI(HeroAPI.class);
 
         this.bestRocketSupplier = new BestRocketSupplier(api);
     }

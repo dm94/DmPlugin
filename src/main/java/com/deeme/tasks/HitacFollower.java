@@ -21,7 +21,6 @@ import eu.darkbot.api.extensions.Task;
 import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.other.GameMap;
 import eu.darkbot.api.managers.AuthAPI;
-import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.ExtensionsAPI;
@@ -33,17 +32,14 @@ import eu.darkbot.api.utils.Inject;
 @Feature(name = "HitacFollower", description = "Change the main map to where the Hitac is located")
 public class HitacFollower implements Task, Listener, Configurable<HitacFollowerConfig> {
 
-    protected final PluginAPI api;
-    protected final BotAPI bot;
-    protected final HeroAPI hero;
-    protected final GameLogAPI log;
-    protected final StarSystemAPI star;
-    protected final ExtensionsAPI extensionsAPI;
-    protected final Collection<? extends Npc> npcs;
+    private final HeroAPI hero;
+    private final StarSystemAPI star;
+    private final ExtensionsAPI extensionsAPI;
+    private final Collection<? extends Npc> npcs;
 
-    protected final ConfigSetting<Integer> workingMap;
+    private final ConfigSetting<Integer> workingMap;
 
-    protected final Pattern pattern = Pattern.compile("[0-9]+-[0-9]+", Pattern.CASE_INSENSITIVE);
+    private final Pattern pattern = Pattern.compile("[0-9]+-[0-9]+", Pattern.CASE_INSENSITIVE);
 
     private HitacFollowerConfig followerConfig;
 
@@ -54,28 +50,22 @@ public class HitacFollower implements Task, Listener, Configurable<HitacFollower
 
     public HitacFollower(PluginAPI api) {
         this(api, api.requireAPI(AuthAPI.class),
-                api.requireAPI(BotAPI.class),
                 api.requireAPI(HeroAPI.class),
                 api.requireAPI(StarSystemAPI.class),
-                api.requireAPI(GameLogAPI.class),
                 api.requireAPI(EntitiesAPI.class));
     }
 
     @Inject
-    public HitacFollower(PluginAPI api, AuthAPI auth, BotAPI bot, HeroAPI hero, StarSystemAPI star,
-            GameLogAPI log, EntitiesAPI entities) {
+    public HitacFollower(PluginAPI api, AuthAPI auth, HeroAPI hero, StarSystemAPI star, EntitiesAPI entities) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
-        this.extensionsAPI = api.getAPI(ExtensionsAPI.class);
-        Utils.showDonateDialog(auth.getAuthId());
+        this.extensionsAPI = api.requireAPI(ExtensionsAPI.class);
+        Utils.showDonateDialog(extensionsAPI.getFeatureInfo(this.getClass()), auth.getAuthId());
 
-        this.api = api;
-        this.bot = bot;
         this.hero = hero;
         this.star = star;
-        this.log = log;
 
         this.nextCheck = 0;
         this.npcs = entities.getNpcs();

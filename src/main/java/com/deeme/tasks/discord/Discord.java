@@ -10,6 +10,7 @@ import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BackpageAPI;
 import eu.darkbot.api.managers.BotAPI;
+import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.GroupAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.I18nAPI;
@@ -24,14 +25,13 @@ import java.util.Arrays;
 
 @Feature(name = "Discord (Obsolete)", description = "Use LeanPlugin")
 public class Discord implements Task, Configurable<DiscordConfig> {
-    protected final PluginAPI api;
-    protected final StatsAPI stats;
-    protected final BotAPI bot;
-    protected final BackpageAPI backpage;
-    protected final HeroAPI heroapi;
-    protected final GroupAPI group;
-    protected final RepairAPI repair;
-    protected final I18nAPI i18n;
+    private final StatsAPI stats;
+    private final BotAPI bot;
+    private final BackpageAPI backpage;
+    private final HeroAPI heroapi;
+    private final GroupAPI group;
+    private final RepairAPI repair;
+    private final I18nAPI i18n;
 
     private DiscordConfig discordConfig;
     private long nextSend = 0;
@@ -45,16 +45,15 @@ public class Discord implements Task, Configurable<DiscordConfig> {
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.showDonateDialog(auth.getAuthId());
+        Utils.showDonateDialog(api.requireAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
-        this.api = api;
         this.bot = bot;
         this.stats = stats;
         this.i18n = i18n;
-        this.backpage = api.getAPI(BackpageAPI.class);
-        this.heroapi = api.getAPI(HeroAPI.class);
-        this.group = api.getAPI(GroupAPI.class);
-        this.repair = api.getAPI(RepairAPI.class);
+        this.backpage = api.requireAPI(BackpageAPI.class);
+        this.heroapi = api.requireAPI(HeroAPI.class);
+        this.group = api.requireAPI(GroupAPI.class);
+        this.repair = api.requireAPI(RepairAPI.class);
     }
 
     @Override

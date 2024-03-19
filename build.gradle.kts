@@ -27,12 +27,12 @@ allprojects {
 }
 
 group = "com.deeme"
-version = "2.1.10"
+version = "2.2.0"
 description = "DmPlugin"
 
 dependencies {
-    api("eu.darkbot.DarkBotAPI", "darkbot-impl", "0.7.8")
-    api("eu.darkbot", "DarkBot", "6d026357cb")
+    api("eu.darkbot.DarkBotAPI", "darkbot-impl", "0.9.4")
+    api("eu.darkbot", "DarkBot", "5ca7370af3")
     implementation(files("private.jar"))
 }
 
@@ -42,7 +42,7 @@ tasks.register<proguard.gradle.ProGuardTask>("proguard") {
     dontnote()
     dontwarn()
 
-    injars("./build/libs/DmPlugin-2.1.10.jar")
+    injars("./build/libs/DmPlugin-2.2.0.jar")
     outjars("DmPlugin.jar")
 }
 

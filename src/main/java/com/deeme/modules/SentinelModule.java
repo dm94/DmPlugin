@@ -5,10 +5,9 @@ import com.deeme.types.ShipAttacker;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 import com.deeme.types.config.SentinelConfig;
-import com.deemeplus.general.configchanger.ExtraConfigChangerLogic;
+import com.deemeplus.general.configchanger.ExtraCChangerLogic;
 import com.deemeplus.general.movement.ExtraMovementLogic;
 import com.github.manolo8.darkbot.Main;
-import com.github.manolo8.darkbot.config.Config;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -16,6 +15,7 @@ import eu.darkbot.api.config.types.NpcFlag;
 import eu.darkbot.api.config.types.ShipMode;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.extensions.FeatureInfo;
 import eu.darkbot.api.extensions.Module;
 import eu.darkbot.api.extensions.InstructionProvider;
 import eu.darkbot.api.game.entities.Entity;
@@ -54,48 +54,43 @@ import javax.swing.JLabel;
 
 @Feature(name = "Sentinel", description = "Follow the main ship or the group leader and do the same")
 public class SentinelModule implements Module, Configurable<SentinelConfig>, InstructionProvider {
-    protected PluginAPI api;
-    protected HeroAPI heroapi;
-    protected BotAPI bot;
-    protected MovementAPI movement;
-    protected AttackAPI attacker;
-    protected StarSystemAPI starSystem;
-    protected PetAPI pet;
-    protected GroupAPI group;
-    protected ConfigSetting<Integer> workingMap;
-    protected ConfigSetting<Integer> maxCircleIterations;
-    protected ConfigSetting<ShipMode> configOffensive;
-    protected ConfigSetting<ShipMode> configRun;
-    protected ConfigSetting<ShipMode> configRoam;
-    protected ConfigSetting<Boolean> rsbEnabled;
-    protected ConfigSetting<Config.Loot.Sab> sabSettings;
-    protected ConfigSetting<Boolean> runConfigInCircle;
+    private PluginAPI api;
+    private HeroAPI heroapi;
+    private BotAPI bot;
+    private MovementAPI movement;
+    private AttackAPI attacker;
+    private StarSystemAPI starSystem;
+    private PetAPI pet;
+    private GroupAPI group;
+    private ConfigSetting<Integer> workingMap;
+    private ConfigSetting<Integer> maxCircleIterations;
+    private ConfigSetting<ShipMode> configRun;
+    private ConfigSetting<ShipMode> configRoam;
+    private ConfigSetting<Boolean> runConfigInCircle;
 
-    protected Collection<? extends Portal> portals;
-    protected Collection<? extends Ship> ships;
-    protected Collection<? extends Player> players;
-    protected Collection<? extends Npc> npcs;
+    private Collection<? extends Portal> portals;
+    private Collection<? extends Player> players;
+    private Collection<? extends Npc> npcs;
 
     private SentinelConfig sConfig;
     private ExtraMovementLogic extraMovementLogic;
-    private ExtraConfigChangerLogic extraConfigChangerLogic;
+    private ExtraCChangerLogic extraConfigChangerLogic;
     private Player sentinel;
     private Main main;
     private SafetyFinder safety;
     private State currentStatus;
     private ShipAttacker shipAttacker;
-    protected CollectorModule collectorModule;
-    protected boolean isNpc = false;
-    protected boolean backwards = false;
-    protected int masterID = 0;
-    protected long maximumWaitingTime = 0;
-    protected int lastMap = 0;
-    protected long lastTimeAttack = 0;
-    protected int groupLeaderID = 0;
+    private CollectorModule collectorModule;
+    private boolean isNpc = false;
+    private boolean backwards = false;
+    private int masterID = 0;
+    private long maximumWaitingTime = 0;
+    private int lastMap = 0;
+    private int groupLeaderID = 0;
 
-    protected long randomWaitTime = 0;
+    private long randomWaitTime = 0;
 
-    protected Location lastSentinelLocation = null;
+    private Location lastSentinelLocation = null;
 
     private JLabel label = new JLabel("<html><b>Sentinel Module</b> <br>" +
             "It's important that the main ship is in a group <br>" +
@@ -136,39 +131,37 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
 
         VerifierChecker.requireAuthenticity(auth);
 
-        Utils.discordCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
-        Utils.showDonateDialog(auth.getAuthId());
+        ExtensionsAPI extensionsAPI = api.requireAPI(ExtensionsAPI.class);
+        FeatureInfo feature = extensionsAPI.getFeatureInfo(this.getClass());
+        Utils.discordCheck(feature, auth.getAuthId());
+        Utils.showDonateDialog(feature, auth.getAuthId());
 
         this.main = main;
         this.currentStatus = State.INIT;
 
         this.api = api;
-        this.bot = api.getAPI(BotAPI.class);
-        this.heroapi = api.getAPI(HeroAPI.class);
-        this.movement = api.getAPI(MovementAPI.class);
-        this.attacker = api.getAPI(AttackAPI.class);
-        this.starSystem = api.getAPI(StarSystemAPI.class);
-        this.pet = api.getAPI(PetAPI.class);
-        this.group = api.getAPI(GroupAPI.class);
+        this.bot = api.requireAPI(BotAPI.class);
+        this.heroapi = api.requireAPI(HeroAPI.class);
+        this.movement = api.requireAPI(MovementAPI.class);
+        this.attacker = api.requireAPI(AttackAPI.class);
+        this.starSystem = api.requireAPI(StarSystemAPI.class);
+        this.pet = api.requireAPI(PetAPI.class);
+        this.group = api.requireAPI(GroupAPI.class);
         this.safety = safety;
 
-        EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
+        EntitiesAPI entities = api.requireAPI(EntitiesAPI.class);
         this.portals = entities.getPortals();
-        this.ships = entities.getShips();
         this.players = entities.getPlayers();
         this.npcs = entities.getNpcs();
 
-        ConfigAPI configApi = api.getAPI(ConfigAPI.class);
+        ConfigAPI configApi = api.requireAPI(ConfigAPI.class);
         this.collectorModule = new CollectorModule(api);
 
         this.workingMap = configApi.requireConfig("general.working_map");
         this.maxCircleIterations = configApi.requireConfig("loot.max_circle_iterations");
         this.runConfigInCircle = configApi.requireConfig("loot.run_config_in_circle");
-        this.configOffensive = configApi.requireConfig("general.offensive");
         this.configRun = configApi.requireConfig("general.run");
         this.configRoam = configApi.requireConfig("general.roam");
-        this.rsbEnabled = configApi.requireConfig("loot.rsb.enabled");
-        this.sabSettings = configApi.requireConfig("loot.sab");
 
         setup();
     }
@@ -180,7 +173,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
 
         this.shipAttacker = new ShipAttacker(api, sConfig.ammoConfig, sConfig.humanizer);
         this.extraMovementLogic = new ExtraMovementLogic(api, sConfig.movementConfig);
-        this.extraConfigChangerLogic = new ExtraConfigChangerLogic(api, sConfig.extraConfigChangerConfig);
+        this.extraConfigChangerLogic = new ExtraCChangerLogic(api, sConfig.extraConfigChangerConfig);
     }
 
     @Override
@@ -222,7 +215,6 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
                 updateLastMap();
                 if (isAttacking()) {
                     currentStatus = State.HELPING_MASTER;
-                    lastTimeAttack = System.currentTimeMillis();
                     if (isNpc) {
                         npcMove();
                         if (sConfig.specialItems.npcEnabled) {
@@ -325,7 +317,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         }
     }
 
-    protected GameMap getWorkingMap() {
+    private GameMap getWorkingMap() {
         return starSystem.findMap(workingMap.getValue()).orElse(null);
     }
 
@@ -472,14 +464,14 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         }
     }
 
-    protected double getRadius(Lockable target) {
+    private double getRadius(Lockable target) {
         if (!(target instanceof Npc)) {
             return 550;
         }
         return attacker.modifyRadius(((Npc) target).getInfo().getRadius());
     }
 
-    protected void npcMove() {
+    private void npcMove() {
         if (!attacker.hasTarget()) {
             return;
         }
@@ -527,7 +519,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         movement.moveTo(direction);
     }
 
-    protected Location getBestDir(Locatable targetLoc, double angle, double angleDiff, double distance) {
+    private Location getBestDir(Locatable targetLoc, double angle, double angleDiff, double distance) {
         int maxCircleIterationsValue = this.maxCircleIterations.getValue();
         int iteration = 1;
         double forwardScore = 0;
@@ -544,21 +536,21 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         return Location.of(targetLoc, angle + angleDiff * (backwards ? -1 : 1), distance);
     }
 
-    protected double score(Locatable loc) {
+    private double score(Locatable loc) {
         return (movement.canMove(loc) ? 0 : -1000) - npcs.stream()
                 .filter(n -> attacker.getTarget() != n)
                 .mapToDouble(n -> Math.max(0, n.getInfo().getRadius() - n.distanceTo(loc)))
                 .sum();
     }
 
-    protected Portal getNearestPortal(Location loc) {
+    private Portal getNearestPortal(Location loc) {
         if (loc == null) {
             return null;
         }
         return portals.stream().filter(p -> p.distanceTo(loc) < 500).findFirst().orElse(null);
     }
 
-    protected void setNPCConfig(Location direction) {
+    private void setNPCConfig(Location direction) {
         Npc target = attacker.getTargetAs(Npc.class);
         if (target == null || !target.isValid()) {
             setMode(configRoam.getValue());

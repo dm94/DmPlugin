@@ -11,6 +11,7 @@ import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.extensions.FeatureInfo;
 import eu.darkbot.api.game.items.SelectableItem.Cpu;
 import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.ExtensionsAPI;
@@ -18,14 +19,13 @@ import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
 import eu.darkbot.api.utils.Inject;
 
-@Feature(name = "Auto Cloack", description = "Auto Cloack additional config")
+@Feature(name = "Auto Cloak", description = "Auto Cloak additional config")
 public class AutoCloack implements Behavior, Configurable<AutoCloackConfig> {
-    protected final PluginAPI api;
-    protected final HeroAPI heroapi;
+    private final HeroAPI heroapi;
 
     private ConditionsManagement conditionsManagement;
 
-    protected long lastTimeAttack = 0;
+    private long lastTimeAttack = 0;
     private AutoCloackConfig config;
 
     public AutoCloack(PluginAPI api) {
@@ -39,10 +39,12 @@ public class AutoCloack implements Behavior, Configurable<AutoCloackConfig> {
             throw new SecurityException();
         VerifierChecker.requireAuthenticity(auth);
 
-        Utils.discordCheck(api.getAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
-        Utils.showDonateDialog(auth.getAuthId());
+        ExtensionsAPI extensionsAPi = api.requireAPI(ExtensionsAPI.class);
+        FeatureInfo featureInfo = extensionsAPi.getFeatureInfo(this.getClass());
 
-        this.api = api;
+        Utils.discordCheck(featureInfo, auth.getAuthId());
+        Utils.showDonateDialog(featureInfo, auth.getAuthId());
+
         this.heroapi = hero;
         this.conditionsManagement = new ConditionsManagement(api, items);
     }

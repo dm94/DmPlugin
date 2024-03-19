@@ -21,6 +21,7 @@ import eu.darkbot.api.extensions.Task;
 import eu.darkbot.api.game.other.GameMap;
 import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.ConfigAPI;
+import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.RepairAPI;
 import eu.darkbot.api.managers.StarSystemAPI;
@@ -29,11 +30,10 @@ import eu.darkbot.api.utils.Inject;
 
 @Feature(name = "AutoChangeMap", description = "Automatically changes map every x amount of time or deaths")
 public class AutoChangeMap implements Task, Configurable<ChangeMapConfig> {
-    protected final PluginAPI api;
-    protected final StatsAPI stats;
-    protected final HeroAPI hero;
-    protected final RepairAPI repair;
-    protected final StarSystemAPI star;
+    private final PluginAPI api;
+    private final HeroAPI hero;
+    private final RepairAPI repair;
+    private final StarSystemAPI star;
 
     private ChangeMapConfig changeMapConfig;
 
@@ -60,11 +60,10 @@ public class AutoChangeMap implements Task, Configurable<ChangeMapConfig> {
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.showDonateDialog(auth.getAuthId());
+        Utils.showDonateDialog(api.requireAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
         this.api = api;
         this.hero = hero;
-        this.stats = stats;
         this.repair = repair;
         this.star = star;
         this.mapsAlreadyUsed = new ArrayList<>();
@@ -86,7 +85,7 @@ public class AutoChangeMap implements Task, Configurable<ChangeMapConfig> {
         if ((firstTick || (waitingTimeNextMap != 0 && waitingTimeNextMap <= System.currentTimeMillis()) ||
                 (mapMaxDeaths > 0 && repair.getDeathAmount() >= mapMaxDeaths)
                 || (waitingTimeNextMap == 0 && mapMaxDeaths == 0)) &&
-                (changeMapConfig.ignoreTargetHealth || hero.getLocalTarget() == null
+                (changeMapConfig.ignoreTargetHealth || hero.getLocalTarget() == null || !hero.getLocalTarget().isValid()
                         || hero.getLocalTarget().getHealth().hpPercent() > 90)) {
             firstTick = false;
             goNextMap();

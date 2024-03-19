@@ -34,7 +34,7 @@ public class AutoBestAmmoDummy implements Behavior, Configurable<BestAmmoConfig>
         }
 
         VerifierChecker.requireAuthenticity(auth);
-        ExtensionsAPI extensionsAPI = api.getAPI(ExtensionsAPI.class);
+        ExtensionsAPI extensionsAPI = api.requireAPI(ExtensionsAPI.class);
         Utils.discordDonorCheck(extensionsAPI.getFeatureInfo(this.getClass()), auth.getAuthId());
 
         try {
@@ -50,7 +50,7 @@ public class AutoBestAmmoDummy implements Behavior, Configurable<BestAmmoConfig>
             return new NpcExtraFlag[0];
         }
 
-        return privateBehaviour.values();
+        return this.privateBehaviour.values();
     }
 
     @Override
@@ -59,7 +59,7 @@ public class AutoBestAmmoDummy implements Behavior, Configurable<BestAmmoConfig>
             return;
         }
 
-        privateBehaviour.setConfig(arg0);
+        this.privateBehaviour.setConfig(arg0);
     }
 
     @Override
@@ -68,7 +68,7 @@ public class AutoBestAmmoDummy implements Behavior, Configurable<BestAmmoConfig>
             return;
         }
 
-        privateBehaviour.onTickBehavior();
+        this.privateBehaviour.onTickBehavior();
     }
 
     @Override
@@ -77,7 +77,7 @@ public class AutoBestAmmoDummy implements Behavior, Configurable<BestAmmoConfig>
             return;
         }
 
-        privateBehaviour.onStoppedBehavior();
+        this.privateBehaviour.onStoppedBehavior();
     }
 
 }

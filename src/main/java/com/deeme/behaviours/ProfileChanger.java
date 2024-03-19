@@ -13,7 +13,6 @@ import com.deeme.behaviours.profilechanger.ProfileChangerConfig;
 import com.deeme.behaviours.profilechanger.ResourceSupplier;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
-import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.modules.DisconnectModule;
 
 import eu.darkbot.api.PluginAPI;
@@ -30,6 +29,7 @@ import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
+import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.GameScreenAPI;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.RepairAPI;
@@ -39,51 +39,50 @@ import eu.darkbot.api.utils.Inject;
 @Feature(name = "ProfileChanger", description = "Change the profile to another one when completing a task")
 public class ProfileChanger implements Behavior, Configurable<ProfileChangerConfig> {
 
-    protected final PluginAPI api;
-    protected final BotAPI bot;
-    protected final HeroAPI hero;
-    protected final RepairAPI repair;
-    protected final StatsAPI stats;
+    private final PluginAPI api;
+    private final BotAPI bot;
+    private final HeroAPI hero;
+    private final RepairAPI repair;
+    private final StatsAPI stats;
+    private final ConfigAPI configAPI;
 
     private ProfileChangerConfig config;
-    private Main main;
 
     private long nextCheck = 0;
 
     private boolean resourceListUpdated = false;
     private final ConfigSetting<Map<String, BoxInfo>> boxInfos;
     private final Gui lostConnectionGUI;
-    protected Collection<? extends Box> boxes;
+    private Collection<? extends Box> boxes;
 
-    public ProfileChanger(Main main, PluginAPI api) {
-        this(main, api, api.requireAPI(AuthAPI.class),
+    public ProfileChanger(PluginAPI api) {
+        this(api, api.requireAPI(AuthAPI.class),
                 api.requireAPI(BotAPI.class),
                 api.requireAPI(HeroAPI.class),
                 api.requireAPI(StatsAPI.class));
     }
 
     @Inject
-    public ProfileChanger(Main main, PluginAPI api, AuthAPI auth, BotAPI bot, HeroAPI hero, StatsAPI stats) {
+    public ProfileChanger(PluginAPI api, AuthAPI auth, BotAPI bot, HeroAPI hero, StatsAPI stats) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.showDonateDialog(auth.getAuthId());
+        Utils.showDonateDialog(api.requireAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
-        this.main = main;
         this.api = api;
         this.bot = bot;
         this.hero = hero;
         this.stats = stats;
-        this.repair = api.getAPI(RepairAPI.class);
+        this.repair = api.requireAPI(RepairAPI.class);
 
-        ConfigAPI configApi = api.getAPI(ConfigAPI.class);
-        this.boxInfos = configApi.requireConfig("collect.box_infos");
+        this.configAPI = api.requireAPI(ConfigAPI.class);
+        this.boxInfos = this.configAPI.requireConfig("collect.box_infos");
 
-        EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
+        EntitiesAPI entities = api.requireAPI(EntitiesAPI.class);
         this.boxes = entities.getBoxes();
 
-        GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
+        GameScreenAPI gameScreenAPI = api.requireAPI(GameScreenAPI.class);
         lostConnectionGUI = gameScreenAPI.getGui("lost_connection");
 
         this.resourceListUpdated = false;
@@ -144,9 +143,9 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
         } else {
             resetCounters();
             if (config.reloadBot) {
-                Main.API.handleRefresh();
+                this.bot.handleRefresh();
             }
-            main.setConfig(config.BOT_PROFILE);
+            this.configAPI.setConfigProfile(config.BOT_PROFILE);
         }
     }
 
@@ -291,11 +290,11 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     }
 
     private void resetCounters() {
-        if (this.main == null || this.config == null) {
+        if (this.config == null) {
             return;
         }
         if (this.config.deathsCondition.active) {
-            this.main.repairManager.resetDeaths();
+            this.repair.resetDeaths();
         }
 
         config.npcExtraCondition.npcCounter = 0;

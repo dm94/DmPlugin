@@ -34,7 +34,7 @@ public class AutoBestRocketLauncherDummy implements Behavior, Configurable<BestR
         }
 
         VerifierChecker.requireAuthenticity(auth);
-        ExtensionsAPI extensionsAPI = api.getAPI(ExtensionsAPI.class);
+        ExtensionsAPI extensionsAPI = api.requireAPI(ExtensionsAPI.class);
         Utils.discordDonorCheck(extensionsAPI.getFeatureInfo(this.getClass()), auth.getAuthId());
 
         try {

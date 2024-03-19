@@ -40,15 +40,15 @@ import eu.darkbot.shared.utils.SafetyFinder;
 
 @Feature(name = "Palladium Hangar", description = "Collect palladium and change hangars to sell")
 public class PalladiumHangar extends LootCollectorModule implements Configurable<PalladiumConfig> {
-    protected final Main main;
-    protected final PluginAPI api;
-    protected final BotAPI botApi;
-    protected final OreAPI oreApi;
-    protected final HeroAPI heroapi;
-    protected final AttackAPI attackApi;
-    protected final StatsAPI stats;
-    protected final BackpageAPI backpage;
-    protected final FeatureInfo featureInfo;
+    private final Main main;
+    private final PluginAPI api;
+    private final BotAPI botApi;
+    private final OreAPI oreApi;
+    private final HeroAPI heroapi;
+    private final AttackAPI attackApi;
+    private final StatsAPI stats;
+    private final BackpageAPI backpage;
+    private final FeatureInfo featureInfo;
     private GameMap sellMap;
     private GameMap activeMap;
     private Collection<? extends Station> bases;
@@ -95,27 +95,27 @@ public class PalladiumHangar extends LootCollectorModule implements Configurable
             throw new SecurityException();
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.showDonateDialog(auth.getAuthId());
+        Utils.showDonateDialog(api.requireAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
 
         this.main = main;
         this.api = api;
-        this.botApi = api.getAPI(BotAPI.class);
-        this.heroapi = api.getAPI(HeroAPI.class);
-        this.attackApi = api.getAPI(AttackAPI.class);
-        this.oreApi = api.getAPI(OreAPI.class);
-        this.stats = api.getAPI(StatsAPI.class);
-        this.backpage = api.getAPI(BackpageAPI.class);
+        this.botApi = api.requireAPI(BotAPI.class);
+        this.heroapi = api.requireAPI(HeroAPI.class);
+        this.attackApi = api.requireAPI(AttackAPI.class);
+        this.oreApi = api.requireAPI(OreAPI.class);
+        this.stats = api.requireAPI(StatsAPI.class);
+        this.backpage = api.requireAPI(BackpageAPI.class);
 
-        ExtensionsAPI extensionsAPI = api.getAPI(ExtensionsAPI.class);
+        ExtensionsAPI extensionsAPI = api.requireAPI(ExtensionsAPI.class);
         this.featureInfo = extensionsAPI.getFeatureInfo(this.getClass());
 
-        GameScreenAPI gameScreenAPI = api.getAPI(GameScreenAPI.class);
+        GameScreenAPI gameScreenAPI = api.requireAPI(GameScreenAPI.class);
         this.tradeGui = gameScreenAPI.getGui("ore_trade");
 
-        EntitiesAPI entities = api.getAPI(EntitiesAPI.class);
+        EntitiesAPI entities = api.requireAPI(EntitiesAPI.class);
         this.bases = entities.getStations();
 
-        StarSystemAPI starSystem = api.getAPI(StarSystemAPI.class);
+        StarSystemAPI starSystem = api.requireAPI(StarSystemAPI.class);
         this.sellMap = starSystem.findMap("5-2").orElse(starSystem.findMap(92).orElse(null));
         this.activeMap = starSystem.findMap("5-3").orElse(starSystem.findMap(93).orElse(null));
 
@@ -140,7 +140,7 @@ public class PalladiumHangar extends LootCollectorModule implements Configurable
         if (configPa.goPortalChange && !(canRefresh() && super.canRefresh())) {
             return false;
         }
-        return !heroapi.isAttacking() && !SharedFunctions.hasAttacker(heroapi, main);
+        return !heroapi.isAttacking() && !SharedFunctions.hasAttacker(heroapi, api);
     }
 
     @Override
