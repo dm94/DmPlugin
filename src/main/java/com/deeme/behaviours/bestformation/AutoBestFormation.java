@@ -50,7 +50,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     private long nextCheck = 0;
 
     private final ConfigSetting<Config.ShipConfig> configOffensive;
-    private final int MAX_DISTANTE = 610;
+    private final int MAX_DISTANTE = 710;
 
     private ArrayList<Formation> availableFormations = new ArrayList<>();
 
@@ -226,7 +226,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     }
 
     private boolean shouldUseDrill() {
-        return hasFormation(Formation.DRILL) && !shouldFocusSpeed() && !isInRange(MAX_DISTANTE);
+        return hasFormation(Formation.DRILL) && !shouldFocusSpeed() && isInRange(MAX_DISTANTE);
     }
 
     private boolean shouldUseDiamond() {
@@ -271,7 +271,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     }
 
     private boolean shouldUseBat() {
-        return hasFormation(Formation.BAT) && !isInRange(MAX_DISTANTE);
+        return hasFormation(Formation.BAT) && isInRange(MAX_DISTANTE);
     }
 
     private boolean useSelectableReadyWhenReady(Formation formation) {
