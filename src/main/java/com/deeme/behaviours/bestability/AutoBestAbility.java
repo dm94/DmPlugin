@@ -69,6 +69,9 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     private final List<Ability> HEALTH_ABILITIES_WITHOUT_LOCK = Arrays.asList(Ability.AEGIS_REPAIR_POD,
             Ability.LIBERATOR_PLUS_SELF_REPAIR, Ability.SOLACE, Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS);
 
+    private final List<Ability> HEALTH_ABILITIES_WITH_LOCK = Arrays.asList(Ability.AEGIS_HP_REPAIR,
+            Ability.HAMMERCLAW_PLUS_REALLOCATE);
+
     private final List<Ability> EVADE_ABILITIES = Arrays.asList(Ability.SPEARHEAD_JAM_X,
             Ability.SPEARHEAD_ULTIMATE_CLOAK, Ability.BERSERKER_RVG, Ability.MIMESIS_SCRAMBLE,
             Ability.DISRUPTOR_DDOL, Ability.SPEARHEAD_PLUS_NEUTRALIZING_MARKER);
@@ -81,6 +84,8 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     private final List<Ability> ALL_TIME_ABILITIES = Arrays.asList(Ability.SPEARHEAD_DOUBLE_MINIMAP);
 
     private long nextCheck = 0;
+
+    private final int ABILITY_DISTANCE = 650;
 
     public AutoBestAbility(PluginAPI api) {
         this(api, api.requireAPI(AuthAPI.class),
@@ -196,14 +201,17 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
         }
 
         if (shouldFocusHealth(true)) {
-            if (isAvailable(Ability.AEGIS_HP_REPAIR)) {
-                return Optional.of(Ability.AEGIS_HP_REPAIR);
-            } else if (isAvailable(Ability.HAMMERCLAW_PLUS_REALLOCATE)) {
-                return Optional.of(Ability.HAMMERCLAW_PLUS_REALLOCATE);
+            Optional<Ability> ability = getAbilityAvailableFromList(HEALTH_ABILITIES_WITH_LOCK);
+            if (ability.isPresent()) {
+                return ability;
             }
         }
 
-        return getAbilityAvailableFromList(HEALTH_ABILITIES_WITHOUT_LOCK);
+        if (shouldFocusHealth(false)) {
+            return getAbilityAvailableFromList(HEALTH_ABILITIES_WITHOUT_LOCK);
+        }
+
+        return Optional.empty();
     }
 
     private Optional<Ability> getSpeedAbility() {
@@ -278,7 +286,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
 
     private boolean isInRange() {
         Lockable target = this.heroapi.getLocalTarget();
-        return (target != null && target.isValid() && this.heroapi.distanceTo(target) < 650);
+        return (target != null && target.isValid() && this.heroapi.distanceTo(target) < ABILITY_DISTANCE);
     }
 
     private boolean shouldFocusSpeed() {
@@ -294,7 +302,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
             }
 
             double speed = target instanceof Movable ? ((Movable) target).getSpeed() : 0;
-            return this.heroapi.distanceTo(target) >= 650 || speed > this.heroapi.getSpeed();
+            return this.heroapi.distanceTo(target) >= ABILITY_DISTANCE || speed > this.heroapi.getSpeed();
         }
         return false;
     }
@@ -302,18 +310,15 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     private boolean shouldFocusHealth(boolean needLock) {
         if (this.bot.getModule() != null && this.bot.getModule().getClass() == AmbulanceModule.class) {
             return false;
-        } else if (this.heroapi.getEffects() != null
-                && heroapi.getEffects().toString().contains("76")) {
+        } else if (heroapi.hasEffect(EntityEffect.REPAIR_BOT)) {
             return false;
         } else if (this.heroapi.getHealth().hpPercent() <= this.config.minHealthToUseHealth) {
             return true;
         } else if (this.group.hasGroup()) {
-            for (GroupMember member : this.group.getMembers()) {
-                if (!member.isDead() && member.isAttacked() && (!needLock || member.isLocked())
-                        && member.getMemberInfo().hpPercent() <= this.config.minHealthToUseHealth) {
-                    return true;
-                }
-            }
+            return this.group.getMembers().stream().anyMatch((member) -> !member.isDead() && member.isAttacked()
+                    && member.getMemberInfo().hpPercent() <= this.config.minHealthToUseHealth
+                    && (!needLock || (member.isLocked()
+                            && this.heroapi.distanceTo(member.getLocation()) < ABILITY_DISTANCE)));
         }
 
         return false;
