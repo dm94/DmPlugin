@@ -258,11 +258,7 @@ public class ShipAttacker {
 
     public boolean inGroup(int id) {
         if (group.hasGroup()) {
-            for (GroupMember member : group.getMembers()) {
-                if (member.getId() == id) {
-                    return true;
-                }
-            }
+            return group.getMembers().stream().anyMatch(g -> g.getId() == id);
         }
         return false;
     }
@@ -297,9 +293,9 @@ public class ShipAttacker {
         return allShips.stream()
                 .filter(Ship::isValid)
                 .filter(s -> s.getId() != heroapi.getId()
+                        && !playersToIgnore.contains(s.getId())
                         && s.getEntityInfo().isEnemy()
                         && (ableToAttack || s.isAttacking())
-                        && !playersToIgnore.contains(s.getId())
                         && !s.hasEffect(290)
                         && !(s instanceof Pet)
                         && !inGroup(s.getId())
