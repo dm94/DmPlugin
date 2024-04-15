@@ -83,7 +83,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     private long nextCPUCheck = 0;
     private long nextWaveCheck = 0;
 
-    private int waitTime = 20000;
+    private static final int MIN_TIME_FOR_WAVE_CHECK = 20000;
 
     private boolean repairShield = false;
     private boolean waveHasBeenAwaited = false;
@@ -234,14 +234,17 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         }
 
         this.rocketSupplier = new BestRocketSupplier(api, this.astralConfig.defaultRocket);
-        this.astralPlus = new AstralPlus(api, devStuff, this.astralConfig.customItemPriority);
+        this.astralPlus = new AstralPlus(api, this.devStuff, this.astralConfig.customItemPriority);
+        this.astralPlus.updateConfig(this.devStuff, this.astralConfig.customItemPriority,
+                this.astralConfig.minTimePerAction);
         fillPortalInfo();
     }
 
     private void fillPortalInfo() {
-        if (astralConfig.portalInfos.size() > 0) {
+        if (this.astralConfig.portalInfos.size() > 0) {
             return;
         }
+
         Map<String, PortalInfo> defaultPortals = new HashMap<>();
         defaultPortals.put(PortalType.ROUGE_LITE_HP_RECOVER.name(), new PortalInfo(0));
         defaultPortals.put(PortalType.ROUGE_LITE_AMMUNITION.name(), new PortalInfo(1));
@@ -255,11 +258,11 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         defaultPortals.put(PortalType.ROUGE_LITE_WEAPON_BRUTAL.name(), new PortalInfo(9));
         defaultPortals.put(PortalType.ROUGE_LITE_RESOURCE_BRUTAL.name(), new PortalInfo(10));
 
-        astralConfig.portalInfos.putAll(defaultPortals);
+        this.astralConfig.portalInfos.putAll(defaultPortals);
     }
 
     private void waveLogic() {
-        nextWaveCheck = System.currentTimeMillis() + waitTime;
+        nextWaveCheck = System.currentTimeMillis() + MIN_TIME_FOR_WAVE_CHECK;
         waveHasBeenAwaited = false;
         this.currentStatus = State.DO;
 
@@ -277,7 +280,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         }
         if (!waveHasBeenAwaited) {
             waveHasBeenAwaited = true;
-            nextWaveCheck = System.currentTimeMillis() + waitTime;
+            nextWaveCheck = System.currentTimeMillis() + MIN_TIME_FOR_WAVE_CHECK;
         }
 
         goToTheMiddle();

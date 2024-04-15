@@ -50,4 +50,8 @@ public class AstralConfig {
 
     @Option("astral.custom_item_priority")
     public CustomItemPriority customItemPriority = new CustomItemPriority();
+
+    @Option("general.min_time_per_action")
+    @Number(min = 0, step = 1, max = 60)
+    public int minTimePerAction = 5;
 }
