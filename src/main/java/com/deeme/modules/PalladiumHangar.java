@@ -57,7 +57,7 @@ public class PalladiumHangar extends LootCollectorModule implements Configurable
     private PalladiumConfig configPa;
     private State currentStatus;
 
-    private long sellClick;
+    private long sellClick = 0;
     private long aditionalWaitingTime = 0;
     private State lastStatus;
     private Integer activeHangar = null;
@@ -75,6 +75,8 @@ public class PalladiumHangar extends LootCollectorModule implements Configurable
         SWITCHING_PALA_HANGAR("Switching to the palladium hangar"),
         LOADING_HANGARS("Waiting - Loading hangars"),
         SEARCHING_PORTALS("Looking for a portal to change hangar"),
+        TRAVELLING_TO_TRADE("Travelling to trade"),
+        SELLING("Selling palladium"),
         ERROR_NO_HANGAR("Error - No active hangar");
 
         private final String message;
@@ -226,23 +228,27 @@ public class PalladiumHangar extends LootCollectorModule implements Configurable
         pet.setEnabled(false);
         if (heroapi.getMap() != sellMap) {
             this.botApi.setModule(api.requireInstance(MapModule.class)).setTarget(this.sellMap);
-        } else {
-            Station.Refinery base = bases.stream()
-                    .filter(b -> b instanceof Station.Refinery && b.getLocationInfo().isInitialized())
-                    .map(Station.Refinery.class::cast)
-                    .findFirst().orElse(null);
-            if (base == null)
-                return;
-            if (movement.getDestination().distanceTo(base) > 200) { // Move to base
-                double angle = base.angleTo(heroapi) + Math.random() * 0.2 - 0.1;
-                movement.moveTo(Location.of(base, angle, 100 + (100 * Math.random())));
-            } else if (!heroapi.isMoving() && oreApi.showTrade(true, base)
-                    && System.currentTimeMillis() - 60_000 > sellClick) {
-                oreApi.sellOre(OreAPI.Ore.PALLADIUM);
-                sellClick = System.currentTimeMillis();
-                oreApi.showTrade(false, base);
-                hideTradeGui();
-            }
+            return;
+        }
+
+        Station.Refinery base = bases.stream()
+                .filter(b -> b instanceof Station.Refinery && b.getLocationInfo().isInitialized())
+                .map(Station.Refinery.class::cast)
+                .findFirst().orElse(null);
+
+        if (base == null) {
+            return;
+        }
+
+        if (movement.getDestination().distanceTo(base) > 200) {
+            this.currentStatus = State.TRAVELLING_TO_TRADE;
+            double angle = base.angleTo(heroapi) + Math.random() * 0.2 - 0.1;
+            movement.moveTo(Location.of(base, angle, 100 + (100 * Math.random())));
+        } else if (!heroapi.isMoving() && oreApi.showTrade(true, base)
+                && System.currentTimeMillis() > sellClick) {
+            this.currentStatus = State.SELLING;
+            oreApi.sellOre(OreAPI.Ore.PALLADIUM);
+            sellClick = System.currentTimeMillis() + (configPa.aditionalWaitingTime * 1000);
         }
     }
 
@@ -265,9 +271,10 @@ public class PalladiumHangar extends LootCollectorModule implements Configurable
     }
 
     private void hideTradeGui() {
-        if (tradeGui.isVisible()) {
+        oreApi.showTrade(false, null);
+
+        if (tradeGui != null && tradeGui.isVisible()) {
             tradeGui.setVisible(false);
-            oreApi.showTrade(false, null);
         }
     }
 
