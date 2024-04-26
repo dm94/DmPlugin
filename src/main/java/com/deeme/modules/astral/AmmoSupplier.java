@@ -36,7 +36,8 @@ public class AmmoSupplier implements PrioritizedSupplier<SelectableItem> {
     private List<? extends Item> getAmmoAvailable() {
         try {
             return items.getItems(ItemCategory.LASERS).stream()
-                    .filter(item -> item.isUsable() && item.getQuantity() > 100).collect(Collectors.toList());
+                    .filter(item -> item.isUsable() && item.getQuantity() > 100 && item.isReady())
+                    .collect(Collectors.toList());
         } catch (Exception e) {
             return Collections.emptyList();
         }
