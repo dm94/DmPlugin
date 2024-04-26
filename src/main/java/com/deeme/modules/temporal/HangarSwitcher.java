@@ -148,7 +148,7 @@ public class HangarSwitcher extends TemporalModule {
                                 this.activeHangar = null;
                             }
                         }
-                    } else if (!heroapi.isAttacking() && !SharedFunctions.hasAttacker(heroapi, api)) {
+                    } else if (canBeDisconnected()) {
                         disconnect();
                     } else {
                         goBack();
@@ -182,10 +182,16 @@ public class HangarSwitcher extends TemporalModule {
     private void disconnect() {
         this.currentStatus = State.DISCONNECTING;
         bot.setRunning(false);
-        if (heroapi.getMap() != null && heroapi.getMap().getId() > 0
-                && !logout.isVisible() && !heroapi.isMoving()) {
+
+        if (!logout.isVisible()) {
             logout.setVisible(true);
         }
+    }
+
+    private boolean canBeDisconnected() {
+        return heroapi.getMap() != null && heroapi.getMap().getId() > 0
+                && !heroapi.isMoving() && heroapi.isValid() && !heroapi.isAttacking()
+                && !SharedFunctions.hasAttacker(heroapi, api);
     }
 
     private void updateHangarActive() {
