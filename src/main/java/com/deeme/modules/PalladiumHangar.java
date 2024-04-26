@@ -142,7 +142,8 @@ public class PalladiumHangar extends LootCollectorModule implements Configurable
         if (configPa.goPortalChange && !(canRefresh() && super.canRefresh())) {
             return false;
         }
-        return !heroapi.isAttacking() && !SharedFunctions.hasAttacker(heroapi, api);
+
+        return heroapi.isValid() && !heroapi.isAttacking() && !SharedFunctions.hasAttacker(heroapi, api);
     }
 
     @Override
