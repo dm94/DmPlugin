@@ -54,4 +54,7 @@ public class ProfileChangerConfig {
 
     @Option("profile_changer.deaths_condition")
     public DeathsCondition deathsCondition = new DeathsCondition();
+
+    @Option("profile_changer.key_condition")
+    public KeyCondition keyCondition = new KeyCondition();
 }
