@@ -271,7 +271,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     }
 
     private boolean isReadyKeyCondition() {
-        if (!config.keyCondition.active) {
+        if (!config.keyCondition.active || config.keyCondition.key == null) {
             return !config.orConditional;
         }
 

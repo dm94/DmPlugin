@@ -182,9 +182,15 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
             int currentHour = da.getHour();
             jLabel.setText(
                     "Last check: " + String.format("%02d", da.getHour()) + ":" + String.format("%02d", da.getMinute()));
+
+            if (this.weeklyConfig.thirtyMinutes && da.getMinute() < 30) {
+                currentHour = currentHour - 1;
+            }
+
             Hour hour = this.weeklyConfig.Hours_Changes.get(String.format("%02d", currentHour));
-            String profile = "";
+
             if (hour != null) {
+                String profile = "";
                 DayOfWeek currentDay = da.getDayOfWeek();
                 if (currentDay == DayOfWeek.MONDAY) {
                     profile = hour.mon;

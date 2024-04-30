@@ -23,6 +23,9 @@ public class WeeklyConfig {
     @Option("weekly_schedule.change_hangar")
     public boolean changeHangar = false;
 
+    @Option("weekly_schedule.thirty_minutes")
+    public boolean thirtyMinutes = false;
+
     @Option("weekly_schedule.p1")
     public Profile profile1 = new Profile();
 
