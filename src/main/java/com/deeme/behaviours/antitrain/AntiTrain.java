@@ -24,6 +24,7 @@ import eu.darkbot.api.managers.ExtensionsAPI;
 
 @Feature(name = "Anti Train", description = "Some options for combating trains")
 public class AntiTrain implements Behavior, Configurable<AntiTrainConfig> {
+    private final PluginAPI api;
     private final HeroAPI hero;
     private final Collection<? extends Player> players;
     private AntiTrainConfig config;
@@ -48,6 +49,7 @@ public class AntiTrain implements Behavior, Configurable<AntiTrainConfig> {
         Utils.discordCheck(featureInfo, auth.getAuthId());
         Utils.showDonateDialog(featureInfo, auth.getAuthId());
 
+        this.api = api;
         this.hero = hero;
         this.players = entities.getPlayers();
         this.customSafety = new CustomSafety(api);
@@ -61,6 +63,11 @@ public class AntiTrain implements Behavior, Configurable<AntiTrainConfig> {
 
     @Override
     public void onTickBehavior() {
+        if (this.config.normalCondition.active && this.config.normalCondition.condition != null
+                && this.config.normalCondition.condition.get(api).denies()) {
+            return;
+        }
+
         if (this.config.maxEnemies <= getNumberOfEnemies()) {
             if (this.config.run) {
                 this.customSafety.escapeTick();
