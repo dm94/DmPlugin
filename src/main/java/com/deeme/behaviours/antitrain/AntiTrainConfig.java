@@ -1,5 +1,6 @@
 package com.deeme.behaviours.antitrain;
 
+import com.deeme.behaviours.profilechanger.NormalCondition;
 import com.deeme.types.config.ExtraKeyConditionsSelectable;
 
 import eu.darkbot.api.config.annotations.Configuration;
@@ -18,6 +19,9 @@ public class AntiTrainConfig {
 
     @Option("anti_train.run")
     public boolean run = true;
+
+    @Option("anti_train.condition")
+    public NormalCondition normalCondition = new NormalCondition();
 
     @Option("general.item_condition")
     public ExtraKeyConditionsSelectable selectable1 = new ExtraKeyConditionsSelectable();
