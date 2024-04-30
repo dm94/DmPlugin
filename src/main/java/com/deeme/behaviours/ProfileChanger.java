@@ -25,6 +25,7 @@ import eu.darkbot.api.game.entities.Box;
 import eu.darkbot.api.game.enums.EntityEffect;
 import eu.darkbot.api.game.other.Gui;
 import eu.darkbot.api.game.other.Lockable;
+import eu.darkbot.api.game.stats.Stats.BootyKey;
 import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.ConfigAPI;
@@ -166,7 +167,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
                 || isReadyNpcCondition(config.npcExtraCondition2)
                 || isReadyResourceCondition() || isReadyMapCondition()
                 || isReadyTimeCondition()
-                || isReadyDeathCondition()) {
+                || isReadyDeathCondition() || isReadyKeyCondition()) {
             changeAction();
         }
     }
@@ -178,7 +179,7 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
                 && isReadyNpcCondition(config.npcExtraCondition2)
                 && isReadyResourceCondition() && isReadyMapCondition()
                 && isReadyTimeCondition()
-                && isReadyDeathCondition()) {
+                && isReadyDeathCondition() && isReadyKeyCondition()) {
             changeAction();
         }
     }
@@ -267,6 +268,14 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
 
         return da.getHour() > config.timeCondition.hour
                 || (config.timeCondition.hour == da.getHour() && da.getMinute() >= config.timeCondition.minute);
+    }
+
+    private boolean isReadyKeyCondition() {
+        if (!config.keyCondition.active) {
+            return !config.orConditional;
+        }
+
+        return stats.getStatValue(config.keyCondition.key) <= 0;
     }
 
     private void checkMap() {
