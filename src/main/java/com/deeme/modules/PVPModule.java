@@ -218,7 +218,8 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         }
 
         if (!isUnderAttack()) {
-            target = shipAttacker.getEnemy(pvpConfig.rangeForEnemies, antiPushLogic.getIgnoredPlayers());
+            target = shipAttacker.getEnemy(pvpConfig.rangeForEnemies, antiPushLogic.getIgnoredPlayers(),
+                    pvpConfig.ignoreInvisible);
             shipAttacker.setTarget(target);
         }
 
