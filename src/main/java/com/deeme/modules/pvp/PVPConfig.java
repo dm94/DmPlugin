@@ -21,6 +21,9 @@ public class PVPConfig {
     @Option("pvp_module.change_config")
     public boolean changeConfig = true;
 
+    @Option("pvp_module.ignore_invisible")
+    public boolean ignoreInvisible = false;
+
     @Option("auto_attack.max_range")
     @Number(min = 0, max = 1000, step = 50)
     public int rangeForEnemies = 500;

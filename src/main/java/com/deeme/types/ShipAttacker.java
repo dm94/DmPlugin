@@ -284,10 +284,10 @@ public class ShipAttacker {
     }
 
     public Ship getEnemy(int maxDistance) {
-        return getEnemy(maxDistance, new ArrayList<>());
+        return getEnemy(maxDistance, new ArrayList<>(), false);
     }
 
-    public Ship getEnemy(int maxDistance, ArrayList<Integer> playersToIgnore) {
+    public Ship getEnemy(int maxDistance, ArrayList<Integer> playersToIgnore, boolean ignoreInvisible) {
         boolean ableToAttack = heroapi.getMap().isPvp()
                 || allPortals.stream().noneMatch(p -> heroapi.distanceTo(p) < 1500);
         return allShips.stream()
@@ -298,6 +298,7 @@ public class ShipAttacker {
                         && (ableToAttack || s.isAttacking())
                         && !s.hasEffect(290)
                         && !(s instanceof Pet)
+                        && (!ignoreInvisible || s.isInvisible())
                         && !inGroup(s.getId())
                         && movement.canMove(s)
                         && s.getLocationInfo().distanceTo(heroapi) <= maxDistance)
