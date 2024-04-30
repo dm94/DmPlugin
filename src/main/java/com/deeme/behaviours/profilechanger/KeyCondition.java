@@ -12,5 +12,5 @@ public class KeyCondition {
 
     @Option("profile_changer.key_condition.key_to_check")
     @Dropdown(options = BootyKeySupplier.class)
-    public BootyKey key = BootyKey.GREEN;
+    public String key = BootyKey.GREEN.name();
 }

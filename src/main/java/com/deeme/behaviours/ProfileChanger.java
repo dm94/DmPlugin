@@ -275,7 +275,9 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
             return !config.orConditional;
         }
 
-        return stats.getStatValue(config.keyCondition.key) <= 0;
+        BootyKey key = BootyKey.valueOf(config.keyCondition.key);
+
+        return stats.getStatValue(key) <= 0;
     }
 
     private void checkMap() {
