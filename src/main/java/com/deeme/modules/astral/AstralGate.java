@@ -4,6 +4,7 @@ import com.deeme.types.ConditionsManagement;
 import com.deeme.types.SharedFunctions;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
+import com.deeme.types.suppliers.AmmoSupplier;
 import com.deeme.types.suppliers.BestRocketSupplier;
 import com.deemeplus.modules.astral.AstralPlus;
 import com.deemeplus.modules.astral.PortalInfo;
