@@ -19,7 +19,7 @@ public class Utils {
         throw new IllegalStateException("Utility class");
     }
 
-    public static synchronized void discordCheck(FeatureInfo featureInfo, String authID) {
+    public static synchronized void discordCheck(FeatureInfo<?> featureInfo, String authID) {
         if (!Backpage.isInDiscord(authID)) {
             String discordTag = Backpage.getDiscordTagExternal(authID);
             featureInfo
@@ -28,7 +28,7 @@ public class Utils {
         }
     }
 
-    public static synchronized void discordDonorCheck(FeatureInfo featureInfo, String authID) {
+    public static synchronized void discordDonorCheck(FeatureInfo<?> featureInfo, String authID) {
         if (!Backpage.isDonor(authID, featureInfo.getPluginInfo().getVersion().toString().trim())) {
             String discordTag = Backpage.getDiscordTagExternal(authID);
             featureInfo
@@ -52,7 +52,7 @@ public class Utils {
                 .showAsync();
     }
 
-    public static void showDonateDialog(FeatureInfo featureInfo, String authId) {
+    public static void showDonateDialog(FeatureInfo<?> featureInfo, String authId) {
         if (Backpage.isDonor(authId, featureInfo.getPluginInfo().getVersion().toString().trim())) {
             return;
         }

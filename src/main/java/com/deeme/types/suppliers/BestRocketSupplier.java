@@ -101,7 +101,7 @@ public class BestRocketSupplier {
     private SelectableItem getBestRocketByDamage(boolean isNpc) {
         return (isNpc ? damageOrderNPCs : damageOrder).stream()
                 .filter(rocket -> ableToUse(rocket, isNpc))
-                .min(Comparator.comparing(i -> damageOrder.indexOf(i)))
+                .findFirst()
                 .orElse(getDefaultRocket());
     }
 
@@ -163,7 +163,7 @@ public class BestRocketSupplier {
 
     private boolean ableToUse(SelectableItem rocket) {
         return rocket != null
-                && items.getItem(rocket, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.AVAILABLE,
+                && items.getItem(rocket, ItemFlag.USABLE, ItemFlag.READY,
                         ItemFlag.POSITIVE_QUANTITY).isPresent();
     }
 

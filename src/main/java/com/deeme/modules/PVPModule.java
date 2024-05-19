@@ -85,7 +85,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         VerifierChecker.requireAuthenticity(auth);
 
         ExtensionsAPI extensionsAPI = api.requireAPI(ExtensionsAPI.class);
-        FeatureInfo feature = extensionsAPI.getFeatureInfo(this.getClass());
+        FeatureInfo<?> feature = extensionsAPI.getFeatureInfo(this.getClass());
         Utils.discordCheck(feature, auth.getAuthId());
         Utils.showDonateDialog(feature, auth.getAuthId());
 

@@ -50,7 +50,7 @@ public class AutoBestFormation implements Behavior, Configurable<BestFormationCo
     private long nextCheck = 0;
 
     private final ConfigSetting<Config.ShipConfig> configOffensive;
-    private final int MAX_DISTANTE = 710;
+    private static final int MAX_DISTANTE = 710;
 
     private ArrayList<Formation> availableFormations = new ArrayList<>();
 

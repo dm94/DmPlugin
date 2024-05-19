@@ -40,7 +40,7 @@ public class AutoCloack implements Behavior, Configurable<AutoCloackConfig> {
         VerifierChecker.requireAuthenticity(auth);
 
         ExtensionsAPI extensionsAPi = api.requireAPI(ExtensionsAPI.class);
-        FeatureInfo featureInfo = extensionsAPi.getFeatureInfo(this.getClass());
+        FeatureInfo<?> featureInfo = extensionsAPi.getFeatureInfo(this.getClass());
 
         Utils.discordCheck(featureInfo, auth.getAuthId());
         Utils.showDonateDialog(featureInfo, auth.getAuthId());

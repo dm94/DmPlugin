@@ -43,7 +43,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
     private final HeroAPI heroapi;
     private final BotAPI botApi;
     private final BackpageAPI backpage;
-    private final FeatureInfo featureInfo;
+    private final FeatureInfo<?> featureInfo;
     private final ConfigAPI configAPI;
 
     private WeeklyConfig weeklyConfig;
