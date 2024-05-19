@@ -48,7 +48,7 @@ public class PalladiumHangar extends LootCollectorModule implements Configurable
     private final AttackAPI attackApi;
     private final StatsAPI stats;
     private final BackpageAPI backpage;
-    private final FeatureInfo featureInfo;
+    private final FeatureInfo<?> featureInfo;
     private GameMap sellMap;
     private GameMap activeMap;
     private Collection<? extends Station> bases;

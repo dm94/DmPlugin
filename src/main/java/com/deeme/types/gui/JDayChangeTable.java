@@ -11,7 +11,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.util.Arrays;
 
-public class JDayChangeTable extends InfoTable<GenericTableModel, Hour> implements OptionEditor {
+public class JDayChangeTable extends InfoTable<GenericTableModel<?>, Hour> implements OptionEditor {
     private static final String[] VALUES = { "Stop", "P1", "P2", "P3", "P4" };
 
     public JDayChangeTable(WeeklyConfig weeklyConfig) {

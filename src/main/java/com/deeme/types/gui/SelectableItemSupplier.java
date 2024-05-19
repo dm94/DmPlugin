@@ -34,7 +34,7 @@ public class SelectableItemSupplier implements Dropdown.Options<String> {
             ItemCategory category = it.next();
             String itemName = SelectableItem.ALL_ITEMS.get(category).stream()
                     .filter(itItem -> itItem.getId().equals(id) && itItem instanceof Enum)
-                    .map(itItem -> (Enum) itItem)
+                    .map(itItem -> (Enum<?>) itItem)
                     .map(itItem -> category + " || " + itItem.name()).findFirst().orElse(null);
             if (itemName != null) {
                 return itemName;

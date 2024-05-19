@@ -132,7 +132,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         VerifierChecker.requireAuthenticity(auth);
 
         ExtensionsAPI extensionsAPI = api.requireAPI(ExtensionsAPI.class);
-        FeatureInfo feature = extensionsAPI.getFeatureInfo(this.getClass());
+        FeatureInfo<?> feature = extensionsAPI.getFeatureInfo(this.getClass());
         Utils.discordCheck(feature, auth.getAuthId());
         Utils.showDonateDialog(feature, auth.getAuthId());
 
@@ -275,7 +275,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
     }
 
     private void updateLastMap() {
-        lastMap = heroapi.getMap() != null ? heroapi.getMap().getId() : null;
+        lastMap = heroapi.getMap() != null ? heroapi.getMap().getId() : 0;
     }
 
     private void useSpecialItems() {

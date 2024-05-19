@@ -130,7 +130,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         VerifierChecker.requireAuthenticity(auth);
 
         ExtensionsAPI extensionsAPi = api.requireAPI(ExtensionsAPI.class);
-        FeatureInfo featureInfo = extensionsAPi.getFeatureInfo(this.getClass());
+        FeatureInfo<?> featureInfo = extensionsAPi.getFeatureInfo(this.getClass());
 
         Utils.discordCheck(featureInfo, auth.getAuthId());
         Utils.showDonateDialog(featureInfo, auth.getAuthId());

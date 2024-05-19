@@ -33,7 +33,7 @@ public class ChangeMapConfig {
     public Map<String, MapData> Maps_Changes = new HashMap<>();
     public transient Lazy<String> ADDED_MAPS = new Lazy<>();
 
-    public static class JMapChangeTable extends InfoTable<GenericTableModel, MapData> implements OptionEditor {
+    public static class JMapChangeTable extends InfoTable<GenericTableModel<?>, MapData> implements OptionEditor {
 
         public JMapChangeTable(ChangeMapConfig changeMapConfig) {
             super(MapData.class, changeMapConfig.Maps_Changes, changeMapConfig.ADDED_MAPS, MapData::new);
