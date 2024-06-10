@@ -31,6 +31,7 @@ import eu.darkbot.api.managers.MovementAPI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Random;
 import java.util.Optional;
 
@@ -287,7 +288,7 @@ public class ShipAttacker {
         return getEnemy(maxDistance, new ArrayList<>(), false);
     }
 
-    public Ship getEnemy(int maxDistance, ArrayList<Integer> playersToIgnore, boolean ignoreInvisible) {
+    public Ship getEnemy(int maxDistance, List<Integer> playersToIgnore, boolean ignoreInvisible) {
         boolean ableToAttack = heroapi.getMap().isPvp()
                 || allPortals.stream().noneMatch(p -> heroapi.distanceTo(p) < 1500);
         return allShips.stream()
@@ -298,7 +299,7 @@ public class ShipAttacker {
                         && (ableToAttack || s.isAttacking())
                         && !s.hasEffect(290)
                         && !(s instanceof Pet)
-                        && (!ignoreInvisible || s.isInvisible())
+                        && !(ignoreInvisible && s.isInvisible())
                         && !inGroup(s.getId())
                         && movement.canMove(s)
                         && s.getLocationInfo().distanceTo(heroapi) <= maxDistance)
