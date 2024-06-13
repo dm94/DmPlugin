@@ -4,9 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.deeme.behaviours.bestrocket.RocketSupplier;
-import com.deemeplus.gui.suppliers.LaserSupplier;
 import com.deemeplus.modules.astral.CustomItemPriority;
 import com.deemeplus.modules.astral.PortalInfo;
+import com.deemeplus.suppliers.LaserSupplier;
 
 import eu.darkbot.api.config.annotations.Configuration;
 import eu.darkbot.api.config.annotations.Dropdown;
