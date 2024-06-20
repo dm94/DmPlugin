@@ -20,7 +20,6 @@ import eu.darkbot.api.game.group.GroupMember;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.game.items.SelectableItem.Formation;
-import eu.darkbot.api.game.items.SelectableItem.Laser;
 import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.GroupAPI;
@@ -31,6 +30,7 @@ import eu.darkbot.api.managers.MovementAPI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Random;
 import java.util.Optional;
 
@@ -86,7 +86,7 @@ public class ShipAttacker {
         this.conditionsManagement = new ConditionsManagement(api, items);
         this.humanizerConfig = humanizerConfig;
         this.ammoConfig = ammoConfig;
-        this.laserSupplier = new DefenseLaserSupplier(api, heroapi, items, ammoConfig.sab, ammoConfig.useRSB);
+        this.laserSupplier = new DefenseLaserSupplier(api, heroapi, items, ammoConfig);
     }
 
     public String getStatus() {
@@ -187,25 +187,12 @@ public class ShipAttacker {
         }
     }
 
-    private Laser getBestLaserAmmo() {
-        return laserSupplier.get();
-    }
-
     private Optional<SelectableItem> getAttackItem() {
         if (!ammoConfig.enableAmmoConfig) {
             return Optional.empty();
         }
 
-        Laser laser = getBestLaserAmmo();
-        if (laser != null) {
-            return Optional.of(laser);
-        }
-
-        if (ammoConfig != null) {
-            return Optional.ofNullable(SharedFunctions.getItemById(ammoConfig.defaultLaser));
-        }
-
-        return Optional.empty();
+        return Optional.ofNullable(laserSupplier.get());
     }
 
     public boolean useKeyWithConditions(ExtraKeyConditions extra, SelectableItem selectableItem) {
@@ -287,7 +274,7 @@ public class ShipAttacker {
         return getEnemy(maxDistance, new ArrayList<>(), false);
     }
 
-    public Ship getEnemy(int maxDistance, ArrayList<Integer> playersToIgnore, boolean ignoreInvisible) {
+    public Ship getEnemy(int maxDistance, List<Integer> playersToIgnore, boolean ignoreInvisible) {
         boolean ableToAttack = heroapi.getMap().isPvp()
                 || allPortals.stream().noneMatch(p -> heroapi.distanceTo(p) < 1500);
         return allShips.stream()
@@ -298,7 +285,7 @@ public class ShipAttacker {
                         && (ableToAttack || s.isAttacking())
                         && !s.hasEffect(290)
                         && !(s instanceof Pet)
-                        && (!ignoreInvisible || s.isInvisible())
+                        && !(ignoreInvisible && s.isInvisible())
                         && !inGroup(s.getId())
                         && movement.canMove(s)
                         && s.getLocationInfo().distanceTo(heroapi) <= maxDistance)

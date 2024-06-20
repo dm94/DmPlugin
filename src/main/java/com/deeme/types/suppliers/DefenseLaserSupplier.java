@@ -1,10 +1,9 @@
 package com.deeme.types.suppliers;
 
-import com.github.manolo8.darkbot.config.Config.Loot.Sab;
+import com.deeme.behaviours.defense.AmmoConfig;
+import com.deeme.types.SharedFunctions;
 
 import eu.darkbot.api.PluginAPI;
-import eu.darkbot.api.extensions.selectors.LaserSelector;
-import eu.darkbot.api.extensions.selectors.PrioritizedSupplier;
 import eu.darkbot.api.game.items.Item;
 import eu.darkbot.api.game.items.ItemFlag;
 import eu.darkbot.api.game.items.SelectableItem;
@@ -12,24 +11,21 @@ import eu.darkbot.api.game.items.SelectableItem.Laser;
 import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
 
-public class DefenseLaserSupplier implements LaserSelector, PrioritizedSupplier<Laser> {
+public class DefenseLaserSupplier {
     private final PluginAPI api;
     private final HeroAPI heroapi;
     private final HeroItemsAPI items;
-    private boolean rsbActive = false;
+    private AmmoConfig ammoConfig;
 
-    private Sab sab;
-
-    public DefenseLaserSupplier(PluginAPI api, HeroAPI heroapi, HeroItemsAPI items, Sab sab, boolean rsbActive) {
+    public DefenseLaserSupplier(PluginAPI api, HeroAPI heroapi, HeroItemsAPI items, AmmoConfig ammoConfig) {
         this.api = api;
         this.heroapi = heroapi;
         this.items = items;
-        this.sab = sab;
-        this.rsbActive = rsbActive;
+        this.ammoConfig = ammoConfig;
     }
 
-    public Laser get() {
-        if (this.rsbActive) {
+    public SelectableItem get() {
+        if (this.ammoConfig.useRSB) {
             if (ammoAvailable(Laser.RCB_140)) {
                 return Laser.RCB_140;
             } else if (ammoAvailable(Laser.RSB_75)) {
@@ -40,13 +36,14 @@ public class DefenseLaserSupplier implements LaserSelector, PrioritizedSupplier<
         if (shouldSab()) {
             return Laser.SAB_50;
         }
-        return Laser.UCB_100;
+
+        return SharedFunctions.getItemById(this.ammoConfig.defaultLaser);
     }
 
     private boolean shouldSab() {
-        return this.sab.ENABLED && heroapi.getHealth().shieldPercent() <= sab.PERCENT
-                && heroapi.getLocalTarget().getHealth().getShield() > sab.NPC_AMOUNT
-                && (sab.CONDITION == null || sab.CONDITION.get(api).allows())
+        return this.ammoConfig.sab.ENABLED && heroapi.getHealth().shieldPercent() <= this.ammoConfig.sab.PERCENT
+                && heroapi.getLocalTarget().getHealth().getShield() > this.ammoConfig.sab.NPC_AMOUNT
+                && (this.ammoConfig.sab.CONDITION == null || this.ammoConfig.sab.CONDITION.get(api).allows())
                 && ammoAvailable(Laser.SAB_50);
     }
 
@@ -59,10 +56,5 @@ public class DefenseLaserSupplier implements LaserSelector, PrioritizedSupplier<
         }
 
         return item.getTimer() == null || item.getTimer().getAvailableIn() <= 0;
-    }
-
-    @Override
-    public PrioritizedSupplier<Laser> getLaserSupplier() {
-        return this;
     }
 }

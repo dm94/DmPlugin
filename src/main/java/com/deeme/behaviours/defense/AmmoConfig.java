@@ -2,7 +2,7 @@ package com.deeme.behaviours.defense;
 
 import eu.darkbot.api.config.annotations.Option;
 
-import com.deemeplus.gui.suppliers.LaserSupplier;
+import com.deemeplus.suppliers.LaserSupplier;
 import com.github.manolo8.darkbot.config.Config.Loot.Sab;
 
 import eu.darkbot.api.config.annotations.Configuration;
