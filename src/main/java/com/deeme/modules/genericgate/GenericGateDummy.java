@@ -2,7 +2,6 @@ package com.deeme.modules.genericgate;
 
 import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.ExtensionsAPI;
-import eu.darkbot.api.utils.Inject;
 
 import java.util.Arrays;
 
@@ -15,19 +14,13 @@ import eu.darkbot.api.extensions.Feature;
 
 @Feature(name = "Generic Gate [PLUS]", description = "For any map, event")
 public class GenericGateDummy extends GenericGate {
-
     public GenericGateDummy(PluginAPI api) {
-        this(api, api.requireAPI(AuthAPI.class));
-    }
-
-    @Inject
-    public GenericGateDummy(PluginAPI api, AuthAPI auth) {
         super(api);
 
+        AuthAPI auth = api.requireAPI(AuthAPI.class);
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) {
             throw new SecurityException();
         }
-
         VerifierChecker.requireAuthenticity(auth);
         ExtensionsAPI extensionsAPI = api.requireAPI(ExtensionsAPI.class);
         Utils.discordDonorCheck(extensionsAPI.getFeatureInfo(this.getClass()), auth.getAuthId());
