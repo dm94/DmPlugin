@@ -276,15 +276,15 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         if (astralPlus.allowedToEquip()) {
             nextWaveCheck = 0;
         }
+
         if (nextWaveCheck > System.currentTimeMillis()) {
             return;
         }
+
         if (!waveHasBeenAwaited) {
             waveHasBeenAwaited = true;
             nextWaveCheck = System.currentTimeMillis() + MIN_TIME_FOR_WAVE_CHECK;
         }
-
-        goToTheMiddle();
 
         if (astralConfig.autoChoose
                 && astralPlus.autoChoose(astralConfig.portalInfos, astralConfig.customItemPriority)) {
@@ -294,6 +294,8 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         } else {
             this.currentStatus = State.WAITING_WAVE;
         }
+
+        goToTheMiddle();
     }
 
     private void stopBot(State stateToSet) {
@@ -614,7 +616,8 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     private void goToTheMiddle() {
         Locatable loc = Locatable.of(starSystem.getCurrentMapBounds().getWidth() / 2,
                 starSystem.getCurrentMapBounds().getHeight() / 2);
-        if (!movement.isMoving() && heroapi.distanceTo(loc) > 500 && canMoveFix(loc)) {
+        if (heroapi.distanceTo(loc) > 500 && canMoveFix(loc)
+                && (!movement.isMoving() || !movement.getDestination().isSameAs(loc))) {
             movement.moveTo(loc);
         }
     }
@@ -631,7 +634,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
             return false;
         }
 
-        int radiationOffSet = 10;
+        int radiationOffSet = 50;
 
         return movement.canMove(loc.getX() + radiationOffSet, loc.getY())
                 && movement.canMove(loc.getX(), loc.getY() + radiationOffSet)
