@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.deeme.behaviours.bestrocket.RocketSupplier;
+import com.deemeplus.modules.astral.AstralPlusConfig;
 import com.deemeplus.modules.astral.CustomItemPriority;
 import com.deemeplus.modules.astral.PortalInfo;
 import com.deemeplus.suppliers.LaserSupplier;
@@ -51,7 +52,6 @@ public class AstralConfig {
     @Option("astral.custom_item_priority")
     public CustomItemPriority customItemPriority = new CustomItemPriority();
 
-    @Option("general.min_time_per_action")
-    @Number(min = 0, step = 1, max = 60)
-    public int minTimePerAction = 5;
+    @Option("astral.extra_options")
+    public AstralPlusConfig astralPlusConfig = new AstralPlusConfig();
 }
