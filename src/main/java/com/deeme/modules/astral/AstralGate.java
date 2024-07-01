@@ -96,7 +96,6 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
     private State currentStatus;
     private boolean showDialog = false;
     private boolean warningDisplayed = false;
-    private boolean devStuff = false;
 
     private double lastRadius = 0;
 
@@ -154,10 +153,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         this.maxCircleIterations = configApi.requireConfig("loot.max_circle_iterations");
         this.ammoKey = configApi.requireConfig("loot.ammo_key");
 
-        ConfigSetting<Boolean> devStuffConfig = configApi.requireConfig("bot_settings.other.dev_stuff");
-
         this.ammoSupplier = new AmmoSupplier(items);
-        this.devStuff = devStuffConfig.getValue();
 
         this.currentStatus = State.WAIT;
         this.showDialog = false;
@@ -235,9 +231,8 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
         }
 
         this.rocketSupplier = new BestRocketSupplier(api, this.astralConfig.defaultRocket);
-        this.astralPlus = new AstralPlus(api, this.devStuff, this.astralConfig.customItemPriority);
-        this.astralPlus.updateConfig(this.devStuff, this.astralConfig.customItemPriority,
-                this.astralConfig.minTimePerAction);
+        this.astralPlus = new AstralPlus(api, this.astralConfig.customItemPriority, this.astralConfig.astralPlusConfig);
+        this.astralPlus.updateConfig(this.astralConfig.customItemPriority, this.astralConfig.astralPlusConfig);
         fillPortalInfo();
     }
 
