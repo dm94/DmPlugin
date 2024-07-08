@@ -55,6 +55,6 @@ public class DefenseLaserSupplier {
             return false;
         }
 
-        return item.getTimer() == null || item.getTimer().getAvailableIn() <= 0;
+        return item.getQuantity() > 200 && (item.getTimer() == null || item.getTimer().getAvailableIn() <= 0);
     }
 }
