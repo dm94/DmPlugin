@@ -63,8 +63,8 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
             Ability.SOLARIS_PLUS_INCINERATE_PLUS, Ability.BASILISK_NOXIOUS_NEBULA, Ability.TEMPEST_VOLTAGE_LINK);
 
     private final List<Ability> SPEED_ABILITIES = Arrays.asList(Ability.CITADEL_TRAVEL, Ability.LIGHTNING,
-            Ability.TARTARUS_SPEED_BOOST, Ability.KERES_SLE, Ability.MIMESIS_PHASE_OUT,
-            Ability.ZEPHYR_MMT, Ability.PUSAT_PLUS_SPEED_SAP, Ability.RETIARUS_SPC, Ability.TARTARUS_PLUS_SPEED_BOOST);
+            Ability.KERES_SLE, Ability.MIMESIS_PHASE_OUT,
+            Ability.ZEPHYR_MMT, Ability.PUSAT_PLUS_SPEED_SAP, Ability.RETIARUS_SPC);
 
     private final List<Ability> HEALTH_ABILITIES_WITHOUT_LOCK = Arrays.asList(Ability.AEGIS_REPAIR_POD,
             Ability.LIBERATOR_PLUS_SELF_REPAIR, Ability.SOLACE, Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS);
@@ -82,6 +82,9 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
             Ability.SENTINEL, Ability.BERSERKER_BSK);
 
     private final List<Ability> ALL_TIME_ABILITIES = Arrays.asList(Ability.SPEARHEAD_DOUBLE_MINIMAP);
+
+    private final List<Ability> TARTARUS_SPEED_ABILITIES = Arrays.asList(Ability.TARTARUS_SPEED_BOOST,
+            Ability.TARTARUS_PLUS_SPEED_BOOST);
 
     private long nextCheck = 0;
 
@@ -130,6 +133,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     public void onTickBehavior() {
         if (this.nextCheck < System.currentTimeMillis()) {
             this.nextCheck = System.currentTimeMillis() + (this.config.timeToCheck * 1000);
+            disableTartarusSpeedIfAttacking();
             this.conditionsManagement.useSelectableReadyWhenReady(getAbilityAlwaysToUse());
             this.conditionsManagement.useSelectableReadyWhenReady(getBestAbility());
         }
@@ -169,6 +173,13 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
                                                                                     }
                                                                                     return null;
                                                                                 })))))))));
+    }
+
+    private void disableTartarusSpeedIfAttacking() {
+        if (heroapi.isAttacking() && heroapi.hasEffect(92)) {
+            TARTARUS_SPEED_ABILITIES
+                    .forEach(ability -> items.useItem(ability, 250, ItemFlag.USABLE));
+        }
     }
 
     private Optional<Ability> getShieldAbility() {
@@ -243,6 +254,13 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     }
 
     private Optional<Ability> getAllTimeAbility() {
+        if (!heroapi.isAttacking() && !heroapi.hasEffect(92)) {
+            Optional<Ability> tartarusAbility = getAbilityAvailableFromList(TARTARUS_SPEED_ABILITIES);
+            if (tartarusAbility.isPresent()) {
+                return tartarusAbility;
+            }
+        }
+
         return getAbilityAvailableFromList(ALL_TIME_ABILITIES);
     }
 
