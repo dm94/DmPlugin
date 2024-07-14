@@ -11,7 +11,7 @@ import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.managers.ExtensionsAPI;
 
-@Feature(name = "Urgent Detector [PLUS]", description = "Detects urgent quests")
+@Feature(name = "Urgent Detector [PLUS]", description = "Changes profile when it detects an urgent quest")
 public class UrgentDetectorDummy extends UrgentDetector {
     public UrgentDetectorDummy(PluginAPI api) throws SecurityException {
         super(api);
