@@ -230,6 +230,13 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
             return Optional.empty();
         }
 
+        if (!heroapi.hasEffect(92)) {
+            Optional<Ability> tartarusAbility = getAbilityAvailableFromList(TARTARUS_SPEED_ABILITIES);
+            if (tartarusAbility.isPresent()) {
+                return tartarusAbility;
+            }
+        }
+
         return getAbilityAvailableFromList(SPEED_ABILITIES);
     }
 
