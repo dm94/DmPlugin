@@ -1,7 +1,7 @@
 {
   "name": "DmPlugin",
   "author": "Dm94Dani",
-  "version": "2.2.14",
+  "version": "2.2.15 beta 3",
   "minVersion": "1.131",
   "supportedVersion": "1.131.2",
   "basePackage": "com.deeme",
@@ -12,7 +12,6 @@
     "com.deeme.modules.astral.AstralGate",
     "com.deeme.modules.genericgate.GenericGateDummy",
     "com.deeme.modules.quest.QuestModuleDummy",
-    "com.deeme.tasks.discord.Discord",
     "com.deeme.tasks.SkylabSender",
     "com.deeme.tasks.WeeklySchedule",
     "com.deeme.tasks.AutoChangeMap",
