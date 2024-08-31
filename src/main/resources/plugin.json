@@ -1,7 +1,7 @@
 {
   "name": "DmPlugin",
   "author": "Dm94Dani",
-  "version": "2.2.14",
+  "version": "2.3.0 beta 3",
   "minVersion": "1.131",
   "supportedVersion": "1.131.2",
   "basePackage": "com.deeme",
@@ -12,7 +12,6 @@
     "com.deeme.modules.astral.AstralGate",
     "com.deeme.modules.genericgate.GenericGateDummy",
     "com.deeme.modules.quest.QuestModuleDummy",
-    "com.deeme.tasks.discord.Discord",
     "com.deeme.tasks.SkylabSender",
     "com.deeme.tasks.WeeklySchedule",
     "com.deeme.tasks.AutoChangeMap",
@@ -36,6 +35,6 @@
   ],
   "donation": "https://ko-fi.com/deeme",
   "discord": "https://discord.gg/GPRTRRZJPw",
-  "download": "https://github.com/darkbot-reloaded/DmPlugin/releases/download/v2.2.14/DmPlugin.jar",
+  "download": "https://github.com/darkbot-reloaded/DmPlugin/releases/download/v2.3.0/DmPlugin.jar",
   "update": "https://raw.githubusercontent.com/darkbot-reloaded/DmPlugin/master/src/main/resources/plugin.json"
 }
