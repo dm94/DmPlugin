@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 
 import com.deeme.behaviours.bestrocket.BestRocketConfig;
-import com.deeme.behaviours.bestrocket.SupportedRockets;
 import com.deeme.types.SharedFunctions;
 
 import eu.darkbot.api.PluginAPI;
@@ -34,7 +33,8 @@ public class BestRocketSupplier {
     List<SelectableItem> damageOrder = Arrays.asList(Rocket.SP_100X, Rocket.PLT_3030, Rocket.PLT_2021,
             Rocket.BDR_1211,
             Rocket.PLT_2026,
-            Rocket.R_310);
+            Rocket.R_310,
+            Rocket.WIZ_X);
 
     List<SelectableItem> damageOrderNPCs = Arrays.asList(Rocket.BDR_1211, Rocket.SP_100X,
             Rocket.PLT_3030,
@@ -156,7 +156,7 @@ public class BestRocketSupplier {
         return ableToUse(rocket, config.rocketsToUsePlayers);
     }
 
-    private boolean ableToUse(SelectableItem rocket, Set<SupportedRockets> rockets) {
+    private boolean ableToUse(SelectableItem rocket, Set<Rocket> rockets) {
         return rocket != null && rockets.stream().anyMatch(s -> s.getId() != null && s.getId().equals(rocket.getId()))
                 && ableToUse(rocket);
     }
