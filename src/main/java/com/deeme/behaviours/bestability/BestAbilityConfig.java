@@ -8,6 +8,7 @@ import eu.darkbot.api.config.annotations.Dropdown;
 import eu.darkbot.api.config.annotations.Option;
 import eu.darkbot.api.config.annotations.Number;
 import eu.darkbot.api.config.annotations.Percentage;
+import eu.darkbot.api.game.items.SelectableItem.Ability;
 
 @Configuration("best_ability")
 public class BestAbilityConfig {
@@ -28,11 +29,11 @@ public class BestAbilityConfig {
 
     @Option("best_ability.supported_abilities")
     @Dropdown(multi = true)
-    public Set<SupportedAbilities> supportedAbilities = EnumSet.allOf(SupportedAbilities.class);
+    public Set<Ability> supportedAbilities = EnumSet.allOf(Ability.class);
 
     @Option("best_ability.abilities_to_use_everytime")
     @Dropdown(multi = true)
-    public Set<SupportedAbilities> abilitiesToUseEverytime = EnumSet.noneOf(SupportedAbilities.class);
+    public Set<Ability> abilitiesToUseEverytime = EnumSet.noneOf(Ability.class);
 
     @Option("general.tick_stopped")
     public boolean tickStopped = false;
