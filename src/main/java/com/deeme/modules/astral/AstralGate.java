@@ -204,7 +204,7 @@ public class AstralGate implements Module, InstructionProvider, Configurable<Ast
             if (astralPlus.isValidShip()) {
                 activeAutoRocketCPU();
                 repairShield = repairShield && heroapi.getHealth().shieldPercent() < 0.9
-                        || heroapi.getHealth().shieldPercent() < 0.2;
+                        || heroapi.getHealth().shieldPercent() < astralConfig.minShieldToRepair;
                 if (findTarget()) {
                     waveLogic();
                 } else if (npcs.isEmpty() || !portals.isEmpty()) {

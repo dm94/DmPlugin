@@ -13,6 +13,7 @@ import eu.darkbot.api.config.annotations.Configuration;
 import eu.darkbot.api.config.annotations.Dropdown;
 import eu.darkbot.api.config.annotations.Number;
 import eu.darkbot.api.config.annotations.Option;
+import eu.darkbot.api.config.annotations.Percentage;
 import eu.darkbot.api.config.annotations.Table;
 
 @Configuration("astral")
@@ -35,6 +36,10 @@ public class AstralConfig {
 
     @Option("astral.attack_closest")
     public boolean alwaysTheClosestNPC = false;
+
+    @Option("astral.min_shield_to_repair")
+    @Percentage
+    public double minShieldToRepair = 0.2;
 
     @Option("astral.best_ammo")
     @Dropdown
