@@ -266,7 +266,8 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
 
         LocalDateTime da = LocalDateTime.now();
 
-        return config.timeCondition.hour == da.getHour() && da.getMinute() >= config.timeCondition.minute;
+        return config.timeCondition.hour == da.getHour()
+                && (da.getMinute() >= config.timeCondition.minute && config.timeCondition.minute <= da.getMinute() + 5);
     }
 
     private boolean isReadyKeyCondition() {
