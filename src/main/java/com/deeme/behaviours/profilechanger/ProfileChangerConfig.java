@@ -17,7 +17,7 @@ public class ProfileChangerConfig {
 
     @Option("general.bot_profile")
     @Dropdown(options = ProfileNames.class)
-    public String BOT_PROFILE = "";
+    public String BOT_PROFILE = "config";
 
     @Option("profile_changer.close_bot")
     public boolean closeBot = false;

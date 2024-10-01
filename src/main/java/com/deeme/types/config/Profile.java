@@ -15,5 +15,5 @@ public class Profile {
 
     @Option("general.bot_profile")
     @Dropdown(options = ProfileNames.class)
-    public String BOT_PROFILE = "";
+    public String BOT_PROFILE = "config";
 }
