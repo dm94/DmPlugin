@@ -17,5 +17,5 @@ public class UrgentDetectorConfig {
 
     @Option("urgent_detector.bot_profile")
     @Dropdown(options = ProfileNames.class)
-    public String botProfile = "";
+    public String botProfile = "config";
 }

@@ -23,7 +23,7 @@ public class Utils {
         if (!Backpage.isInDiscord(authID)) {
             String discordTag = Backpage.getDiscordTagExternal(authID);
             featureInfo
-                    .addFailure("To use this option you need to be on my discord",
+                    .addFailure("To use this option you need to be on the plugin discord",
                             "ID: " + discordTag);
         }
     }
@@ -32,8 +32,8 @@ public class Utils {
         if (!Backpage.isDonor(authID, featureInfo.getPluginInfo().getVersion().toString().trim())) {
             String discordTag = Backpage.getDiscordTagExternal(authID);
             featureInfo
-                    .addFailure("[PLUS] Only some people can use this feature.",
-                            "ID: " + discordTag);
+                    .addFailure("[PLUS] You need to have a specific role to use this",
+                            "Read the FAQs in discord. ID: " + discordTag);
         }
     }
 

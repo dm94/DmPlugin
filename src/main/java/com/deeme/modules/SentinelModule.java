@@ -48,6 +48,7 @@ import eu.darkbot.shared.utils.SafetyFinder;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Random;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -89,6 +90,8 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
     private int groupLeaderID = 0;
 
     private long randomWaitTime = 0;
+    private Random rnd;
+    private Entity oldTarget;
 
     private Location lastSentinelLocation = null;
 
@@ -162,6 +165,8 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         this.runConfigInCircle = configApi.requireConfig("loot.run_config_in_circle");
         this.configRun = configApi.requireConfig("general.run");
         this.configRoam = configApi.requireConfig("general.roam");
+        this.rnd = new Random();
+        this.oldTarget = null;
 
         setup();
     }
@@ -288,6 +293,7 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         if (!sConfig.followByPortals || lastSentinelLocation == null) {
             return false;
         }
+
         Portal portal = getNearestPortal(lastSentinelLocation);
         if (portal != null) {
             if (group.hasGroup() && masterID != 0) {
@@ -322,6 +328,14 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
     }
 
     private boolean isAttacking() {
+        if (this.randomWaitTime > System.currentTimeMillis()) {
+            return this.oldTarget != null;
+        }
+
+        if (sConfig.humanizer.addRandomTime) {
+            this.randomWaitTime = System.currentTimeMillis() + (rnd.nextInt(sConfig.humanizer.maxRandomTime) * 1000);
+        }
+
         Entity target = getSentinelTarget();
 
         if (target == null) {
@@ -337,34 +351,37 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         }
 
         if (target == null && sConfig.autoAttack.autoAttackEnemies) {
-            target = shipAttacker.getEnemy(sConfig.autoAttack.rangeForEnemies);
+            target = this.shipAttacker.getEnemy(sConfig.autoAttack.rangeForEnemies);
         }
         if (target == null && sConfig.autoAttack.defendFromNPCs) {
             target = SharedFunctions.getAttacker(heroapi, npcs, heroapi);
         }
+
         if (target != null) {
             setMode(extraConfigChangerLogic.getShipMode());
             if (target instanceof Npc) {
-                isNpc = true;
+                this.isNpc = true;
                 attacker.setTarget((Npc) target);
                 attacker.tryLockAndAttack();
             } else {
-                isNpc = false;
+                this.isNpc = false;
                 shipAttacker.setTarget((Ship) target);
                 shipAttacker.tryLockAndAttack();
             }
         }
 
+        this.oldTarget = target;
+
         return target != null;
     }
 
     private Entity getSentinelTarget() {
-        if (randomWaitTime > System.currentTimeMillis()) {
-            return null;
-        }
-
         Entity target = null;
         if (sentinel.getTarget() != null) {
+            if (this.oldTarget != null && this.oldTarget.getId() == sentinel.getTarget().getId()) {
+                return this.oldTarget;
+            }
+
             if (sConfig.autoAttack.helpAttackPlayers || sConfig.autoAttack.helpAttackEnemyPlayers) {
                 target = players.stream()
                         .filter(s -> (sentinel.getTarget().getId() == s.getId())

@@ -239,7 +239,7 @@ public class WeeklySchedule implements Task, Configurable<WeeklyConfig>, Instruc
     }
 
     private boolean isRunningPalladiumModule() {
-        return botApi.getModule().getClass() == PalladiumHangar.class;
+        return botApi.getModule() != null && botApi.getModule().getClass() == PalladiumHangar.class;
     }
 
     private void tryUpdateHangarList() {

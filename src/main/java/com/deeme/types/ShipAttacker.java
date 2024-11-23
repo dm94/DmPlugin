@@ -57,6 +57,7 @@ public class ShipAttacker {
     private Random rnd;
 
     private int lastAttacked;
+    private static final int MIN_CLICK_DELAY = 250;
 
     private boolean firstAttack;
     private long isAttacking;
@@ -110,9 +111,10 @@ public class ShipAttacker {
             lastAttacked = target.getId();
             firstAttack = true;
 
-            clickDelay = System.currentTimeMillis();
             if (humanizerConfig.addRandomTime) {
                 clickDelay = System.currentTimeMillis() + (rnd.nextInt(humanizerConfig.maxRandomTime) * 1000);
+            } else {
+                clickDelay = System.currentTimeMillis() + MIN_CLICK_DELAY;
             }
         }
 
@@ -124,7 +126,7 @@ public class ShipAttacker {
             if (System.currentTimeMillis() > clickDelay) {
                 heroapi.setLocalTarget(target);
                 target.trySelect(false);
-                clickDelay = System.currentTimeMillis();
+                clickDelay = System.currentTimeMillis() + MIN_CLICK_DELAY;
             }
         } else {
             movement.moveTo(target.getDestination().orElse(target.getLocationInfo()));
@@ -285,11 +287,10 @@ public class ShipAttacker {
                         && (ableToAttack || s.isAttacking())
                         && !s.hasEffect(290)
                         && !(s instanceof Pet)
-                        && !(ignoreInvisible && s.isInvisible())
-                        && !inGroup(s.getId())
+                        && !(ignoreInvisible && s.isInvisible()))
+                .filter(s -> !inGroup(s.getId())
                         && movement.canMove(s)
                         && s.getLocationInfo().distanceTo(heroapi) <= maxDistance)
-
                 .sorted(Comparator.comparingDouble(s -> s.getLocationInfo().distanceTo(heroapi))).findAny()
                 .orElse(null);
     }
