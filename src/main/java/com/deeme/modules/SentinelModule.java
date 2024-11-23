@@ -98,6 +98,8 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
     private static final double MAX_DISTANCE_LIMIT = 10000;
     private static final int MIN_SENTINEL_HEALTH = 1000;
     private static final double SPEED_MULTIPLIER = 0.625;
+    private static final double ANGLE_ADJUSTMENT = 0.3;
+    private static final double DISTANCE_INCREMENT = 2.0;
 
     private JLabel label = new JLabel("<html><b>Sentinel Module</b> <br>" +
             "It's important that the main ship is in a group <br>" +
@@ -560,10 +562,6 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         double speed = target instanceof Movable ? ((Movable) target).getSpeed() : 0;
         boolean noCircle = attacker.hasExtraFlag(NpcFlag.NO_CIRCLE);
 
-        if (radius > 750) {
-            noCircle = false;
-        }
-
         double angleDiff;
         if (noCircle) {
             double dist = targetLoc.distanceTo(direction);
@@ -583,10 +581,14 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
         }
         direction = getBestDir(targetLoc, angle, angleDiff, distance);
 
-        while (!movement.canMove(direction) && distance < MAX_DISTANCE_LIMIT)
-            direction.toAngle(targetLoc, angle += backwards ? -0.3 : 0.3, distance += 2);
-        if (distance >= MAX_DISTANCE_LIMIT)
+        while (!movement.canMove(direction) && distance < MAX_DISTANCE_LIMIT) {
+            direction.toAngle(targetLoc, angle += backwards ? -ANGLE_ADJUSTMENT : ANGLE_ADJUSTMENT,
+                    distance += DISTANCE_INCREMENT);
+        }
+
+        if (distance >= MAX_DISTANCE_LIMIT) {
             direction.toAngle(targetLoc, angle, 500);
+        }
 
         setNPCConfig(direction);
 
