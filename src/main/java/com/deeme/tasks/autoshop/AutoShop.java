@@ -105,7 +105,6 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
             updateLabel(itemConfig, State.PURCHASE_SUCCESS);
         } catch (Exception e) {
             updateLabel(itemConfig, State.PURCHASE_ERROR);
-            e.printStackTrace();
         }
     }
 
