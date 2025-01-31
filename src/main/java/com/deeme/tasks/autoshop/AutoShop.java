@@ -72,15 +72,7 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
     }
 
     private void check(BuyItem itemConfig) {
-        if (!itemConfig.enable) {
-            return;
-        }
-
-        if (itemConfig.nextCheck > System.currentTimeMillis()) {
-            return;
-        }
-
-        if (itemConfig.quantity <= 0) {
+        if (!itemConfig.enable || itemConfig.quantity <= 0 || itemConfig.nextCheck > System.currentTimeMillis()) {
             return;
         }
 
@@ -88,30 +80,32 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
 
         if (itemConfig.itemToBuy != null && checkNormalCondition(itemConfig)
                 && checkQuantityCondition(itemConfig.quantityCondition)) {
+            tryPurchaseItem(itemConfig);
+        }
+    }
 
-            ItemSupported itemSelected = getItemById(itemConfig.itemToBuy);
+    private void tryPurchaseItem(BuyItem itemConfig) {
+        ItemSupported itemSelected = getItemById(itemConfig.itemToBuy);
+        if (itemSelected == null) {
+            return;
+        }
+    
+        if (this.stats.getTotalCredits() < itemSelected.getCreditsPrice() * itemConfig.quantity) {
+            updateLabel(itemConfig, State.NO_CREDITS);
+            return;
+        }
 
-            if (itemSelected == null) {
-                return;
-            }
-
-            if (this.stats.getTotalCredits() < itemSelected.getCreditsPrice() * itemConfig.quantity) {
-                updateLabel(itemConfig, State.NO_CREDITS);
-                return;
-            }
-
-            if (this.stats.getTotalUridium() < itemSelected.getUridiumPrice() * itemConfig.quantity) {
-                updateLabel(itemConfig, State.NO_URI);
-                return;
-            }
-
-            try {
-                buyItem(itemSelected, itemConfig.quantity);
-                updateLabel(itemConfig, State.PURCHASE_SUCCESS);
-            } catch (Exception e) {
-                updateLabel(itemConfig, State.PURCHASE_ERROR);
-                e.printStackTrace();
-            }
+        if (this.stats.getTotalUridium() < itemSelected.getUridiumPrice() * itemConfig.quantity) {
+            updateLabel(itemConfig, State.NO_URI);
+            return;
+        }
+    
+        try {
+            buyItem(itemSelected, itemConfig.quantity);
+            updateLabel(itemConfig, State.PURCHASE_SUCCESS);
+        } catch (Exception e) {
+            updateLabel(itemConfig, State.PURCHASE_ERROR);
+            e.printStackTrace();
         }
     }
 
