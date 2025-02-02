@@ -1,6 +1,6 @@
 package com.deeme.tasks.autoshop;
 
-import com.deemeplus.suppliers.SelectableItemSupplier;
+import com.deeme.types.gui.SelectableItemSupplier;
 
 import eu.darkbot.api.config.annotations.Configuration;
 import eu.darkbot.api.config.annotations.Dropdown;
