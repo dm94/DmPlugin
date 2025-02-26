@@ -52,49 +52,57 @@ public class ExtraMovementLogic {
         MovementModeEnum movementSelected = getMovementMode();
 
         switch (movementSelected) {
-            case VSSAFETY:
-                if (!safetyFinder.tick()) {
-                    break;
-                }
             case VS:
                 vsMove();
                 break;
             case RANDOM:
-                if (!movement.isMoving() || movement.isOutOfMap()) {
-                    movement.moveRandom();
-                }
+                handleRandom();
                 break;
             case GROUPVSSAFETY:
-                if (safetyFinder.tick()) {
-                    GroupMember groupMember = getClosestMember();
-                    if (groupMember != null) {
-                        if (groupMember.getLocation().distanceTo(hero) < DISTANCE_TO_USE_VS_MODE) {
-                            vsMove();
-                        } else {
-                            movement.moveTo(groupMember.getLocation());
-                        }
-                    } else {
-                        vsMove();
-                    }
-                }
+                handleGroupVSSafety();
                 break;
             case GROUPVS:
-                GroupMember groupMember = getClosestMember();
-                if (groupMember != null) {
-                    if (groupMember.getLocation().distanceTo(hero) < DISTANCE_TO_USE_VS_MODE) {
-                        vsMove();
-                    } else {
-                        movement.moveTo(groupMember.getLocation());
-                    }
-                } else {
-                    vsMove();
-                }
+                handleGroupVS();
                 break;
+            case VSSAFETY:
             default:
-                if (safetyFinder.tick()) {
-                    vsMove();
-                }
+                handleVSSafety();
                 break;
+        }
+    }
+
+    private void handleVSSafety() {
+        if (!safetyFinder.tick()) {
+            vsMove();
+        }
+    }
+
+    private void handleRandom() {
+        if (!movement.isMoving() || movement.isOutOfMap()) {
+            movement.moveRandom();
+        }
+    }
+
+    private void handleGroupVSSafety() {
+        if (safetyFinder.tick()) {
+            handleGroupMovement();
+        }
+    }
+
+    private void handleGroupVS() {
+        handleGroupMovement();
+    }
+
+    private void handleGroupMovement() {
+        GroupMember groupMember = getClosestMember();
+        if (groupMember != null) {
+            if (groupMember.getLocation().distanceTo(hero) < DISTANCE_TO_USE_VS_MODE) {
+                vsMove();
+            } else {
+                movement.moveTo(groupMember.getLocation());
+            }
+        } else {
+            vsMove();
         }
     }
 
@@ -132,7 +140,7 @@ public class ExtraMovementLogic {
             return Optional.of(target.getDestination().orElse(target.getLocationInfo().destinationInTime(500)));
         } else {
             Entity other = hero.getTarget();
-            if (target != null && target.isValid()) {
+            if (other != null && other.isValid()) {
                 return Optional.of(other.getLocationInfo());
             }
         }
