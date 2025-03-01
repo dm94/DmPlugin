@@ -4,7 +4,7 @@ import com.deeme.behaviours.defense.AmmoConfig;
 import com.deeme.modules.sentinel.Humanizer;
 import com.deeme.types.config.ExtraKeyConditions;
 import com.deemeplus.general.configchanger.ExtraConfigChangerConfig;
-import com.deemeplus.general.movement.MovementConfig;
+import com.deeme.shared.movement.MovementConfig;
 
 import eu.darkbot.api.config.annotations.Configuration;
 import eu.darkbot.api.config.annotations.Number;

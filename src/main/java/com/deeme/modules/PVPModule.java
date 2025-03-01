@@ -7,7 +7,7 @@ import com.deeme.types.ShipAttacker;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 import com.deemeplus.general.configchanger.ExtraCChangerLogic;
-import com.deemeplus.general.movement.ExtraMovementLogic;
+import com.deeme.shared.movement.ExtraMovementLogic;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;

@@ -6,7 +6,7 @@ import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 import com.deeme.types.config.SentinelConfig;
 import com.deemeplus.general.configchanger.ExtraCChangerLogic;
-import com.deemeplus.general.movement.ExtraMovementLogic;
+import com.deeme.shared.movement.ExtraMovementLogic;
 import com.github.manolo8.darkbot.Main;
 
 import eu.darkbot.api.PluginAPI;
