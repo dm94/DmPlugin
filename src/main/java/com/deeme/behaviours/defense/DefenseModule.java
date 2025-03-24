@@ -2,7 +2,7 @@ package com.deeme.behaviours.defense;
 
 import com.deeme.types.ShipAttacker;
 import com.deeme.shared.movement.ExtraMovementLogic;
-import com.deemeplus.general.configchanger.ExtraCChangerLogic;
+import com.deeme.shared.configchanger.ExtraCChangerLogic;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.game.entities.Entity;

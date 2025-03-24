@@ -6,7 +6,7 @@ import com.deeme.types.SharedFunctions;
 import com.deeme.types.ShipAttacker;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
-import com.deemeplus.general.configchanger.ExtraCChangerLogic;
+import com.deeme.shared.configchanger.ExtraCChangerLogic;
 import com.deeme.shared.movement.ExtraMovementLogic;
 
 import eu.darkbot.api.PluginAPI;

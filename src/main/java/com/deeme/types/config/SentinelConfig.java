@@ -2,7 +2,7 @@ package com.deeme.types.config;
 
 import com.deeme.behaviours.defense.AmmoConfig;
 import com.deeme.modules.sentinel.Humanizer;
-import com.deemeplus.general.configchanger.ExtraConfigChangerConfig;
+import com.deeme.shared.configchanger.ExtraConfigChangerConfig;
 import com.deeme.shared.movement.MovementConfig;
 import com.github.manolo8.darkbot.config.PlayerTag;
 import com.github.manolo8.darkbot.config.types.Tag;
