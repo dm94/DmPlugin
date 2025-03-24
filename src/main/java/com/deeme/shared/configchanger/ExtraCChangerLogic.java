@@ -26,10 +26,6 @@ public class ExtraCChangerLogic {
     }
 
     public ShipMode getShipMode() {
-        return ggetShipModePrivate();
-    }
-
-    private ShipMode ggetShipModePrivate() {
         ConfigOptionsEnum configToUse = getConfigToUse();
 
         switch (configToUse) {
