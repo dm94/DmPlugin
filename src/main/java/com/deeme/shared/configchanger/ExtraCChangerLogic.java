@@ -29,15 +29,15 @@ public class ExtraCChangerLogic {
         ConfigOptionsEnum configToUse = getConfigToUse();
 
         switch (configToUse) {
-            case OFFENSIVE:
-                return configOffensive.getValue();
             case RUN:
                 return configRun.getValue();
             case ROAM:
                 return configRoam.getValue();
+            case OFFENSIVE:
+            default:
+                return configOffensive.getValue();
         }
 
-        return configOffensive.getValue();
     }
 
     private ConfigOptionsEnum getConfigToUse() {
