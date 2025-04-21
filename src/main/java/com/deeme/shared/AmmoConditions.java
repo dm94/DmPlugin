@@ -18,6 +18,9 @@ public class AmmoConditions {
 
     private static final long MIN_HEALTH = 100000;
     private static final long MIN_SAB_SHIELD = 150000;
+    private static final long MIN_HERO_SHIELD = 150000;
+    private static final long MIN_HERO_HP = 60000;
+    private static final double MIN_HERO_HP_PERCENT = 0.5;
 
     private final ConfigSetting<Sab> sabSettings;
 
@@ -55,8 +58,8 @@ public class AmmoConditions {
         Lockable target = heroapi.getLocalTarget();
         if (target != null && target.isValid()) {
             if (target.getHealth().getShield() > MIN_SAB_SHIELD && heroapi.getHealth().shieldPercent() < 0.5
-                    && heroapi.getHealth().getMaxShield() > 150000 && heroapi.getHealth().getHp() < 60000
-                    && heroapi.getHealth().hpPercent() < 0.5) {
+                    && heroapi.getHealth().getMaxShield() > MIN_HERO_SHIELD && heroapi.getHealth().getHp() < MIN_HERO_HP
+                    && heroapi.getHealth().hpPercent() < MIN_HERO_HP_PERCENT) {
                 return true;
             }
 
