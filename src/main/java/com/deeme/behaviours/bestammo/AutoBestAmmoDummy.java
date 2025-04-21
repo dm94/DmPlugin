@@ -171,7 +171,7 @@ public class AutoBestAmmoDummy implements Behavior, Configurable<BestAmmoConfig>
             }
         }
 
-        if (abletToUseInfectionAmmo(isNpc)) {
+        if (ableToUseInfectionAmmo(isNpc)) {
             return Laser.PIB_100;
         }
 
@@ -245,12 +245,12 @@ public class AutoBestAmmoDummy implements Behavior, Configurable<BestAmmoConfig>
                 || name.matches("(M|m)(i|1)(m|M)(e|3)(s|5)(i|1)(s|5)");
     }
 
-    private boolean abletToUseInfectionAmmo(boolean isNpc) {
+    private boolean ableToUseInfectionAmmo(boolean isNpc) {
         if (isNpc ? !ableToUseNPCs(Laser.PIB_100) : !ableToUsePlayers(Laser.PIB_100)) {
             return false;
         }
 
-        return this.ammoConditions.abletToUseInfectionAmmo();
+        return this.ammoConditions.ableToUseInfectionAmmo();
     }
 
     private boolean ableToUseRSB(boolean isNpc) {

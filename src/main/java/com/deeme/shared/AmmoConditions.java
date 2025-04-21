@@ -29,7 +29,7 @@ public class AmmoConditions {
         this.sabSettings = configApi.requireConfig("loot.sab");
     }
 
-    public boolean abletToUseInfectionAmmo() {
+    public boolean ableToUseInfectionAmmo() {
         if (hasISH()) {
             return false;
         }
