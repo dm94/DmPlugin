@@ -49,6 +49,8 @@ public class AutoBestAmmoDummy implements Behavior, Configurable<BestAmmoConfig>
 
     private static final int MAX_RANGE = 730;
     private static final int MIN_AMMO = 200;
+    private static final int PROMETHEUS_EFFECT_ID = 98;
+    private static final double LOW_HP_THRESHOLD = 0.5; // 50% HP threshold
 
     List<Laser> damageOrder = Arrays.asList(Laser.RCB_140, Laser.RSB_75, Laser.IDB_125, Laser.CC_A, Laser.CC_B,
             Laser.CC_C, Laser.CC_D,
@@ -117,7 +119,7 @@ public class AutoBestAmmoDummy implements Behavior, Configurable<BestAmmoConfig>
             boolean isNpc = target instanceof Npc;
             if (hasTag(ExtraNpcFlagsEnum.BEST_AMMO) || (!isNpc && hasOption(BehaviourOptionsEnum.VS_PLAYERS))
                     || (isNpc && hasOption(BehaviourOptionsEnum.ALWAYS_FOR_NPC))
-                    || heroapi.getHealth().hpPercent() <= config.alwaysUseBellowHp) {
+                    || heroapi.getHealth().hpPercent() <= LOW_HP_THRESHOLD) {
                 changeLaser(getBestLaserAmmo(isNpc));
             } else {
                 changeLaser(getDefaultLaser());
@@ -153,7 +155,7 @@ public class AutoBestAmmoDummy implements Behavior, Configurable<BestAmmoConfig>
     }
 
     private boolean noPassPrometheusCheck() {
-        return hasOption(BehaviourOptionsEnum.ONLY_PROMETHEUS) && !heroapi.hasEffect(98);
+        return hasOption(BehaviourOptionsEnum.ONLY_PROMETHEUS) && !heroapi.hasEffect(PROMETHEUS_EFFECT_ID);
     }
 
     private SelectableItem getBestLaserAmmo(boolean isNpc) {
