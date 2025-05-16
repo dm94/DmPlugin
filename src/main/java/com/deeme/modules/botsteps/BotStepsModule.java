@@ -40,12 +40,14 @@ public class BotStepsModule implements Module, Configurable<BotStepsConfig> {
 
   @Override
   public void onTickModule() {
-    if (finished || config == null || config.steps == null || config.steps.isEmpty())
+    if (finished || config == null || config.steps == null || config.steps.isEmpty()) {
       return;
-    if (selectedGui == null)
-      return;
+    }
 
-    // Open the configured GUI if not open
+    if (selectedGui == null) {
+      return;
+    }
+
     if (!selectedGui.isVisible()) {
       selectedGui.setVisible(true);
       return;
@@ -53,15 +55,12 @@ public class BotStepsModule implements Module, Configurable<BotStepsConfig> {
 
     if (currentStep < config.steps.size()) {
       Step step = config.steps.get(currentStep);
-      if (System.currentTimeMillis() < waitUntil)
+      if (System.currentTimeMillis() < waitUntil) {
         return;
-      // Evaluate the condition (simple true/false for now)
-      if (step.condition == null || step.condition.get(api).allows()) {
-        // Click at the specified position
-        selectedGui.click(step.x, step.y);
-        // Wait for the specified time
-        waitUntil = System.currentTimeMillis() + step.waitMs;
       }
+
+      selectedGui.click(step.x, step.y);
+      waitUntil = System.currentTimeMillis() + step.waitMs;
       currentStep++;
     } else {
       // All steps done, change profile
