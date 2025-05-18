@@ -52,12 +52,10 @@ public class AutoBestAmmoDummy implements Behavior, Configurable<BestAmmoConfig>
     private static final int PROMETHEUS_EFFECT_ID = 98;
     private static final double LOW_HP_THRESHOLD = 0.5; // 50% HP threshold
 
-    List<Laser> damageOrder = Arrays.asList(Laser.RCB_140, Laser.RSB_75, Laser.IDB_125, Laser.CC_A, Laser.CC_B,
-            Laser.CC_C, Laser.CC_D,
-            Laser.CC_E, Laser.CC_F, Laser.CC_G, Laser.CC_H,
-            Laser.UCB_100, Laser.SBL_100, Laser.A_BL, Laser.EMAA_20,
-            Laser.VB_142,
-            Laser.MCB_50, Laser.MCB_25, Laser.LCB_10);
+    List<Laser> damageOrder = Arrays.asList(Laser.RCB_140, Laser.RSB_75, Laser.IDB_125, Laser.CC_A,
+            Laser.CC_B, Laser.CC_C, Laser.CC_D, Laser.CC_E, Laser.CC_F, Laser.CC_G, Laser.CC_H,
+            Laser.UCB_100, Laser.SBL_100, Laser.A_BL, Laser.EMAA_20, Laser.VB_142, Laser.MCB_50,
+            Laser.MCB_25, Laser.LCB_10);
 
     List<Laser> damageOrderNPC = Arrays.asList(Laser.RCB_140, Laser.RSB_75, Laser.UCB_100,
             Laser.JOB_100, Laser.MCB_50, Laser.MCB_25, Laser.LCB_10);
@@ -67,7 +65,8 @@ public class AutoBestAmmoDummy implements Behavior, Configurable<BestAmmoConfig>
     }
 
     @Inject
-    public AutoBestAmmoDummy(PluginAPI api, AuthAPI auth, HeroItemsAPI items) throws SecurityException {
+    public AutoBestAmmoDummy(PluginAPI api, AuthAPI auth, HeroItemsAPI items)
+            throws SecurityException {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) {
             throw new SecurityException();
         }
@@ -83,7 +82,8 @@ public class AutoBestAmmoDummy implements Behavior, Configurable<BestAmmoConfig>
         this.configApi = api.requireAPI(ConfigAPI.class);
         this.npcInfos = configApi.requireConfig("loot.npc_infos");
         SettingsProxy settingsProxy = api.requireInstance(SettingsProxy.class);
-        this.attackLaserKey = settingsProxy.getCharacterOf(SettingsProxy.KeyBind.ATTACK_LASER).orElse(null);
+        this.attackLaserKey =
+                settingsProxy.getCharacterOf(SettingsProxy.KeyBind.ATTACK_LASER).orElse(null);
     }
 
     @Override
@@ -117,7 +117,8 @@ public class AutoBestAmmoDummy implements Behavior, Configurable<BestAmmoConfig>
         if (target != null && target.isValid() && heroapi.isAttacking(target)
                 && heroapi.distanceTo(target) < MAX_RANGE) {
             boolean isNpc = target instanceof Npc;
-            if (hasTag(ExtraNpcFlagsEnum.BEST_AMMO) || (!isNpc && hasOption(BehaviourOptionsEnum.VS_PLAYERS))
+            if (hasTag(ExtraNpcFlagsEnum.BEST_AMMO)
+                    || (!isNpc && hasOption(BehaviourOptionsEnum.VS_PLAYERS))
                     || (isNpc && hasOption(BehaviourOptionsEnum.ALWAYS_FOR_NPC))
                     || heroapi.getHealth().hpPercent() <= LOW_HP_THRESHOLD) {
                 changeLaser(getBestLaserAmmo(isNpc));
@@ -132,8 +133,7 @@ public class AutoBestAmmoDummy implements Behavior, Configurable<BestAmmoConfig>
             return;
         }
 
-        if (items.getItem(laser, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.NOT_SELECTED, ItemFlag.POSITIVE_QUANTITY)
-                .isPresent()) {
+        if (hasAmmo(laser)) {
             if (hasOption(BehaviourOptionsEnum.CHANGE_AMMO_DIRECTLY)) {
                 items.useItem(laser, ItemFlag.NOT_SELECTED);
             }
@@ -155,7 +155,8 @@ public class AutoBestAmmoDummy implements Behavior, Configurable<BestAmmoConfig>
     }
 
     private boolean noPassPrometheusCheck() {
-        return hasOption(BehaviourOptionsEnum.ONLY_PROMETHEUS) && !heroapi.hasEffect(PROMETHEUS_EFFECT_ID);
+        return hasOption(BehaviourOptionsEnum.ONLY_PROMETHEUS)
+                && !heroapi.hasEffect(PROMETHEUS_EFFECT_ID);
     }
 
     private SelectableItem getBestLaserAmmo(boolean isNpc) {
@@ -228,8 +229,7 @@ public class AutoBestAmmoDummy implements Behavior, Configurable<BestAmmoConfig>
         } else if ((name.contains("Invoke XVI") || name.contains("Mindfire Behemoth"))
                 && ableToUseNPCs(Laser.A_BL)) {
             return Laser.A_BL;
-        } else if (isMimesisNPC(name)
-                && ableToUseNPCs(Laser.EMAA_20)) {
+        } else if (isMimesisNPC(name) && ableToUseNPCs(Laser.EMAA_20)) {
             return Laser.EMAA_20;
         } else if (name.toLowerCase().contains("demaner") && ableToUseNPCs(Laser.RB_214)) {
             return Laser.RB_214;
@@ -275,13 +275,11 @@ public class AutoBestAmmoDummy implements Behavior, Configurable<BestAmmoConfig>
             if (isNpc) {
                 return damageOrderNPC.stream()
                         .filter(p -> useRsb || (p != Laser.RCB_140 && p != Laser.RSB_75))
-                        .filter(this::ableToUseNPCs)
-                        .findFirst().orElse(null);
+                        .filter(this::ableToUseNPCs).findFirst().orElse(null);
             } else {
                 return damageOrder.stream()
                         .filter(p -> useRsb || (p != Laser.RCB_140 && p != Laser.RSB_75))
-                        .filter(this::ableToUsePlayers)
-                        .findFirst().orElse(null);
+                        .filter(this::ableToUsePlayers).findFirst().orElse(null);
             }
         } catch (Exception e) {
             return null;
@@ -301,11 +299,17 @@ public class AutoBestAmmoDummy implements Behavior, Configurable<BestAmmoConfig>
     }
 
     private boolean ableToUse(SelectableItem laser, Set<Laser> ammoToUse) {
-        if (ammoToUse.stream().noneMatch(s -> s.getId() != null && s.getId().equals(laser.getId()))) {
+        if (ammoToUse.stream()
+                .noneMatch(s -> s.getId() != null && s.getId().equals(laser.getId()))) {
             return false;
         }
 
-        Optional<Item> item = items.getItem(laser, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.POSITIVE_QUANTITY);
+        return hasAmmo(laser);
+    }
+
+    private boolean hasAmmo(SelectableItem laser) {
+        Optional<Item> item =
+                items.getItem(laser, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.POSITIVE_QUANTITY);
         return item.isPresent() && item.get().getQuantity() >= MIN_AMMO;
     }
 
