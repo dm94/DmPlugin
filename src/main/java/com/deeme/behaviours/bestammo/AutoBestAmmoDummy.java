@@ -133,11 +133,7 @@ public class AutoBestAmmoDummy implements Behavior, Configurable<BestAmmoConfig>
             return;
         }
 
-        Optional<Item> item = items.getItem(laser, ItemFlag.USABLE, ItemFlag.READY,
-                ItemFlag.NOT_SELECTED, ItemFlag.POSITIVE_QUANTITY);
-
-        if (item.isPresent() && item.get().getQuantity() >= MIN_AMMO) {
-
+        if (hasAmmo(laser)) {
             if (hasOption(BehaviourOptionsEnum.CHANGE_AMMO_DIRECTLY)) {
                 items.useItem(laser, ItemFlag.NOT_SELECTED);
             }
@@ -308,6 +304,10 @@ public class AutoBestAmmoDummy implements Behavior, Configurable<BestAmmoConfig>
             return false;
         }
 
+        return hasAmmo(laser);
+    }
+
+    private boolean hasAmmo(SelectableItem laser) {
         Optional<Item> item =
                 items.getItem(laser, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.POSITIVE_QUANTITY);
         return item.isPresent() && item.get().getQuantity() >= MIN_AMMO;
