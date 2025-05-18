@@ -136,7 +136,7 @@ public class AutoBestAmmoDummy implements Behavior, Configurable<BestAmmoConfig>
         Optional<Item> item = items.getItem(laser, ItemFlag.USABLE, ItemFlag.READY,
                 ItemFlag.NOT_SELECTED, ItemFlag.POSITIVE_QUANTITY);
 
-        if (item.isPresent() && item.get().getQuantity() < 100) {
+        if (item.isPresent() && item.get().getQuantity() < MIN_AMMO) {
 
             if (hasOption(BehaviourOptionsEnum.CHANGE_AMMO_DIRECTLY)) {
                 items.useItem(laser, ItemFlag.NOT_SELECTED);
