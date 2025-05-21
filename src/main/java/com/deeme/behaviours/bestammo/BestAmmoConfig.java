@@ -2,9 +2,7 @@ package com.deeme.behaviours.bestammo;
 
 import java.util.EnumSet;
 import java.util.Set;
-
-import com.deemeplus.suppliers.LaserSupplier;
-
+import com.deeme.types.suppliers.LaserSupplier;
 import eu.darkbot.api.config.annotations.Configuration;
 import eu.darkbot.api.config.annotations.Dropdown;
 import eu.darkbot.api.config.annotations.Option;
@@ -31,11 +29,10 @@ public class BestAmmoConfig {
     @Option("general.options")
     @Dropdown(multi = true)
     public Set<BehaviourOptionsEnum> optionsToUse = EnumSet.of(BehaviourOptionsEnum.VS_PLAYERS,
-            BehaviourOptionsEnum.RESPECT_RSB_TAG,
-            BehaviourOptionsEnum.RESPECT_NPC_AMMO, BehaviourOptionsEnum.REPLACE_AMMO_KEY,
-            BehaviourOptionsEnum.CHANGE_AMMO_DIRECTLY);
+            BehaviourOptionsEnum.RESPECT_RSB_TAG, BehaviourOptionsEnum.RESPECT_NPC_AMMO,
+            BehaviourOptionsEnum.REPLACE_AMMO_KEY, BehaviourOptionsEnum.CHANGE_AMMO_DIRECTLY);
 
-    @Option("general.always_use_bellow_hp")
+    @Option("general.always_use_below_hp")
     @Percentage
     public double alwaysUseBellowHp = 0;
 }
