@@ -37,6 +37,7 @@ public class AutoBestRocketLauncherDummy
     private AmmoConditions ammoConditions;
 
     private static final int URB_100_DAMAGE_X2 = 144000;
+    private static final int MIN_ROCKET_AMMO = 5;
 
     public AutoBestRocketLauncherDummy(PluginAPI api) {
         this(api, api.requireAPI(AuthAPI.class), api.requireAPI(HeroItemsAPI.class));
@@ -155,21 +156,16 @@ public class AutoBestRocketLauncherDummy
     }
 
     private boolean ableToUse(SelectableItem rocket, boolean isNpc) {
-        if (isNpc) {
-            return ableToUse(rocket, config.rocketsToUseNPCs);
-        }
+        Set<RocketLauncher> ammoToUse =
+                isNpc ? config.rocketsToUseNPCs : config.rocketsToUsePlayers;
 
-        return ableToUse(rocket, config.rocketsToUsePlayers);
-    }
-
-    private boolean ableToUse(SelectableItem rocket, Set<RocketLauncher> ammoToUse) {
         if (ammoToUse.stream()
                 .noneMatch(s -> s.getId() != null && s.getId().equals(rocket.getId()))) {
             return false;
         }
 
         Optional<Item> item = items.getItem(rocket, ItemFlag.USABLE, ItemFlag.POSITIVE_QUANTITY);
-        return item.isPresent() && item.get().getQuantity() > 5;
+        return item.isPresent() && item.get().getQuantity() > MIN_ROCKET_AMMO;
     }
 
     private boolean hasTag(Enum<?> tag) {
