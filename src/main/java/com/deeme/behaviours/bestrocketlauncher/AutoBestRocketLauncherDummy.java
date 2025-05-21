@@ -110,7 +110,7 @@ public class AutoBestRocketLauncherDummy
     }
 
     private SelectableItem getBestRocketLauncher(boolean isNpc) {
-        if (abletToUseInfectionAmmo(isNpc)) {
+        if (ableToUseInfectionAmmo(isNpc)) {
             return RocketLauncher.PIR_100;
         }
 
@@ -162,7 +162,7 @@ public class AutoBestRocketLauncherDummy
         return null;
     }
 
-    private boolean abletToUseInfectionAmmo(boolean isNpc) {
+    private boolean ableToUseInfectionAmmo(boolean isNpc) {
         if (!ableToUse(RocketLauncher.PIR_100, isNpc)) {
             return false;
         }
