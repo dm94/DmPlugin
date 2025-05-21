@@ -2,9 +2,7 @@ package com.deeme.behaviours.bestrocketlauncher;
 
 import java.util.EnumSet;
 import java.util.Set;
-
-import com.deemeplus.suppliers.RocketLauncherSupplier;
-
+import com.deeme.types.suppliers.RocketLauncherSupplier;
 import eu.darkbot.api.config.annotations.Configuration;
 import eu.darkbot.api.config.annotations.Dropdown;
 import eu.darkbot.api.config.annotations.Option;
