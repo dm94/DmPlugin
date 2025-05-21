@@ -32,7 +32,7 @@ public class BestAmmoConfig {
             BehaviourOptionsEnum.RESPECT_RSB_TAG, BehaviourOptionsEnum.RESPECT_NPC_AMMO,
             BehaviourOptionsEnum.REPLACE_AMMO_KEY, BehaviourOptionsEnum.CHANGE_AMMO_DIRECTLY);
 
-    @Option("general.always_use_bellow_hp")
+    @Option("general.always_use_below_hp")
     @Percentage
     public double alwaysUseBellowHp = 0;
 }

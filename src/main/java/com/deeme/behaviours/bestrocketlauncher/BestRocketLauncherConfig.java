@@ -30,7 +30,7 @@ public class BestRocketLauncherConfig {
     @Dropdown(multi = true)
     public Set<BehaviourOptionsEnum> options = EnumSet.of(BehaviourOptionsEnum.VS_PLAYERS);
 
-    @Option("general.always_use_bellow_hp")
+    @Option("general.always_use_below_hp")
     @Percentage
     public double alwaysUseBellowHp = 0;
 }
