@@ -110,37 +110,52 @@ public class AutoBestRocketLauncherDummy
             return RocketLauncher.PIR_100;
         }
 
-        if (this.ammoConditions.ableToUseSAB()) {
-            if (ableToUse(RocketLauncher.CBR, isNpc)) {
-                return RocketLauncher.CBR;
-            } else if (ableToUse(RocketLauncher.SAR_02, isNpc)) {
-                return RocketLauncher.SAR_02;
-            } else if (ableToUse(RocketLauncher.SAR_01, isNpc)) {
-                return RocketLauncher.SAR_01;
-            }
+        SelectableItem sabRocket = getBestSabRocket(isNpc);
+        if (sabRocket != null) {
+            return sabRocket;
         }
 
+        SelectableItem damageRocket = getDamageRocket(isNpc);
+        if (damageRocket != null) {
+            return damageRocket;
+        }
+
+        return SharedFunctions.getItemById(config.defaultRocket);
+    }
+
+    private SelectableItem getBestSabRocket(boolean isNpc) {
+        if (!this.ammoConditions.ableToUseSAB())
+            return null;
+        if (ableToUse(RocketLauncher.CBR, isNpc)) {
+            return RocketLauncher.CBR;
+        }
+        if (ableToUse(RocketLauncher.SAR_02, isNpc)) {
+            return RocketLauncher.SAR_02;
+        }
+        if (ableToUse(RocketLauncher.SAR_01, isNpc)) {
+            return RocketLauncher.SAR_01;
+        }
+        return null;
+    }
+
+    private SelectableItem getDamageRocket(boolean isNpc) {
         Lockable target = heroapi.getLocalTarget();
         if (target != null && target.isValid()) {
             if (target.getHealth().getHp() > URB_100_DAMAGE_X2
                     && ableToUse(RocketLauncher.UBR_100, isNpc)) {
                 return RocketLauncher.UBR_100;
             }
-
             if (ableToUse(RocketLauncher.HSTRM_01, isNpc)) {
                 return RocketLauncher.HSTRM_01;
             }
-
             if (ableToUse(RocketLauncher.BDR1212, isNpc)) {
                 return RocketLauncher.BDR1212;
             }
-
             if (ableToUse(RocketLauncher.ECO_10, isNpc)) {
                 return RocketLauncher.ECO_10;
             }
         }
-
-        return SharedFunctions.getItemById(config.defaultRocket);
+        return null;
     }
 
     private boolean abletToUseInfectionAmmo(boolean isNpc) {
