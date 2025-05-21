@@ -101,6 +101,10 @@ public class AutoBestRocketLauncherDummy
     }
 
     private boolean changeRocketLauncher(SelectableItem rocket) {
+        if (rocket == null) {
+            return false;
+        }
+
         return items.useItem(rocket, 0, ItemFlag.USABLE, ItemFlag.READY, ItemFlag.NOT_SELECTED)
                 .isSuccessful();
     }
