@@ -1,9 +1,9 @@
 {
   "name": "DmPlugin",
   "author": "Dm94Dani",
-  "version": "2.5.0",
+  "version": "2.6.0 beta 3",
   "minVersion": "1.131",
-  "supportedVersion": "1.131.4",
+  "supportedVersion": "1.131.5",
   "basePackage": "com.deeme",
   "features": [
     "com.deeme.modules.PalladiumHangar",
@@ -12,6 +12,7 @@
     "com.deeme.modules.astral.AstralGate",
     "com.deeme.modules.genericgate.GenericGateDummy",
     "com.deeme.modules.quest.QuestModuleDummy",
+    "com.deeme.modules.guiexecutor.GuiExecutor",
     "com.deeme.tasks.SkylabSender",
     "com.deeme.tasks.WeeklySchedule",
     "com.deeme.tasks.AutoChangeMap",
