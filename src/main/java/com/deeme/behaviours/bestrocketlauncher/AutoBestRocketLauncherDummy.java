@@ -26,8 +26,7 @@ import eu.darkbot.api.managers.HeroItemsAPI;
 import eu.darkbot.api.utils.Inject;
 import com.deeme.shared.AmmoConditions;
 
-@Feature(name = "Auto Best Rocket Launcher [PLUS]",
-        description = "Auto use the best Rocket Launcher")
+@Feature(name = "Auto Best Rocket Launcher", description = "Auto use the best Rocket Launcher")
 public class AutoBestRocketLauncherDummy
         implements Behavior, Configurable<BestRocketLauncherConfig>, NpcExtraProvider {
     private final HeroAPI heroapi;
