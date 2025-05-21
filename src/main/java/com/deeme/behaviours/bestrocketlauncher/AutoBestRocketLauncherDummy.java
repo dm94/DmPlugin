@@ -89,11 +89,11 @@ public class AutoBestRocketLauncherDummy
         Lockable target = heroapi.getLocalTarget();
         if (target != null && target.isValid() && heroapi.isAttacking()) {
             boolean isNpc = target instanceof Npc;
-            if (hasTag(ExtraNpcFlagsEnum.BEST_AMMO)
+            if (hasTag(target, ExtraNpcFlagsEnum.BEST_AMMO)
                     || (!isNpc && hasOption(BehaviourOptionsEnum.VS_PLAYERS))
                     || (isNpc && hasOption(BehaviourOptionsEnum.ALWAYS_FOR_NPC))
                     || heroapi.getHealth().hpPercent() <= config.alwaysUseBellowHp) {
-                changeRocketLauncher(getBestRocketLauncher(isNpc));
+                changeRocketLauncher(getBestRocketLauncher(target, isNpc));
                 return;
             }
         }
@@ -109,7 +109,7 @@ public class AutoBestRocketLauncherDummy
                 .isSuccessful();
     }
 
-    private SelectableItem getBestRocketLauncher(boolean isNpc) {
+    private SelectableItem getBestRocketLauncher(Lockable target, boolean isNpc) {
         if (ableToUseInfectionAmmo(isNpc)) {
             return RocketLauncher.PIR_100;
         }
@@ -119,7 +119,7 @@ public class AutoBestRocketLauncherDummy
             return sabRocket;
         }
 
-        SelectableItem damageRocket = getDamageRocket(isNpc);
+        SelectableItem damageRocket = getDamageRocket(target, isNpc);
         if (damageRocket != null) {
             return damageRocket;
         }
@@ -142,8 +142,7 @@ public class AutoBestRocketLauncherDummy
         return null;
     }
 
-    private SelectableItem getDamageRocket(boolean isNpc) {
-        Lockable target = heroapi.getLocalTarget();
+    private SelectableItem getDamageRocket(Lockable target, boolean isNpc) {
         if (target != null && target.isValid()) {
             if (target.getHealth().getHp() > URB_100_DAMAGE_X2
                     && ableToUse(RocketLauncher.UBR_100, isNpc)) {
@@ -187,8 +186,7 @@ public class AutoBestRocketLauncherDummy
         return item.isPresent() && item.get().getQuantity() > MIN_ROCKET_AMMO;
     }
 
-    private boolean hasTag(Enum<?> tag) {
-        Lockable target = heroapi.getLocalTarget();
+    private boolean hasTag(Lockable target, Enum<?> tag) {
         return (target != null && target.isValid() && target instanceof Npc
                 && ((Npc) target).getInfo().hasExtraFlag(tag));
     }
