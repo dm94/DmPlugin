@@ -18,7 +18,7 @@ import eu.darkbot.api.extensions.Module;
 import eu.darkbot.api.game.other.Gui;
 import eu.darkbot.api.managers.GameScreenAPI;
 
-@Feature(name = "GUI Executor Module [PLUS]",
+@Feature(name = "GUI Executor Module",
     description = "Clicks on the configured window. Advanced users")
 public class GuiExecutor implements Module, Configurable<GuiExecutorConfig> {
   /** API instance used to access game functionality */
