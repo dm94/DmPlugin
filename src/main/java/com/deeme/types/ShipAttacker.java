@@ -104,14 +104,16 @@ public class ShipAttacker {
             return null;
         }
     }
-
     private void selectAmmoForFirstShoot() {
+        selectAmmoIfNeeded();
+    }
+
+    private void selectAmmoIfNeeded() {
         Optional<SelectableItem> lastLaser = getAttackItem();
         if (lastLaser.isPresent()
                 && (heroapi.getLaser() == null || !heroapi.getLaser().equals(lastLaser.get()))) {
             conditionsManagement.useSelectableReadyWhenReady(lastLaser.get());
         }
-
     }
 
     private void tryLockTarget() {
@@ -170,11 +172,7 @@ public class ShipAttacker {
             return;
         }
 
-        Optional<SelectableItem> lastLaser = getAttackItem();
-        if (lastLaser.isPresent()
-                && (heroapi.getLaser() == null || !heroapi.getLaser().equals(lastLaser.get()))) {
-            conditionsManagement.useSelectableReadyWhenReady(lastLaser.get());
-        }
+        selectAmmoIfNeeded();
 
         if (!firstAttack) {
             firstAttack = true;
