@@ -82,16 +82,19 @@ public class ShipAttacker {
         this.humanizerConfig.maxRandomTime = 0;
 
         this.settingsProxy = api.requireInstance(SettingsProxy.class);
-        attackLaserKey = settingsProxy.getCharacterOf(SettingsProxy.KeyBind.ATTACK_LASER).orElse(null);
+        attackLaserKey =
+                settingsProxy.getCharacterOf(SettingsProxy.KeyBind.ATTACK_LASER).orElse(null);
 
         this.conditionsManagement = new ConditionsManagement(api, items);
         this.humanizerConfig = humanizerConfig;
         this.ammoConfig = ammoConfig;
         this.laserSupplier = new DefenseLaserSupplier(api, heroapi, items, ammoConfig);
+        selectAmmoForFirstShoot();
     }
 
     public String getStatus() {
-        return getTarget() != null ? "Killing " + getTarget().getEntityInfo().getUsername() : "Idle";
+        return getTarget() != null ? "Killing " + getTarget().getEntityInfo().getUsername()
+                : "Idle";
     }
 
     public Ship getTarget() {
@@ -99,6 +102,17 @@ public class ShipAttacker {
             return target;
         } else {
             return null;
+        }
+    }
+    private void selectAmmoForFirstShoot() {
+        selectAmmoIfNeeded();
+    }
+
+    private void selectAmmoIfNeeded() {
+        Optional<SelectableItem> lastLaser = getAttackItem();
+        if (lastLaser.isPresent()
+                && (heroapi.getLaser() == null || !heroapi.getLaser().equals(lastLaser.get()))) {
+            conditionsManagement.useSelectableReadyWhenReady(lastLaser.get());
         }
     }
 
@@ -112,7 +126,8 @@ public class ShipAttacker {
             firstAttack = true;
 
             if (humanizerConfig.addRandomTime) {
-                clickDelay = System.currentTimeMillis() + (rnd.nextInt(humanizerConfig.maxRandomTime) * 1000);
+                clickDelay = System.currentTimeMillis()
+                        + (rnd.nextInt(humanizerConfig.maxRandomTime) * 1000);
             } else {
                 clickDelay = System.currentTimeMillis() + MIN_CLICK_DELAY;
             }
@@ -157,10 +172,7 @@ public class ShipAttacker {
             return;
         }
 
-        Optional<SelectableItem> lastLaser = getAttackItem();
-        if (lastLaser.isPresent() && (heroapi.getLaser() == null || !heroapi.getLaser().equals(lastLaser.get()))) {
-            conditionsManagement.useSelectableReadyWhenReady(lastLaser.get());
-        }
+        selectAmmoIfNeeded();
 
         if (!firstAttack) {
             firstAttack = true;
@@ -207,7 +219,8 @@ public class ShipAttacker {
                     && heroapi.getHealth().hpPercent() > extra.healthRange.min
                     && heroapi.getLocalTarget() != null
                     && heroapi.getLocalTarget().getHealth().hpPercent() < extra.healthEnemyRange.max
-                    && heroapi.getLocalTarget().getHealth().hpPercent() > extra.healthEnemyRange.min) {
+                    && heroapi.getLocalTarget().getHealth()
+                            .hpPercent() > extra.healthEnemyRange.min) {
 
                 if (System.currentTimeMillis() - keyDelay < 500) {
                     return false;
@@ -279,20 +292,15 @@ public class ShipAttacker {
     public Ship getEnemy(int maxDistance, List<Integer> playersToIgnore, boolean ignoreInvisible) {
         boolean ableToAttack = heroapi.getMap().isPvp()
                 || allPortals.stream().noneMatch(p -> heroapi.distanceTo(p) < 1500);
-        return allShips.stream()
-                .filter(Ship::isValid)
-                .filter(s -> s.getId() != heroapi.getId()
-                        && !playersToIgnore.contains(s.getId())
-                        && s.getEntityInfo().isEnemy()
-                        && (ableToAttack || s.isAttacking())
-                        && !s.hasEffect(290)
-                        && !(s instanceof Pet)
+        return allShips.stream().filter(Ship::isValid)
+                .filter(s -> s.getId() != heroapi.getId() && !playersToIgnore.contains(s.getId())
+                        && s.getEntityInfo().isEnemy() && (ableToAttack || s.isAttacking())
+                        && !s.hasEffect(290) && !(s instanceof Pet)
                         && !(ignoreInvisible && s.isInvisible()))
-                .filter(s -> !inGroup(s.getId())
-                        && movement.canMove(s)
+                .filter(s -> !inGroup(s.getId()) && movement.canMove(s)
                         && s.getLocationInfo().distanceTo(heroapi) <= maxDistance)
-                .sorted(Comparator.comparingDouble(s -> s.getLocationInfo().distanceTo(heroapi))).findAny()
-                .orElse(null);
+                .sorted(Comparator.comparingDouble(s -> s.getLocationInfo().distanceTo(heroapi)))
+                .findAny().orElse(null);
     }
 
     public void resetDefenseData() {
