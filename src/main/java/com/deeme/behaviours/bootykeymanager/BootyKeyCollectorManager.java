@@ -10,7 +10,10 @@ import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.extensions.FeatureInfo;
 import eu.darkbot.api.game.stats.Stats;
-import eu.darkbot.api.managers.*;
+import eu.darkbot.api.managers.AuthAPI;
+import eu.darkbot.api.managers.ConfigAPI;
+import eu.darkbot.api.managers.ExtensionsAPI;
+import eu.darkbot.api.managers.StatsAPI;
 import eu.darkbot.api.utils.Inject;
 import eu.darkbot.api.config.types.BoxInfo;
 
@@ -93,7 +96,6 @@ public class BootyKeyCollectorManager implements Behavior, Configurable<BootyKey
         }
       } catch (IllegalArgumentException e) {
         // Skip invalid booty key names
-        continue;
       }
     }
   }
@@ -101,35 +103,32 @@ public class BootyKeyCollectorManager implements Behavior, Configurable<BootyKey
   private Optional<String> getResourceNameForBootyKey(Stats.BootyKey bootyKey) {
     switch (bootyKey) {
       case GREEN:
-        return Optional.of("PIRATE_BOOTY");
+        return Optional.of("PIRATE_BOOTY_GOLD");
       case BLUE:
-        return Optional.of("BLUE_BOOTY");
+        return Optional.of("PIRATE_BOOTY_BLUE");
       case RED:
-        return Optional.of("RED_BOOTY");
+        return Optional.of("PIRATE_BOOTY_RED");
       case SILVER:
-        return Optional.of("SILVER_BOOTY");
+        return Optional.of("PIRATE_BOOTY_SILVER");
       case APOCALYPSE:
-        return Optional.of("APOCALYPSE_BOOTY");
+        return Optional.of("MASQUE_BOOTY_BOX");
       case PROMETHEUS:
-        return Optional.of("PROMETHEUS_BOOTY");
+        return Optional.of("PROMETHEUS_BOOTY_BOX");
       case OBSIDIAN_MICROCHIP:
-        return Optional.of("OBSIDIAN_BOOTY");
-      case BLACK_LIGHT_CODE:
-        return Optional.of("BLACK_LIGHT_BOOTY");
-      case BLACK_LIGHT_DECODER:
-        return Optional.of("BLACK_LIGHT_DECODER_BOOTY");
+        return Optional.of("BLACK_BOOTY_BOX");
       case PROSPEROUS_FRAGMENT:
-        return Optional.of("PROSPEROUS_BOOTY");
+        return Optional.of("PROSPEROUS_BOOTY_BOX");
       case ASTRAL:
-        return Optional.of("ASTRAL_BOOTY");
+        return Optional.of("ASTRAL_BOOTY_BOX");
       case ASTRAL_SUPREME:
-        return Optional.of("ASTRAL_SUPREME_BOOTY");
+        return Optional.of("ASTRAL_PRIME_BOOTY_BOX");
       case EMPYRIAN:
-        return Optional.of("EMPYRIAN_BOOTY");
-      case LUCENT:
-        return Optional.of("LUCENT_BOOTY");
+        return Optional.of("EMPYRIAN_BOOTY_BOX");
       case PERSEUS:
-        return Optional.of("PERSEUS_BOOTY");
+        return Optional.of("PERSEUS_BLESSING_BOOTY_BOX");
+      case LUCENT:
+      case BLACK_LIGHT_CODE:
+      case BLACK_LIGHT_DECODER:
       default:
         return Optional.empty();
     }
