@@ -65,9 +65,14 @@ public class BootyKeyCollectorManager implements Behavior, Configurable<BootyKey
   }
 
   private boolean shouldEnableCollection() {
-    for (Stats.BootyKey bootyKey : config.bootyKeysToMonitor) {
-      if (stats.getStatValue(bootyKey) > 0) {
-        return true;
+    for (String bootyKeyName : config.bootyKeysToMonitor) {
+      try {
+        Stats.BootyKey bootyKey = Stats.BootyKey.valueOf(bootyKeyName);
+        if (stats.getStatValue(bootyKey) > 0) {
+          return true;
+        }
+      } catch (IllegalArgumentException e) {
+        // Skip invalid booty key names
       }
     }
     return false;
@@ -76,13 +81,19 @@ public class BootyKeyCollectorManager implements Behavior, Configurable<BootyKey
   private void updateResourceCollection(boolean enable) {
     Map<String, BoxInfo> allBoxes = boxInfos.getValue();
 
-    for (Stats.BootyKey bootyKey : config.bootyKeysToMonitor) {
-      Optional<String> resourceName = getResourceNameForBootyKey(bootyKey);
-      if (resourceName.isPresent()) {
-        BoxInfo boxInfo = allBoxes.get(resourceName.get());
-        if (boxInfo != null) {
-          boxInfo.setShouldCollect(enable);
+    for (String bootyKeyName : config.bootyKeysToMonitor) {
+      try {
+        Stats.BootyKey bootyKey = Stats.BootyKey.valueOf(bootyKeyName);
+        Optional<String> resourceName = getResourceNameForBootyKey(bootyKey);
+        if (resourceName.isPresent()) {
+          BoxInfo boxInfo = allBoxes.get(resourceName.get());
+          if (boxInfo != null) {
+            boxInfo.setShouldCollect(enable);
+          }
         }
+      } catch (IllegalArgumentException e) {
+        // Skip invalid booty key names
+        continue;
       }
     }
   }
