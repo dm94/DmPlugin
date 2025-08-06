@@ -32,7 +32,8 @@
     "com.deeme.behaviours.bestrocketlauncher.AutoBestRocketLauncherDummy",
     "com.deeme.behaviours.autocloack.AutoCloack",
     "com.deeme.behaviours.antitrain.AntiTrain",
-    "com.deeme.behaviours.urgentdetector.UrgentDetector"
+    "com.deeme.behaviours.urgentdetector.UrgentDetector",
+    "com.deeme.behaviours.bootykeymanager.BootyKeyCollectorManager"
   ],
   "donation": "https://ko-fi.com/deeme",
   "discord": "https://discord.gg/GPRTRRZJPw",
