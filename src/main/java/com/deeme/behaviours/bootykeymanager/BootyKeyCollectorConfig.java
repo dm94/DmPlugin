@@ -18,6 +18,6 @@ public class BootyKeyCollectorConfig {
     public Set<Stats.BootyKey> bootyKeysToMonitor = EnumSet.noneOf(Stats.BootyKey.class);
 
     @Option("booty_key_collector_manager.check_interval")
-    @Number(min = 0, max = 2000, step = 1)
-    public int checkInterval = 30; // seconds
+    @Number(min = 1, max = 2000, step = 1)
+    public int checkInterval = 30;
 }
