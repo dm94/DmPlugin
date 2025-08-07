@@ -4,11 +4,10 @@ import eu.darkbot.api.config.annotations.Configuration;
 import eu.darkbot.api.config.annotations.Dropdown;
 import eu.darkbot.api.config.annotations.Number;
 import eu.darkbot.api.config.annotations.Option;
-import eu.darkbot.api.game.stats.Stats;
 
 import java.util.HashSet;
 import java.util.Set;
-import com.deeme.behaviours.profilechanger.BootyKeySupplier;
+import com.deeme.types.suppliers.BootyKeySupplier;
 
 @Configuration("booty_key_collector_manager")
 public class BootyKeyCollectorConfig {

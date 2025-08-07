@@ -1,4 +1,4 @@
-package com.deeme.behaviours.profilechanger;
+package com.deeme.types.suppliers;
 
 import eu.darkbot.api.config.annotations.Dropdown;
 import eu.darkbot.api.game.stats.Stats.BootyKey;
@@ -8,7 +8,7 @@ import java.util.List;
 
 public class BootyKeySupplier implements Dropdown.Options<String> {
 
-    private static List<String> keyInfos = new ArrayList<String>();
+    private static List<String> keyInfos = new ArrayList<>();
 
     @Override
     public List<String> options() {
