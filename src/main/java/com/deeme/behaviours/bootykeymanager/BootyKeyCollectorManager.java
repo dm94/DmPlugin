@@ -63,35 +63,22 @@ public class BootyKeyCollectorManager implements Behavior, Configurable<BootyKey
 
     nextCheck = System.currentTimeMillis() + (config.checkInterval * 1000L);
 
-    boolean shouldCollect = shouldEnableCollection();
-    updateResourceCollection(shouldCollect);
+    updateResourceCollectionByKey();
   }
 
-  private boolean shouldEnableCollection() {
-    for (String bootyKeyName : config.bootyKeysToMonitor) {
-      try {
-        Stats.BootyKey bootyKey = Stats.BootyKey.valueOf(bootyKeyName);
-        if (stats.getStatValue(bootyKey) > 0) {
-          return true;
-        }
-      } catch (IllegalArgumentException e) {
-        // Skip invalid booty key names
-      }
-    }
-    return false;
-  }
-
-  private void updateResourceCollection(boolean enable) {
+  private void updateResourceCollectionByKey() {
     Map<String, BoxInfo> allBoxes = boxInfos.getValue();
 
     for (String bootyKeyName : config.bootyKeysToMonitor) {
       try {
         Stats.BootyKey bootyKey = Stats.BootyKey.valueOf(bootyKeyName);
         Optional<String> resourceName = getResourceNameForBootyKey(bootyKey);
+
         if (resourceName.isPresent()) {
           BoxInfo boxInfo = allBoxes.get(resourceName.get());
           if (boxInfo != null) {
-            boxInfo.setShouldCollect(enable);
+            boolean hasKeys = stats.getStatValue(bootyKey) > 0;
+            boxInfo.setShouldCollect(hasKeys);
           }
         }
       } catch (IllegalArgumentException e) {
