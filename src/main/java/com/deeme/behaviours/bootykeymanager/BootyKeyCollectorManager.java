@@ -21,8 +21,8 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 
-@Feature(name = "BootyKey Collector Manager",
-    description = "Automatically enables or disables resource collection based on BootyKey availability")
+@Feature(name = "Booty Collector Manager",
+    description = "Automatically enables or disables resource collection based on Key availability")
 public class BootyKeyCollectorManager implements Behavior, Configurable<BootyKeyCollectorConfig> {
   private final StatsAPI stats;
   private final ConfigAPI configApi;
