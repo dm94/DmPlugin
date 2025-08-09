@@ -25,6 +25,10 @@ public class BootyKeyResourceMapper {
                     Map.entry(Stats.BootyKey.BLACK_LIGHT_CODE, "UNSTABLE_BLACKLIGHT_CACHE"),
                     Map.entry(Stats.BootyKey.BLACK_LIGHT_DECODER, "BLACKLIGHT-CRYPT"));
 
+    private BootyKeyResourceMapper() {
+        throw new UnsupportedOperationException("This class cannot be instantiated");
+    }
+
     /**
      * Gets the resource name for a given BootyKey.
      * 
