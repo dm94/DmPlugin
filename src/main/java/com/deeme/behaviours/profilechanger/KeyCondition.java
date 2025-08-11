@@ -1,5 +1,6 @@
 package com.deeme.behaviours.profilechanger;
 
+import com.deeme.types.suppliers.BootyKeySupplier;
 import eu.darkbot.api.config.annotations.Configuration;
 import eu.darkbot.api.config.annotations.Dropdown;
 import eu.darkbot.api.config.annotations.Option;
