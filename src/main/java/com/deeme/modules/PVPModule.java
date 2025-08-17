@@ -68,16 +68,14 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     private AntiPushLogic antiPushLogic;
 
     public PVPModule(PluginAPI api) {
-        this(api, api.requireAPI(HeroAPI.class),
-                api.requireAPI(AuthAPI.class),
-                api.requireAPI(ConfigAPI.class),
-                api.requireAPI(MovementAPI.class),
+        this(api, api.requireAPI(HeroAPI.class), api.requireAPI(AuthAPI.class),
+                api.requireAPI(ConfigAPI.class), api.requireAPI(MovementAPI.class),
                 api.requireInstance(SafetyFinder.class));
     }
 
     @Inject
-    public PVPModule(PluginAPI api, HeroAPI hero, AuthAPI auth, ConfigAPI configApi, MovementAPI movement,
-            SafetyFinder safety) {
+    public PVPModule(PluginAPI api, HeroAPI hero, AuthAPI auth, ConfigAPI configApi,
+            MovementAPI movement, SafetyFinder safety) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) {
             throw new SecurityException();
         }
@@ -112,8 +110,8 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         if (safety.state() != SafetyFinder.Escaping.NONE) {
             return safety.status();
         } else if (target != null) {
-            return shipAttacker.getStatus() + " | Time out:" + timeOut
-                    + "/" + pvpConfig.maxSecondsTimeOut;
+            return shipAttacker.getStatus() + " | Time out:" + timeOut + "/"
+                    + pvpConfig.maxSecondsTimeOut;
         }
         return collectorModule.getStatus();
     }
@@ -137,9 +135,11 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
             return;
 
         this.shipAttacker = new ShipAttacker(api, pvpConfig.ammoConfig, pvpConfig.humanizer);
-        this.antiPushLogic = new AntiPushLogic(this.heroapi, api.requireAPI(StatsAPI.class), this.pvpConfig.antiPush);
+        this.antiPushLogic = new AntiPushLogic(this.heroapi, api.requireAPI(StatsAPI.class),
+                this.pvpConfig.antiPush);
         this.extraMovementLogic = new ExtraMovementLogic(api, pvpConfig.movementConfig);
-        this.extraConfigChangerLogic = new ExtraCChangerLogic(api, pvpConfig.extraConfigChangerConfig);
+        this.extraConfigChangerLogic =
+                new ExtraCChangerLogic(api, pvpConfig.extraConfigChangerConfig);
     }
 
     @Override
@@ -218,8 +218,8 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         }
 
         if (!isUnderAttack()) {
-            target = shipAttacker.getEnemy(pvpConfig.rangeForEnemies, antiPushLogic.getIgnoredPlayers(),
-                    pvpConfig.ignoreInvisible);
+            target = shipAttacker.getEnemy(pvpConfig.rangeForEnemies,
+                    antiPushLogic.getIgnoredPlayers(), pvpConfig.ignoreInvisible);
             shipAttacker.setTarget(target);
         }
 
@@ -228,7 +228,8 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
 
     private boolean isUnderAttack() {
         Entity targetAttacker = SharedFunctions.getAttacker(heroapi, players, heroapi);
-        if (targetAttacker != null && targetAttacker.isValid()) {
+        if (targetAttacker != null && targetAttacker.isValid()
+                && !antiPushLogic.getIgnoredPlayers().contains(targetAttacker.getId())) {
             target = (Ship) targetAttacker;
             shipAttacker.setTarget(target);
             return true;

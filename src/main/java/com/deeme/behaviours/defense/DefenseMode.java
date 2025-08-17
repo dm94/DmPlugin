@@ -53,23 +53,22 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
     private Ship target = null;
 
     public DefenseMode(PluginAPI api) {
-        this(api, api.requireAPI(HeroAPI.class),
-                api.requireAPI(MovementAPI.class),
-                api.requireAPI(AuthAPI.class),
-                api.requireAPI(ConfigAPI.class),
+        this(api, api.requireAPI(HeroAPI.class), api.requireAPI(MovementAPI.class),
+                api.requireAPI(AuthAPI.class), api.requireAPI(ConfigAPI.class),
                 api.requireAPI(EntitiesAPI.class));
     }
 
     @Inject
-    public DefenseMode(PluginAPI api, HeroAPI hero, MovementAPI movement, AuthAPI auth, ConfigAPI configApi,
-            EntitiesAPI entities) {
+    public DefenseMode(PluginAPI api, HeroAPI hero, MovementAPI movement, AuthAPI auth,
+            ConfigAPI configApi, EntitiesAPI entities) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) {
             throw new SecurityException();
         }
 
         VerifierChecker.checkAuthenticity(auth);
 
-        Utils.showDonateDialog(api.requireAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()), auth.getAuthId());
+        Utils.showDonateDialog(api.requireAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass()),
+                auth.getAuthId());
 
         this.api = api;
         this.heroapi = hero;
@@ -103,7 +102,8 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
         }
         if (botApi.getModule() != null && botApi.getModule().getClass() != DefenseModule.class
                 && !((botApi.getModule().getClass() == PVPModule.class
-                        || botApi.getModule().getClass() == SentinelModule.class) && heroapi.isAttacking())
+                        || botApi.getModule().getClass() == SentinelModule.class)
+                        && heroapi.isAttacking())
                 && !((botApi.getModule() instanceof TemporalModule)
                         && botApi.getModule().getClass() != MapModule.class)
                 && isUnderAttack()) {
@@ -130,19 +130,20 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
     }
 
     private boolean hasPreviusTarget() {
-        return target != null && target.isValid() && target.getId() != heroapi.getId() && !(target instanceof Pet)
-                && target.getLocationInfo().distanceTo(heroapi) < defenseConfig.rangeForAttackedEnemy;
+        return target != null && target.isValid() && target.getId() != heroapi.getId()
+                && !(target instanceof Pet) && target.getLocationInfo()
+                        .distanceTo(heroapi) < defenseConfig.rangeForAttackedEnemy;
     }
 
     private boolean friendUnderAttack() {
-        List<Player> ships = players.stream()
-                .filter(Player::isValid)
+        List<Player> ships = players.stream().filter(Player::isValid)
                 .filter(s -> !(s instanceof Pet))
                 .filter(s -> (defenseConfig.helpList.contains(HelpList.CLAN)
                         && s.getEntityInfo().getClanId() == heroapi.getEntityInfo().getClanId())
                         || (defenseConfig.helpList.contains(HelpList.ALLY)
                                 && s.getEntityInfo().getClanDiplomacy() == Diplomacy.ALLIED)
-                        || (defenseConfig.helpList.contains(HelpList.GROUP) && inGroupAttacked(s.getId())
+                        || (defenseConfig.helpList.contains(HelpList.GROUP)
+                                && inGroupAttacked(s.getId())
                                 || (defenseConfig.helpList.contains(HelpList.EVERYONE)
                                         && !s.getEntityInfo().isEnemy())))
                 .collect(Collectors.toList());
@@ -157,8 +158,10 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
             return false;
         }
 
-        target = SharedFunctions.getAttacker(heroapi, players, heroapi, !defenseConfig.defendEvenAreNotEnemies);
-        if (target != null && target.isValid() && heroapi.distanceTo(target) <= defenseConfig.rangeForAttackedEnemy
+        target = SharedFunctions.getAttacker(heroapi, players, heroapi,
+                !defenseConfig.defendEvenAreNotEnemies);
+        if (target != null && target.isValid()
+                && heroapi.distanceTo(target) <= defenseConfig.rangeForAttackedEnemy
                 && !this.antiPushLogic.getIgnoredPlayers().contains(target.getId())) {
             return true;
         }
@@ -172,13 +175,16 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
             for (Player ship : ships) {
                 if (defenseConfig.helpAttack && ship.isAttacking() && ship.getTarget() != null) {
                     Entity tar = ship.getTarget();
-                    if (!(tar instanceof Npc) && !(tar instanceof Pet)) {
+                    if (!(tar instanceof Npc) && !(tar instanceof Pet)
+                            && !antiPushLogic.getIgnoredPlayers().contains(tar.getId())) {
                         return ship.getTargetAs(Ship.class);
                     }
                 }
 
-                Ship tar = SharedFunctions.getAttacker(ship, players, heroapi, !defenseConfig.defendEvenAreNotEnemies);
-                if (tar != null && tar.isValid()) {
+                Ship tar = SharedFunctions.getAttacker(ship, players, heroapi,
+                        !defenseConfig.defendEvenAreNotEnemies);
+                if (tar != null && tar.isValid()
+                        && !antiPushLogic.getIgnoredPlayers().contains(tar.getId())) {
                     return tar;
                 }
             }
