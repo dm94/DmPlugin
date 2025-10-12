@@ -21,7 +21,7 @@ public class CustomBuyItem {
     public int quantity = 1;
 
     @Option("buy_item_conditions.item")
-    public CustomItem CustomItem = new CustomItem();
+    public CustomItem customItem = new CustomItem();
 
     @Option("general.condition")
     public Condition condition;

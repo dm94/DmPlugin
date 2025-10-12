@@ -93,7 +93,7 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
 
         updateCheckTime(itemConfig);
 
-        if (itemConfig.CustomItem != null && checkNormalCondition(itemConfig)
+        if (itemConfig.customItem != null && checkNormalCondition(itemConfig)
                 && checkQuantityCondition(itemConfig.quantityCondition)) {
             tryPurchaseItem(itemConfig);
         }
@@ -104,7 +104,7 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
         if (itemSelected == null) {
             return;
         }
-    
+
         if (this.stats.getTotalCredits() < itemSelected.getCreditsPrice() * itemConfig.quantity) {
             updateLabel(itemConfig, State.NO_CREDITS);
             return;
@@ -114,7 +114,7 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
             updateLabel(itemConfig, State.NO_URI);
             return;
         }
-    
+
         try {
             buyItem(itemSelected, itemConfig.quantity);
             updateLabel(itemConfig, State.PURCHASE_SUCCESS);
@@ -124,22 +124,22 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
     }
 
     private void tryPurchaseItem(CustomBuyItem itemConfig) {
-        if (itemConfig.CustomItem == null || itemConfig.CustomItem.name.isEmpty()) {
+        if (itemConfig.customItem == null || itemConfig.customItem.name.isEmpty()) {
             return;
         }
-    
-        if (this.stats.getTotalCredits() < itemConfig.CustomItem.creditsPrice * itemConfig.quantity) {
+
+        if (this.stats.getTotalCredits() < itemConfig.customItem.creditsPrice * itemConfig.quantity) {
             updateLabel(itemConfig, State.NO_CREDITS);
             return;
         }
 
-        if (this.stats.getTotalUridium() < itemConfig.CustomItem.uriPrice * itemConfig.quantity) {
+        if (this.stats.getTotalUridium() < itemConfig.customItem.uriPrice * itemConfig.quantity) {
             updateLabel(itemConfig, State.NO_URI);
             return;
         }
-    
+
         try {
-            buyCustomItem(itemConfig.CustomItem, itemConfig.quantity);
+            buyCustomItem(itemConfig.customItem, itemConfig.quantity);
             updateLabel(itemConfig, State.PURCHASE_SUCCESS);
         } catch (Exception e) {
             updateLabel(itemConfig, State.PURCHASE_ERROR);
@@ -147,21 +147,14 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
     }
 
     private void updateLabel(BuyItem itemConfig, State state) {
-        this.updateLabel(itemConfig, state.message);
-    }
-
-    private void updateLabel(BuyItem itemConfig, String message) {
-        this.label.setText(itemConfig.itemToBuy + " | " + message);
+        this.updateLabel(itemConfig.itemToBuy, state.message);
     }
 
     private void updateLabel(CustomBuyItem itemConfig, State state) {
-        this.updateLabel(itemConfig, state.message);
+        this.updateLabel(itemConfig.customItem.name, state.message);
     }
 
-    private void updateLabel(CustomBuyItem itemConfig, String message) {
-        String itemName = itemConfig.CustomItem != null && !itemConfig.CustomItem.name.isEmpty() 
-            ? itemConfig.CustomItem.name 
-            : "Custom Item";
+    private void updateLabel(String itemName, String message) {
         this.label.setText(itemName + " | " + message);
     }
 
@@ -170,7 +163,7 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
 
         LocalDateTime da = LocalDateTime.now();
 
-        updateLabel(itemConfig, "Last Check: " + da.getHour() + ":" + da.getMinute());
+        updateLabel(itemConfig.itemToBuy, "Last Check: " + da.getHour() + ":" + da.getMinute());
     }
 
     private void updateCheckTime(CustomBuyItem itemConfig) {
@@ -178,7 +171,7 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
 
         LocalDateTime da = LocalDateTime.now();
 
-        updateLabel(itemConfig, "Last Check: " + da.getHour() + ":" + da.getMinute());
+        updateLabel(itemConfig.customItem.name, "Last Check: " + da.getHour() + ":" + da.getMinute());
     }
 
     private boolean checkNormalCondition(BuyItem itemConfig) {
