@@ -69,6 +69,8 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
         check(this.config.item3);
         check(this.config.item4);
         check(this.config.item5);
+        check(this.config.item6);
+        check(this.config.item7);
     }
 
     private void check(BuyItem itemConfig) {
@@ -79,6 +81,19 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
         updateCheckTime(itemConfig);
 
         if (itemConfig.itemToBuy != null && checkNormalCondition(itemConfig)
+                && checkQuantityCondition(itemConfig.quantityCondition)) {
+            tryPurchaseItem(itemConfig);
+        }
+    }
+
+    private void check(CustomBuyItem itemConfig) {
+        if (!itemConfig.enable || itemConfig.quantity <= 0 || itemConfig.nextCheck > System.currentTimeMillis()) {
+            return;
+        }
+
+        updateCheckTime(itemConfig);
+
+        if (itemConfig.CustomItem != null && checkNormalCondition(itemConfig)
                 && checkQuantityCondition(itemConfig.quantityCondition)) {
             tryPurchaseItem(itemConfig);
         }
@@ -108,12 +123,46 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
         }
     }
 
+    private void tryPurchaseItem(CustomBuyItem itemConfig) {
+        if (itemConfig.CustomItem == null || itemConfig.CustomItem.name.isEmpty()) {
+            return;
+        }
+    
+        if (this.stats.getTotalCredits() < itemConfig.CustomItem.creditsPrice * itemConfig.quantity) {
+            updateLabel(itemConfig, State.NO_CREDITS);
+            return;
+        }
+
+        if (this.stats.getTotalUridium() < itemConfig.CustomItem.uriPrice * itemConfig.quantity) {
+            updateLabel(itemConfig, State.NO_URI);
+            return;
+        }
+    
+        try {
+            buyCustomItem(itemConfig.CustomItem, itemConfig.quantity);
+            updateLabel(itemConfig, State.PURCHASE_SUCCESS);
+        } catch (Exception e) {
+            updateLabel(itemConfig, State.PURCHASE_ERROR);
+        }
+    }
+
     private void updateLabel(BuyItem itemConfig, State state) {
         this.updateLabel(itemConfig, state.message);
     }
 
     private void updateLabel(BuyItem itemConfig, String message) {
         this.label.setText(itemConfig.itemToBuy + " | " + message);
+    }
+
+    private void updateLabel(CustomBuyItem itemConfig, State state) {
+        this.updateLabel(itemConfig, state.message);
+    }
+
+    private void updateLabel(CustomBuyItem itemConfig, String message) {
+        String itemName = itemConfig.CustomItem != null && !itemConfig.CustomItem.name.isEmpty() 
+            ? itemConfig.CustomItem.name 
+            : "Custom Item";
+        this.label.setText(itemName + " | " + message);
     }
 
     private void updateCheckTime(BuyItem itemConfig) {
@@ -124,7 +173,23 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
         updateLabel(itemConfig, "Last Check: " + da.getHour() + ":" + da.getMinute());
     }
 
+    private void updateCheckTime(CustomBuyItem itemConfig) {
+        itemConfig.nextCheck = System.currentTimeMillis() + (itemConfig.timeToCheck * 60000);
+
+        LocalDateTime da = LocalDateTime.now();
+
+        updateLabel(itemConfig, "Last Check: " + da.getHour() + ":" + da.getMinute());
+    }
+
     private boolean checkNormalCondition(BuyItem itemConfig) {
+        if (itemConfig.condition == null) {
+            return true;
+        }
+
+        return itemConfig.condition.get(api).allows();
+    }
+
+    private boolean checkNormalCondition(CustomBuyItem itemConfig) {
         if (itemConfig.condition == null) {
             return true;
         }
@@ -155,6 +220,21 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
                 .setParam("action", "purchase")
                 .setParam("category", item.getCategory())
                 .setParam("itemId", item.getId())
+                .setParam("amount", quantity)
+                .setParam("selectedName", "")
+                .setParam("level", "")
+                .getConnection();
+
+        if (conn.getResponseCode() != 200) {
+            throw new UnsupportedOperationException("Can't connect when sid is invalid");
+        }
+    }
+
+    private void buyCustomItem(CustomItem item, int quantity) throws IOException, UnsupportedOperationException {
+        HttpURLConnection conn = this.backpage.postHttp("ajax/shop.php", 3000)
+                .setParam("action", "purchase")
+                .setParam("category", item.category)
+                .setParam("itemId", item.name)
                 .setParam("amount", quantity)
                 .setParam("selectedName", "")
                 .setParam("level", "")
