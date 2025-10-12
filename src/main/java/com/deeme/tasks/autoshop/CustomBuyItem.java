@@ -6,7 +6,7 @@ import eu.darkbot.api.config.annotations.Number;
 import eu.darkbot.api.config.types.Condition;
 
 @Configuration("buy_item_conditions")
-public class CustomBuyItem {
+public class CustomBuyItem implements BuyItemConfig {
     public transient long nextCheck = 0;
 
     @Option("general.enabled")
@@ -28,4 +28,44 @@ public class CustomBuyItem {
 
     @Option("quantity_condition")
     public QuantityCondition quantityCondition = new QuantityCondition();
+
+    @Override
+    public long getNextCheck() {
+        return nextCheck;
+    }
+
+    @Override
+    public void setNextCheck(long nextCheck) {
+        this.nextCheck = nextCheck;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return enable;
+    }
+
+    @Override
+    public int getTimeToCheck() {
+        return timeToCheck;
+    }
+
+    @Override
+    public int getQuantity() {
+        return quantity;
+    }
+
+    @Override
+    public ShopItem getShopItem() {
+        return customItem;
+    }
+
+    @Override
+    public Condition getCondition() {
+        return condition;
+    }
+
+    @Override
+    public QuantityCondition getQuantityCondition() {
+        return quantityCondition;
+    }
 }
