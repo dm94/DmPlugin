@@ -10,4 +10,6 @@ public class Config {
     public @Option("buy_item_conditions") BuyItem item3 = new BuyItem();
     public @Option("buy_item_conditions") BuyItem item4 = new BuyItem();
     public @Option("buy_item_conditions") BuyItem item5 = new BuyItem();
+    public @Option("buy_item_conditions") CustomBuyItem item6 = new CustomBuyItem();
+    public @Option("buy_item_conditions") CustomBuyItem item7 = new CustomBuyItem();
 }

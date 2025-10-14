@@ -64,72 +64,70 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
             return;
         }
 
-        check(this.config.item1);
-        check(this.config.item2);
-        check(this.config.item3);
-        check(this.config.item4);
-        check(this.config.item5);
+        checkItem(this.config.item1);
+        checkItem(this.config.item2);
+        checkItem(this.config.item3);
+        checkItem(this.config.item4);
+        checkItem(this.config.item5);
+        checkItem(this.config.item6);
+        checkItem(this.config.item7);
     }
 
-    private void check(BuyItem itemConfig) {
-        if (!itemConfig.enable || itemConfig.quantity <= 0 || itemConfig.nextCheck > System.currentTimeMillis()) {
+    private void checkItem(BuyItemConfig itemConfig) {
+        if (!itemConfig.isEnabled() || itemConfig.getQuantity() <= 0 || itemConfig.getNextCheck() > System.currentTimeMillis()) {
             return;
         }
 
         updateCheckTime(itemConfig);
 
-        if (itemConfig.itemToBuy != null && checkNormalCondition(itemConfig)
-                && checkQuantityCondition(itemConfig.quantityCondition)) {
-            tryPurchaseItem(itemConfig);
+        ShopItem shopItem = itemConfig.getShopItem();
+        if (shopItem != null && checkNormalCondition(itemConfig) && checkQuantityCondition(itemConfig.getQuantityCondition())) {
+            tryPurchaseItem(itemConfig, shopItem);
         }
     }
 
-    private void tryPurchaseItem(BuyItem itemConfig) {
-        ItemSupported itemSelected = getItemById(itemConfig.itemToBuy);
-        if (itemSelected == null) {
-            return;
-        }
-    
-        if (this.stats.getTotalCredits() < itemSelected.getCreditsPrice() * itemConfig.quantity) {
-            updateLabel(itemConfig, State.NO_CREDITS);
+    private void tryPurchaseItem(BuyItemConfig itemConfig, ShopItem shopItem) {
+        if (shopItem.getItemId() == null || shopItem.getItemId().isEmpty()) {
             return;
         }
 
-        if (this.stats.getTotalUridium() < itemSelected.getUridiumPrice() * itemConfig.quantity) {
-            updateLabel(itemConfig, State.NO_URI);
+        if (this.stats.getTotalCredits() < shopItem.getCreditsPrice() * itemConfig.getQuantity()) {
+            updateLabel(shopItem.getDisplayName(), State.NO_CREDITS);
             return;
         }
-    
+
+        if (this.stats.getTotalUridium() < shopItem.getUridiumPrice() * itemConfig.getQuantity()) {
+            updateLabel(shopItem.getDisplayName(), State.NO_URI);
+            return;
+        }
+
         try {
-            buyItem(itemSelected, itemConfig.quantity);
-            updateLabel(itemConfig, State.PURCHASE_SUCCESS);
+            buyItem(shopItem, itemConfig.getQuantity());
+            updateLabel(shopItem.getDisplayName(), State.PURCHASE_SUCCESS);
         } catch (Exception e) {
-            updateLabel(itemConfig, State.PURCHASE_ERROR);
+            updateLabel(shopItem.getDisplayName(), State.PURCHASE_ERROR);
         }
     }
 
-    private void updateLabel(BuyItem itemConfig, State state) {
-        this.updateLabel(itemConfig, state.message);
+    private void updateLabel(String itemName, State state) {
+        this.label.setText(itemName + " | " + state.message);
     }
 
-    private void updateLabel(BuyItem itemConfig, String message) {
-        this.label.setText(itemConfig.itemToBuy + " | " + message);
-    }
-
-    private void updateCheckTime(BuyItem itemConfig) {
-        itemConfig.nextCheck = System.currentTimeMillis() + (itemConfig.timeToCheck * 60000);
+    private void updateCheckTime(BuyItemConfig itemConfig) {
+        itemConfig.setNextCheck(System.currentTimeMillis() + (itemConfig.getTimeToCheck() * 60000));
 
         LocalDateTime da = LocalDateTime.now();
-
-        updateLabel(itemConfig, "Last Check: " + da.getHour() + ":" + da.getMinute());
+        ShopItem shopItem = itemConfig.getShopItem();
+        String itemName = shopItem != null ? shopItem.getDisplayName() : "Unknown";
+        this.label.setText(itemName + " | Last Check: " + da.getHour() + ":" + da.getMinute());
     }
 
-    private boolean checkNormalCondition(BuyItem itemConfig) {
-        if (itemConfig.condition == null) {
+    private boolean checkNormalCondition(BuyItemConfig itemConfig) {
+        if (itemConfig.getCondition() == null) {
             return true;
         }
 
-        return itemConfig.condition.get(api).allows();
+        return itemConfig.getCondition().get(api).allows();
     }
 
     private boolean checkQuantityCondition(QuantityCondition quantityCondition) {
@@ -150,11 +148,11 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
         return item.getQuantity() <= quantityCondition.quantity;
     }
 
-    private void buyItem(ItemSupported item, int quantity) throws IOException, UnsupportedOperationException {
+    private void buyItem(ShopItem item, int quantity) throws IOException, UnsupportedOperationException {
         HttpURLConnection conn = this.backpage.postHttp("ajax/shop.php", 3000)
                 .setParam("action", "purchase")
                 .setParam("category", item.getCategory())
-                .setParam("itemId", item.getId())
+                .setParam("itemId", item.getItemId())
                 .setParam("amount", quantity)
                 .setParam("selectedName", "")
                 .setParam("level", "")
@@ -163,15 +161,5 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
         if (conn.getResponseCode() != 200) {
             throw new UnsupportedOperationException("Can't connect when sid is invalid");
         }
-    }
-
-    private ItemSupported getItemById(String id) {
-        ItemSupported[] itemList = ItemSupported.values();
-        for (ItemSupported item : itemList) {
-            if (item.getId().equals(id)) {
-                return item;
-            }
-        }
-        return null;
     }
 }
