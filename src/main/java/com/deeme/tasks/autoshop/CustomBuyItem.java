@@ -1,13 +1,12 @@
 package com.deeme.tasks.autoshop;
 
 import eu.darkbot.api.config.annotations.Configuration;
-import eu.darkbot.api.config.annotations.Dropdown;
 import eu.darkbot.api.config.annotations.Option;
 import eu.darkbot.api.config.annotations.Number;
 import eu.darkbot.api.config.types.Condition;
 
 @Configuration("buy_item_conditions")
-public class BuyItem implements BuyItemConfig {
+public class CustomBuyItem implements BuyItemConfig {
     public transient long nextCheck = 0;
 
     @Option("general.enabled")
@@ -22,8 +21,7 @@ public class BuyItem implements BuyItemConfig {
     public int quantity = 1;
 
     @Option("buy_item_conditions.item")
-    @Dropdown(options = ItemSupplier.class)
-    public String itemToBuy = "";
+    public CustomItem customItem = new CustomItem();
 
     @Option("general.condition")
     public Condition condition;
@@ -58,7 +56,7 @@ public class BuyItem implements BuyItemConfig {
 
     @Override
     public ShopItem getShopItem() {
-        return getItemById(itemToBuy);
+        return customItem;
     }
 
     @Override
@@ -69,18 +67,5 @@ public class BuyItem implements BuyItemConfig {
     @Override
     public QuantityCondition getQuantityCondition() {
         return quantityCondition;
-    }
-
-    private ItemSupported getItemById(String id) {
-        if (id == null || id.isEmpty()) {
-            return null;
-        }
-        
-        for (ItemSupported item : ItemSupported.values()) {
-            if (item.getId().equals(id)) {
-                return item;
-            }
-        }
-        return null;
     }
 }

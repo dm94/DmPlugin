@@ -3,7 +3,7 @@ package com.deeme.tasks.autoshop;
 import eu.darkbot.api.config.annotations.Configuration;
 
 @Configuration("supported_item")
-public enum ItemSupported {
+public enum ItemSupported implements ShopItem {
     LCB_10("ammunition_laser_lcb-10", 10, 0),
     MCB_25("ammunition_laser_mcb-25", 0, 0.5),
     MCB_50("ammunition_laser_mcb-50", 0, 1),
@@ -111,5 +111,15 @@ public enum ItemSupported {
 
     public double getUridiumPrice() {
         return uridiumPrice;
+    }
+
+    @Override
+    public String getItemId() {
+        return getId();
+    }
+
+    @Override
+    public String getDisplayName() {
+        return name();
     }
 }
