@@ -40,11 +40,6 @@ public class QuestModuleDummy extends QuestModule implements InstructionProvider
     }
 
     @Override
-    public String getStoppedStatus() {
-        return super.getStatus();
-    }
-
-    @Override
     public JComponent beforeConfig() {
         return this.label;
     }
