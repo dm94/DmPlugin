@@ -34,18 +34,11 @@ public class SmartX1Travel implements Behavior {
   private boolean overrideActive = false;
   private long nextCheck = 0;
 
-  public SmartX1Travel(PluginAPI api) {
-    this(api,
-        api.requireAPI(HeroAPI.class),
-        api.requireAPI(AuthAPI.class),
-        api.requireAPI(ConfigAPI.class),
-        api.requireAPI(StarSystemAPI.class));
-  }
-
   @Inject
   public SmartX1Travel(PluginAPI api, HeroAPI hero, AuthAPI auth, ConfigAPI configApi, StarSystemAPI star) {
-    if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners()))
+    if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) {
       throw new SecurityException();
+    }
     VerifierChecker.requireAuthenticity(auth);
 
     ExtensionsAPI extensionsAPI = api.requireAPI(ExtensionsAPI.class);
@@ -64,17 +57,20 @@ public class SmartX1Travel implements Behavior {
 
   @Override
   public void onTickBehavior() {
-    if (nextCheck > System.currentTimeMillis())
+    if (nextCheck > System.currentTimeMillis()) {
       return;
+    }
     nextCheck = System.currentTimeMillis() + 500;
 
     GameMap current = star.getCurrentMap();
-    if (current == null)
+    if (current == null) {
       return;
+    }
 
     GameMap target = star.findMap(workingMap.getValue()).orElse(null);
-    if (target == null)
+    if (target == null) {
       return;
+    }
 
     if (overrideActive) {
       if (isFourFour(current)) {
@@ -109,18 +105,21 @@ public class SmartX1Travel implements Behavior {
 
   private boolean isHighMap(GameMap map) {
     String s = map.getShortName();
-    if (s == null)
+    if (s == null) {
       return false;
-    if (s.matches("^[123]-[678]$"))
+    }
+    if (s.matches("^[123]-[678]$")) {
       return true;
+    }
     String l = s.toLowerCase();
     return l.contains("bl");
   }
 
   private GameMap findFourFour() {
     for (GameMap m : star.getMaps()) {
-      if (isFourFour(m))
+      if (isFourFour(m)) {
         return m;
+      }
     }
     return null;
   }
