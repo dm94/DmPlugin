@@ -1,7 +1,7 @@
 {
 	"name": "DmPlugin",
 	"author": "Dm94Dani",
-	"version": "2.9.0",
+	"version": "2.9.1 beta 1",
 	"minVersion": "1.131.6 beta 3",
 	"supportedVersion": "1.131.7",
 	"basePackage": "com.deeme",
@@ -33,7 +33,8 @@
 		"com.deeme.behaviours.autocloack.AutoCloack",
 		"com.deeme.behaviours.antitrain.AntiTrain",
 		"com.deeme.behaviours.urgentdetector.UrgentDetector",
-		"com.deeme.behaviours.bootykeymanager.BootyKeyCollectorManager"
+		"com.deeme.behaviours.bootykeymanager.BootyKeyCollectorManager",
+		"com.deeme.behaviours.travel.SmartX1Travel"
 	],
 	"donation": "https://ko-fi.com/deeme",
 	"discord": "https://discord.gg/GPRTRRZJPw",
