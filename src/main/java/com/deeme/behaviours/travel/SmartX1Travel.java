@@ -96,7 +96,7 @@ public class SmartX1Travel implements Behavior {
 
   private boolean isX1(GameMap map) {
     String s = map.getShortName();
-    return "1-1".equals(s) || "2-1".equals(s) || "3-1".equals(s);
+    return s.matches("^[123]-[12]$");
   }
 
   private boolean isFourFour(GameMap map) {
