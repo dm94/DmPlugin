@@ -23,7 +23,7 @@ import eu.darkbot.api.managers.StarSystemAPI;
 import eu.darkbot.api.utils.Inject;
 import eu.darkbot.shared.modules.MapModule;
 
-@Feature(name = "Smart X-1 Travel", description = "Route via 4-4 when traveling to X-1 from high maps")
+@Feature(name = "Fix X-1 Travel", description = "Route via 4-4 when traveling to X-1 from high maps")
 public class SmartX1Travel implements Behavior {
   private final PluginAPI api;
   private final BotAPI bot;
