@@ -62,6 +62,10 @@ public class SmartX1Travel implements Behavior {
     }
     nextCheck = System.currentTimeMillis() + 500;
 
+    if (hasConflictiveModuleInUse()) {
+      return;
+    }
+
     GameMap current = star.getCurrentMap();
     if (current == null) {
       return;
@@ -92,6 +96,10 @@ public class SmartX1Travel implements Behavior {
         bot.setModule(api.requireInstance(MapModule.class)).setTarget(fourFour);
       }
     }
+  }
+
+  private boolean hasConflictiveModuleInUse() {
+    return bot.getModule().getClass().getName().contains("CaptchaPicker");
   }
 
   private boolean isX1(GameMap map) {
