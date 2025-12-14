@@ -25,7 +25,7 @@ public class PVPConfig {
     public boolean ignoreInvisible = false;
 
     @Option("auto_attack.max_range")
-    @Number(min = 0, max = 1000, step = 50)
+    @Number(min = 0, max = 3000, step = 50)
     public int rangeForEnemies = 500;
 
     @Option("defense.max_time_out")
