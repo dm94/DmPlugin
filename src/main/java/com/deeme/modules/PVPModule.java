@@ -138,23 +138,26 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         this.antiPushLogic = new AntiPushLogic(this.heroapi, api.requireAPI(StatsAPI.class),
                 this.pvpConfig.antiPush);
         this.extraMovementLogic = new ExtraMovementLogic(api, pvpConfig.movementConfig);
-        this.extraConfigChangerLogic =
-                new ExtraCChangerLogic(api, pvpConfig.extraConfigChangerConfig);
+        this.extraConfigChangerLogic = new ExtraCChangerLogic(api, pvpConfig.extraConfigChangerConfig);
     }
 
     @Override
     public void onTickModule() {
-        pet.setEnabled(true);
-        if (!pvpConfig.move || (safety.tick() && checkMap())) {
-            if (hasTarget()) {
-                attackLogic();
-            } else {
-                target = null;
-                shipAttacker.resetDefenseData();
-                roamingLogic();
+        try {
+            pet.setEnabled(true);
+            if (!pvpConfig.move || (safety.tick() && checkMap())) {
+                if (hasTarget()) {
+                    attackLogic();
+                } else {
+                    target = null;
+                    shipAttacker.resetDefenseData();
+                    roamingLogic();
+                }
             }
+            antiPushLogic.registerTarget(target);
+        } catch (Exception e) {
+            target = null;
         }
-        antiPushLogic.registerTarget(target);
     }
 
     private void attackLogic() {
