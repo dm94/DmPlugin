@@ -38,6 +38,6 @@
 	],
 	"donation": "https://ko-fi.com/deeme",
 	"discord": "https://discord.gg/GPRTRRZJPw",
-	"download": "https://github.com/darkbot-reloaded/DmPlugin/releases/download/v2.10.2/DmPlugin.jar",
+	"download": "https://github.com/darkbot-reloaded/DmPlugin/releases/download/latest/DmPlugin.jar",
 	"update": "https://raw.githubusercontent.com/darkbot-reloaded/DmPlugin/master/src/main/resources/plugin.json"
 }
