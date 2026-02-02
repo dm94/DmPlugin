@@ -19,7 +19,7 @@ public class ExtraKeyConditions {
     public PercentRange healthRange = new PercentRange(0.5, 0.95);
 
     @Option("extra_condition.health_enemy_range")
-    public PercentRange healthEnemyRange = new PercentRange(0.2, 0.4);
+    public PercentRange healthEnemyRange = new PercentRange(0, 1);
 
     @Option("general.condition")
     public Condition condition;

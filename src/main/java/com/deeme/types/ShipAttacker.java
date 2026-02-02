@@ -42,6 +42,7 @@ public class ShipAttacker {
     private final MovementAPI movement;
     private final ConfigAPI configAPI;
     private final GroupAPI group;
+    private final PluginAPI api;
     private final SettingsProxy settingsProxy;
     private final Collection<? extends Player> allShips;
     private final Collection<? extends Portal> allPortals;
@@ -69,6 +70,7 @@ public class ShipAttacker {
     private AmmoConfig ammoConfig;
 
     public ShipAttacker(PluginAPI api, AmmoConfig ammoConfig, Humanizer humanizerConfig) {
+        this.api = api;
         this.heroapi = api.requireAPI(HeroAPI.class);
         this.movement = api.requireAPI(MovementAPI.class);
         this.configAPI = api.requireAPI(ConfigAPI.class);
@@ -82,8 +84,7 @@ public class ShipAttacker {
         this.humanizerConfig.maxRandomTime = 0;
 
         this.settingsProxy = api.requireInstance(SettingsProxy.class);
-        attackLaserKey =
-                settingsProxy.getCharacterOf(SettingsProxy.KeyBind.ATTACK_LASER).orElse(null);
+        attackLaserKey = settingsProxy.getCharacterOf(SettingsProxy.KeyBind.ATTACK_LASER).orElse(null);
 
         this.conditionsManagement = new ConditionsManagement(api, items);
         this.humanizerConfig = humanizerConfig;
@@ -104,6 +105,7 @@ public class ShipAttacker {
             return null;
         }
     }
+
     private void selectAmmoForFirstShoot() {
         selectAmmoIfNeeded();
     }
@@ -210,28 +212,43 @@ public class ShipAttacker {
     }
 
     public boolean useKeyWithConditions(ExtraKeyConditions extra, SelectableItem selectableItem) {
-        if (extra.enable) {
-            if (selectableItem == null && extra.key != null) {
-                selectableItem = items.getItem(extra.key);
-            }
+        if (!extra.enable) {
+            return false;
+        }
 
-            if (selectableItem != null && heroapi.getHealth().hpPercent() < extra.healthRange.max
-                    && heroapi.getHealth().hpPercent() > extra.healthRange.min
-                    && heroapi.getLocalTarget() != null
-                    && heroapi.getLocalTarget().getHealth().hpPercent() < extra.healthEnemyRange.max
-                    && heroapi.getLocalTarget().getHealth()
-                            .hpPercent() > extra.healthEnemyRange.min) {
+        if (System.currentTimeMillis() - keyDelay < 500) {
+            return false;
+        }
 
-                if (System.currentTimeMillis() - keyDelay < 500) {
-                    return false;
-                }
+        if (selectableItem == null && extra.key != null) {
+            selectableItem = items.getItem(extra.key);
+        }
 
-                if (conditionsManagement.useSelectableReadyWhenReady(selectableItem)) {
-                    keyDelay = System.currentTimeMillis();
-                    return true;
-                }
+        if (selectableItem == null) {
+            return false;
+        }
+
+        if (extra.condition != null && !extra.condition.get(api).allows()) {
+            return false;
+        }
+
+        if (heroapi.getHealth().hpPercent() < extra.healthRange.min
+                || heroapi.getHealth().hpPercent() > extra.healthRange.max) {
+            return false;
+        }
+
+        if (heroapi.getLocalTarget() != null) {
+            if (heroapi.getLocalTarget().getHealth().hpPercent() < extra.healthEnemyRange.min
+                    || heroapi.getLocalTarget().getHealth().hpPercent() > extra.healthEnemyRange.max) {
+                return false;
             }
         }
+
+        if (conditionsManagement.useSelectableReadyWhenReady(selectableItem)) {
+            keyDelay = System.currentTimeMillis();
+            return true;
+        }
+
         return false;
     }
 
