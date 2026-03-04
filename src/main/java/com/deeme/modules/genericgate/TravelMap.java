@@ -17,6 +17,9 @@ public class TravelMap {
     @Dropdown(options = MapsDropdown.class)
     public int map = 8;
 
+    @Option("travel_map.follow_leader")
+    public boolean followLeader = false;
+
     public static class MapsDropdown implements Dropdown.Options<Integer> {
         private final StarManager star;
         private final List<Integer> allMaps;
