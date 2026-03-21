@@ -4,7 +4,6 @@ import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.ExtensionsAPI;
 
 import java.util.Arrays;
-import java.util.Collection;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -14,12 +13,11 @@ import com.deeme.types.backpage.Utils;
 import com.deemeplus.modules.quest.QuestModule;
 
 import eu.darkbot.api.PluginAPI;
-import eu.darkbot.api.extensions.ExtraMenus;
 import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.extensions.InstructionProvider;
 
 @Feature(name = "Quest Module [PLUS]", description = "For do quests")
-public class QuestModuleDummy extends QuestModule implements InstructionProvider, ExtraMenus {
+public class QuestModuleDummy extends QuestModule implements InstructionProvider {
     private JLabel label = new JLabel("");
 
     public QuestModuleDummy(PluginAPI api) throws SecurityException {
@@ -42,12 +40,5 @@ public class QuestModuleDummy extends QuestModule implements InstructionProvider
     @Override
     public JComponent beforeConfig() {
         return this.label;
-    }
-
-    @Override
-    public Collection<JComponent> getExtraMenuItems(PluginAPI api) {
-        return Arrays.asList(
-                createSeparator("Quest Module - Debug"),
-                create("Clear NPC List", e -> super.clearNpcList()));
     }
 }
