@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.Optional;
 import java.util.Random;
 
 import javax.swing.JButton;
@@ -62,10 +63,14 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
     private Random rnd;
 
     private LinkedList<String> pendingMessages = new LinkedList<>();
+    private int messageRetryCount = 0;
+    private static final int MAX_RETRY_ATTEMPTS = 3;
+    private String lastFailedMessage = null;
 
     private static final int INPUT_WIDTH_OFFSET = 20;
     private static final int INPUT_BOTTOM_OFFSET = 15;
     private static final int INPUT_HEIGHT = 15;
+    private static final String EXTERNAL_CHAT_NAME = "External Chat";
 
     public ExternalChat(PluginAPI api) {
         this(api, api.requireAPI(AuthAPI.class));
@@ -102,14 +107,16 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
         scroll.getVerticalScrollBar().setUnitIncrement(15);
         globalChatPanel.add(scroll,
                 "height :" + (Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 2.0D) + ":"
-                        + (Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 1.3D) + ", width :"
+                        + (Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 1.3D)
+                        + ", width :"
                         + (Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 3.0D) + ":"
                         + (Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 1.4D));
         JScrollPane scrollOthers = new JScrollPane(this.otherChatTextArea);
         scrollOthers.getVerticalScrollBar().setUnitIncrement(15);
         otherChatPanel.add(scrollOthers,
                 "height :" + (Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 2.0D) + ":"
-                        + (Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 1.3D) + ", width :"
+                        + (Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 1.3D)
+                        + ", width :"
                         + (Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 3.0D) + ":"
                         + (Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 1.4D));
         JButton clearBtn = new JButton("Clear Chat");
@@ -132,37 +139,96 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
     }
 
     private void addMessageToPendingList() {
-        if (input == null || input.getText().length() <= 0) {
-            return;
-        }
-
-        this.pendingMessages.add(input.getText());
-        input.setText("");
+        Optional.ofNullable(input).map(JTextField::getText).map(String::trim)
+                .filter(text -> !text.isEmpty() && text.length() <= 255).ifPresent(message -> {
+                    this.pendingMessages.add(message);
+                    input.setText("");
+                });
     }
 
     @Override
     public void onTickTask() {
+        processPendingMessages();
+        closeGui();
+        updateChatProcessors();
+    }
 
-        if (!pendingMessages.isEmpty()) {
-            if (openGui()) {
-                return;
-            }
-            sendMessage(pendingMessages.pollFirst());
+    private void processPendingMessages() {
+        if (pendingMessages.isEmpty()) {
+            return;
         }
 
-        closeGui();
+        if (openGui()) {
+            return;
+        }
 
+        Optional.ofNullable(pendingMessages.peekFirst())
+                .filter(message -> !message.trim().isEmpty()).ifPresent(this::handleMessageSending);
+    }
+
+    private void handleMessageSending(String message) {
+        if (sendMessage(message)) {
+            handleSuccessfulMessageSend();
+        } else {
+            handleFailedMessageSend(message);
+        }
+    }
+
+    private void handleSuccessfulMessageSend() {
+        pendingMessages.pollFirst();
+        resetRetryState();
+    }
+
+    private void handleFailedMessageSend(String message) {
+        updateRetryCount(message);
+
+        if (messageRetryCount >= MAX_RETRY_ATTEMPTS) {
+            removeFailedMessageAndLog(message);
+        }
+    }
+
+    private void updateRetryCount(String message) {
+        if (lastFailedMessage == null || !lastFailedMessage.equals(message)) {
+            lastFailedMessage = message;
+            messageRetryCount = 1;
+        } else {
+            messageRetryCount++;
+        }
+    }
+
+    private void removeFailedMessageAndLog(String message) {
+        pendingMessages.pollFirst();
+        extensionsAPI.getFeatureInfo(this.getClass()).addWarning(EXTERNAL_CHAT_NAME,
+                "Failed to send message after " + MAX_RETRY_ATTEMPTS + " attempts: " + message);
+        resetRetryState();
+    }
+
+    private void resetRetryState() {
+        messageRetryCount = 0;
+        lastFailedMessage = null;
+    }
+
+    private void updateChatProcessors() {
         try {
-            if (globalChatProcessor != null && lastGlobalSize != globalChat.size()) {
-                lastGlobalSize = globalChat.size();
-                globalChatProcessor.doInBackground();
-            }
-            if (otherChatProcesssor != null && lastOtherSize != otherChats.size()) {
-                lastOtherSize = otherChats.size();
-                otherChatProcesssor.doInBackground();
-            }
+            updateGlobalChatProcessor();
+            updateOtherChatProcessor();
         } catch (Exception e) {
-            extensionsAPI.getFeatureInfo(this.getClass()).addWarning("External Chat", e.getLocalizedMessage());
+            extensionsAPI.getFeatureInfo(this.getClass()).addWarning(EXTERNAL_CHAT_NAME,
+                    e.getLocalizedMessage());
+        }
+    }
+
+    private void updateGlobalChatProcessor() throws Exception {
+        if (globalChatProcessor != null && lastGlobalSize != globalChat.size()) {
+            lastGlobalSize = globalChat.size();
+            globalChatProcessor.doInBackground();
+        }
+    }
+
+    private void updateOtherChatProcessor() throws Exception {
+        if (otherChatProcesssor != null && lastOtherSize != otherChats.size()) {
+            lastOtherSize = otherChats.size();
+            otherChatProcesssor.doInBackground();
         }
     }
 
@@ -170,10 +236,10 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
     public void onChatMessage(MessageSentEvent event) {
         if (extensionsAPI.getFeatureInfo(this.getClass()).isEnabled()) {
             String message = String.format("%s %s : %s",
-                    (!event.getMessage().getClanTag().equals("ERROR") ? "[" + event.getMessage().getClanTag() + "]"
+                    (!event.getMessage().getClanTag().equals("ERROR")
+                            ? "[" + event.getMessage().getClanTag() + "]"
                             : ""),
-                    event.getMessage().getUsername(),
-                    event.getMessage().getMessage());
+                    event.getMessage().getUsername(), event.getMessage().getMessage());
 
             if (event.getRoom().toLowerCase().contains("global")) {
                 globalChat.add(message);
@@ -185,9 +251,7 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
 
     @Override
     public Collection<JComponent> getExtraMenuItems(PluginAPI pluginAPI) {
-        return Arrays.asList(
-                createSeparator("ExternalChat"),
-                create("Show chat", e -> showChat()));
+        return Arrays.asList(createSeparator("ExternalChat"), create("Show chat", e -> showChat()));
     }
 
     private void showChat() {
@@ -198,7 +262,7 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
         globalChatProcessor = new ChatProcessor(this.globalChatTextArea, this.globalChat);
         otherChatProcesssor = new ChatProcessor(this.otherChatTextArea, this.otherChats);
         lastGlobalSize = globalChat.size();
-        lastGlobalSize = otherChats.size();
+        lastOtherSize = otherChats.size();
 
         globalChatProcessor.execute();
         otherChatProcesssor.execute();
@@ -213,9 +277,14 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
         if (waitToClick() || chatGui == null) {
             return;
         }
-        if (chatGui.isVisible()) {
-            nextClick = System.currentTimeMillis() + this.clickDelay;
-            chatGui.setVisible(false);
+        try {
+            if (chatGui.isVisible()) {
+                nextClick = System.currentTimeMillis() + this.clickDelay;
+                chatGui.setVisible(false);
+            }
+        } catch (Exception e) {
+            extensionsAPI.getFeatureInfo(this.getClass()).addWarning(EXTERNAL_CHAT_NAME,
+                    "Failed to close chat GUI: " + e.getLocalizedMessage());
         }
     }
 
@@ -223,24 +292,62 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
         if (waitToClick() || chatGui == null) {
             return true;
         }
-        if (!chatGui.isVisible()) {
-            nextClick = System.currentTimeMillis() + this.clickDelay;
-            chatGui.setVisible(true);
-            return true;
+        try {
+            if (!chatGui.isVisible()) {
+                nextClick = System.currentTimeMillis() + this.clickDelay;
+                chatGui.setVisible(true);
+                return true;
+            }
+        } catch (Exception e) {
+            extensionsAPI.getFeatureInfo(this.getClass()).addWarning(EXTERNAL_CHAT_NAME,
+                    "Failed to open chat GUI: " + e.getLocalizedMessage());
+            return true; // Return true to prevent message sending when GUI fails
         }
 
         return false;
     }
 
-    private void sendMessage(String message) {
-        int inputWidth = (int) chatGui.getWidth() - (INPUT_WIDTH_OFFSET * 2);
-        int xPoint = INPUT_WIDTH_OFFSET + rnd.nextInt(inputWidth);
-        int yPoint = (int) chatGui.getHeight() - INPUT_BOTTOM_OFFSET - (rnd.nextInt(INPUT_HEIGHT));
-        chatGui.click(xPoint, yPoint);
+    private boolean sendMessage(String message) {
+        if (message == null || message.trim().isEmpty()) {
+            return false;
+        }
 
-        Time.sleep(100);
-        API.sendText(message);
-        API.keyClick(Character.LINE_SEPARATOR);
+        try {
+            // Ensure chat GUI is properly focused
+            int inputWidth = (int) chatGui.getWidth() - (INPUT_WIDTH_OFFSET * 2);
+            if (inputWidth <= 0) {
+                return false; // Invalid GUI dimensions
+            }
+
+            int xPoint = INPUT_WIDTH_OFFSET + rnd.nextInt(inputWidth);
+            int yPoint =
+                    (int) chatGui.getHeight() - INPUT_BOTTOM_OFFSET - (rnd.nextInt(INPUT_HEIGHT));
+            chatGui.click(xPoint, yPoint);
+
+            // Wait for click to register
+            Time.sleep(200);
+
+            // Clear any existing text in input field
+            API.keyClick(1); // Ctrl+A
+            Time.sleep(50);
+
+            // Send the message
+            API.sendText(message);
+            Time.sleep(100);
+
+            // Press Enter to send
+            API.keyClick(10); // Enter key
+
+            // Additional delay to ensure message is sent
+            Time.sleep(300);
+
+            return true; // Message sent successfully
+
+        } catch (Exception e) {
+            extensionsAPI.getFeatureInfo(this.getClass()).addWarning(EXTERNAL_CHAT_NAME,
+                    "Failed to send message: " + e.getLocalizedMessage());
+            return false;
+        }
     }
 
 }
