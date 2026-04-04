@@ -293,6 +293,10 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     }
 
     private Optional<BootyKey> getBootyKey(String keyName) {
+        if (keyName == null) {
+            return Optional.empty();
+        }
+
         try {
             return Optional.of(BootyKey.valueOf(keyName));
         } catch (IllegalArgumentException exception) {
