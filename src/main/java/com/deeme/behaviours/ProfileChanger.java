@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Map;
+import java.util.Optional;
 
 import com.deeme.behaviours.profilechanger.NormalCondition;
 import com.deeme.behaviours.profilechanger.NpcCounterCondition;
@@ -272,9 +273,13 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
         }
 
         LocalDateTime da = LocalDateTime.now();
+        int currentMinute = da.getMinute();
+        int targetMinute = Math.max(0, Math.min(config.timeCondition.minute, 59));
+        int maxMinuteWindow = Math.min(targetMinute + 5, 59);
 
         return config.timeCondition.hour == da.getHour()
-                && (da.getMinute() >= config.timeCondition.minute && config.timeCondition.minute <= da.getMinute() + 5);
+                && currentMinute >= targetMinute
+                && currentMinute <= maxMinuteWindow;
     }
 
     private boolean isReadyKeyCondition() {
@@ -282,9 +287,21 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
             return !config.orConditional;
         }
 
-        BootyKey key = BootyKey.valueOf(config.keyCondition.key);
+        Optional<BootyKey> bootyKey = getBootyKey(config.keyCondition.key);
 
-        return stats.getStatValue(key) <= 0;
+        return bootyKey.map(key -> stats.getStatValue(key) <= 0).orElse(false);
+    }
+
+    private Optional<BootyKey> getBootyKey(String keyName) {
+        if (keyName == null) {
+            return Optional.empty();
+        }
+
+        try {
+            return Optional.of(BootyKey.valueOf(keyName));
+        } catch (IllegalArgumentException exception) {
+            return Optional.empty();
+        }
     }
 
     private void checkMap() {
@@ -317,6 +334,10 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
 
         config.npcExtraCondition.npcCounter = 0;
         config.npcExtraCondition2.npcCounter = 0;
+        config.resourceCounterCondition.lastResourceId = 0;
+        config.npcExtraCondition.lastNPCId = 0;
+        config.npcExtraCondition2.lastNPCId = 0;
+        config.npcExtraCondition.isAttacked = false;
         config.resourceCounterCondition.resourcesFarmed = 0;
         config.mapTimerCondition.mapTimeStart = 0;
     }
