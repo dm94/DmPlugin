@@ -48,6 +48,7 @@ public enum ItemSupported implements ShopItem {
     H_NCA("resource_nano-case", "special", 0, 5000),
     H_NCO("resource_nano-condenser", "special", 0, 20000),
     H_PS("resource_prismatic-socket", "special", 0, 20000),
+    LUMINAFLUX("resource_collectable_luminaflux-alloy", "special", 0, 15),
     PET_FUEL("resource_pet-fuel", "petGear", 0, 0.25),
     EP_B01("1", "booster", 0, 10000),
     HON_B01("2", "booster", 0, 10000),
