@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Map;
+import java.util.Optional;
 
 import com.deeme.behaviours.profilechanger.NormalCondition;
 import com.deeme.behaviours.profilechanger.NpcCounterCondition;
@@ -286,9 +287,17 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
             return !config.orConditional;
         }
 
-        BootyKey key = BootyKey.valueOf(config.keyCondition.key);
+        Optional<BootyKey> bootyKey = getBootyKey(config.keyCondition.key);
 
-        return stats.getStatValue(key) <= 0;
+        return bootyKey.map(key -> stats.getStatValue(key) <= 0).orElse(false);
+    }
+
+    private Optional<BootyKey> getBootyKey(String keyName) {
+        try {
+            return Optional.of(BootyKey.valueOf(keyName));
+        } catch (IllegalArgumentException exception) {
+            return Optional.empty();
+        }
     }
 
     private void checkMap() {
