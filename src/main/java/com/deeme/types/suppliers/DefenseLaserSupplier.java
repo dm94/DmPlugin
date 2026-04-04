@@ -25,12 +25,12 @@ public class DefenseLaserSupplier {
     }
 
     public SelectableItem get() {
-        if (this.ammoConfig.useRSB && ammoAvailable(Laser.RSB_75)) {
-            return Laser.RSB_75;
-        }
-
         if (this.ammoConfig.useRCB && ammoAvailable(Laser.RCB_140)) {
             return Laser.RCB_140;
+        }
+
+        if (this.ammoConfig.useRSB && ammoAvailable(Laser.RSB_75)) {
+            return Laser.RSB_75;
         }
 
         if (shouldSab()) {
