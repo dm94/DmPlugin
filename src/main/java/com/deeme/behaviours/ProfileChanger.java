@@ -330,6 +330,10 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
 
         config.npcExtraCondition.npcCounter = 0;
         config.npcExtraCondition2.npcCounter = 0;
+        config.resourceCounterCondition.lastResourceId = 0;
+        config.npcExtraCondition.lastNPCId = 0;
+        config.npcExtraCondition2.lastNPCId = 0;
+        config.npcExtraCondition.isAttacked = false;
         config.resourceCounterCondition.resourcesFarmed = 0;
         config.mapTimerCondition.mapTimeStart = 0;
     }
