@@ -100,6 +100,10 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     @Override
     public void onTickBehavior() {
         updateResourceList();
+        if (config == null) {
+            return;
+        }
+
         if (config.active) {
             checkNPC(config.npcExtraCondition);
             checkNPC(config.npcExtraCondition2);
@@ -121,6 +125,9 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
     @Override
     public void onStoppedBehavior() {
         updateResourceList();
+        if (config == null) {
+            return;
+        }
 
         if (config.tickStopped) {
             onTickBehavior();
