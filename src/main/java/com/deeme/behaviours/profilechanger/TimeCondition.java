@@ -14,6 +14,6 @@ public class TimeCondition {
     public int hour = 0;
 
     @Option("profile_changer.time_condition.minute")
-    @Number(min = 0, max = 60, step = 1)
+    @Number(min = 0, max = 59, step = 1)
     public int minute = 0;
 }

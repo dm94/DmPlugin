@@ -272,9 +272,13 @@ public class ProfileChanger implements Behavior, Configurable<ProfileChangerConf
         }
 
         LocalDateTime da = LocalDateTime.now();
+        int currentMinute = da.getMinute();
+        int targetMinute = Math.max(0, Math.min(config.timeCondition.minute, 59));
+        int maxMinuteWindow = Math.min(targetMinute + 5, 59);
 
         return config.timeCondition.hour == da.getHour()
-                && (da.getMinute() >= config.timeCondition.minute && config.timeCondition.minute <= da.getMinute() + 5);
+                && currentMinute >= targetMinute
+                && currentMinute <= maxMinuteWindow;
     }
 
     private boolean isReadyKeyCondition() {
