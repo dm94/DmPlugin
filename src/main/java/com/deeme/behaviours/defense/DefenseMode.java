@@ -12,6 +12,7 @@ import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.extensions.Module;
 import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.entities.Pet;
@@ -111,12 +112,12 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
         if (heroapi.getMap() != null && heroapi.getMap().isGG()) {
             return;
         }
-        if (botApi.getModule() != null && botApi.getModule().getClass() != DefenseModule.class
-                && !((botApi.getModule().getClass() == PVPModule.class
-                        || botApi.getModule().getClass() == SentinelModule.class)
+        Module currentModule = botApi.getModule();
+        if (currentModule != null && !(currentModule instanceof DefenseModule)
+                && !((currentModule instanceof PVPModule || currentModule instanceof SentinelModule)
                         && heroapi.isAttacking())
-                && !((botApi.getModule() instanceof TemporalModule)
-                        && botApi.getModule().getClass() != MapModule.class)
+                && !((currentModule instanceof TemporalModule)
+                        && !(currentModule instanceof MapModule))
                 && isUnderAttack()) {
             botApi.setModule(new DefenseModule(api, defenseConfig, target));
         }
