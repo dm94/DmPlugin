@@ -135,15 +135,9 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
     }
 
     private boolean isUnderAttack() {
-        if (hasPreviousTarget() || hasAttacker()) {
-            return true;
-        }
+        goToMemberAttacked();
 
-        boolean friendNeedsHelp = friendUnderAttack();
-        if (friendNeedsHelp) {
-            goToMemberAttacked();
-        }
-        return friendNeedsHelp;
+        return hasPreviousTarget() || hasAttacker() || friendUnderAttack();
     }
 
     private boolean hasPreviousTarget() {
