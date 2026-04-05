@@ -35,6 +35,7 @@ import eu.darkbot.shared.modules.TemporalModule;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 @Feature(name = "Defense Mode", description = "Add enemy defense options")
 public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
@@ -152,7 +153,9 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
     }
 
     private boolean friendUnderAttack() {
-        target = getTarget(players);
+        target = getTarget(players.stream()
+                .filter(this::shouldHelpPlayer)
+                .collect(Collectors.toList()));
 
         return target != null && target.isValid();
     }
@@ -176,10 +179,6 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
 
     private Ship getTarget(Collection<? extends Player> ships) {
         for (Player ship : ships) {
-            if (!shouldHelpPlayer(ship)) {
-                continue;
-            }
-
             if (defenseConfig.helpAttack && ship.isAttacking() && ship.getTarget() != null) {
                 Entity playerTarget = ship.getTarget();
                 if (!(playerTarget instanceof Npc) && !(playerTarget instanceof Pet)
