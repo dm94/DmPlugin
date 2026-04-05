@@ -136,9 +136,15 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
     }
 
     private boolean isUnderAttack() {
-        goToMemberAttacked();
+        if (hasPreviusTarget() || hasAttacker()) {
+            return true;
+        }
 
-        return hasPreviusTarget() || hasAttacker() || friendUnderAttack();
+        boolean friendNeedsHelp = friendUnderAttack();
+        if (friendNeedsHelp) {
+            goToMemberAttacked();
+        }
+        return friendNeedsHelp;
     }
 
     private boolean hasPreviusTarget() {
@@ -212,7 +218,9 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
     }
 
     private void goToMemberAttacked() {
-        if (!defenseConfig.goToGroup) {
+        if (!defenseConfig.goToGroup
+                || !defenseConfig.respondAttacks
+                || !defenseConfig.helpList.contains(HelpList.GROUP)) {
             return;
         }
 
