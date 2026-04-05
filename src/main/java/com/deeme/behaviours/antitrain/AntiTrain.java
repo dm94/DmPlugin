@@ -3,6 +3,7 @@ package com.deeme.behaviours.antitrain;
 import java.util.Collection;
 import java.util.Arrays;
 
+import com.deeme.behaviours.profilechanger.NormalCondition;
 import com.deeme.others.CustomSafety;
 import com.deeme.types.ConditionsManagement;
 import com.deeme.types.VerifierChecker;
@@ -63,32 +64,38 @@ public class AntiTrain implements Behavior, Configurable<AntiTrainConfig> {
 
     @Override
     public void onTickBehavior() {
-        if (this.config.normalCondition.active && this.config.normalCondition.condition != null
-                && this.config.normalCondition.condition.get(api).denies()) {
+        AntiTrainConfig currentConfig = this.config;
+        if (currentConfig == null) {
             return;
         }
 
-        if (this.config.maxEnemies <= getNumberOfEnemies()) {
-            if (this.config.run) {
+        NormalCondition normalCondition = currentConfig.normalCondition;
+        if (normalCondition != null && normalCondition.active && normalCondition.condition != null
+                && normalCondition.condition.get(api).denies()) {
+            return;
+        }
+
+        if (currentConfig.maxEnemies <= getNumberOfEnemies(currentConfig.ignoreDistance)) {
+            if (currentConfig.run) {
                 this.customSafety.escapeTick();
             }
 
-            this.conditionsManagement.useKeyWithConditions(this.config.selectable1);
-            this.conditionsManagement.useKeyWithConditions(this.config.selectable2);
-            this.conditionsManagement.useKeyWithConditions(this.config.selectable3);
-            this.conditionsManagement.useKeyWithConditions(this.config.selectable4);
-            this.conditionsManagement.useKeyWithConditions(this.config.selectable5);
+            this.conditionsManagement.useKeyWithConditions(currentConfig.selectable1);
+            this.conditionsManagement.useKeyWithConditions(currentConfig.selectable2);
+            this.conditionsManagement.useKeyWithConditions(currentConfig.selectable3);
+            this.conditionsManagement.useKeyWithConditions(currentConfig.selectable4);
+            this.conditionsManagement.useKeyWithConditions(currentConfig.selectable5);
         }
     }
 
-    private long getNumberOfEnemies() {
+    private long getNumberOfEnemies(int ignoreDistance) {
         if (this.players == null || this.players.isEmpty()) {
             return 0;
         }
 
         return this.players.stream()
                 .filter(s -> s.getEntityInfo().isEnemy() || s.isBlacklisted())
-                .filter(s -> s.distanceTo(this.hero) < this.config.ignoreDistance)
+                .filter(s -> s.distanceTo(this.hero) < ignoreDistance)
                 .count();
     }
 }
