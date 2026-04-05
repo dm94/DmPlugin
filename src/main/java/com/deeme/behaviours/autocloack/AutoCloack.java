@@ -91,7 +91,11 @@ public class AutoCloack implements Behavior, Configurable<AutoCloackConfig> {
     }
 
     private boolean isMapAllowed() {
-        return !config.onlyPvpMaps || Optional.ofNullable(heroApi.getMap()).map(map -> map.isPvp()).orElse(false);
+        if (!config.onlyPvpMaps) {
+            return true;
+        }
+
+        return !Optional.ofNullable(heroApi.getMap()).map(map -> map.isPvp()).orElse(false);
     }
 
 }
