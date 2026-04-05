@@ -116,7 +116,7 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
                 && !((currentModule instanceof PVPModule || currentModule instanceof SentinelModule)
                         && heroapi.isAttacking())
                 && !((currentModule instanceof TemporalModule)
-                        && !(currentModule instanceof MapModule))
+                        && currentModule.getClass() != MapModule.class)
                 && isUnderAttack()) {
             botApi.setModule(new DefenseModule(api, defenseConfig, target));
         }
