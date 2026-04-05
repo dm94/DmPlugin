@@ -35,8 +35,6 @@ import eu.darkbot.shared.modules.TemporalModule;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Feature(name = "Defense Mode", description = "Add enemy defense options")
 public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
@@ -154,19 +152,7 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
     }
 
     private boolean friendUnderAttack() {
-        List<Player> ships = players.stream().filter(Player::isValid)
-                .filter(s -> !(s instanceof Pet))
-                .filter(s -> (defenseConfig.helpList.contains(HelpList.CLAN)
-                        && s.getEntityInfo().getClanId() == heroapi.getEntityInfo().getClanId())
-                        || (defenseConfig.helpList.contains(HelpList.ALLY)
-                                && s.getEntityInfo().getClanDiplomacy() == Diplomacy.ALLIED)
-                        || (defenseConfig.helpList.contains(HelpList.GROUP)
-                                && inGroupAttacked(s.getId())
-                                || (defenseConfig.helpList.contains(HelpList.EVERYONE)
-                                        && !s.getEntityInfo().isEnemy())))
-                .collect(Collectors.toList());
-
-        target = getTarget(ships);
+        target = getTarget(players);
 
         return target != null && target.isValid();
     }
@@ -188,29 +174,47 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
         return false;
     }
 
-    private Ship getTarget(List<Player> ships) {
-        if (!ships.isEmpty()) {
-            for (Player ship : ships) {
-                if (defenseConfig.helpAttack && ship.isAttacking() && ship.getTarget() != null) {
-                    Entity tar = ship.getTarget();
-                    if (!(tar instanceof Npc) && !(tar instanceof Pet)
-                            && !isIgnoredPlayer(tar.getId())) {
-                        Ship allyTarget = ship.getTargetAs(Ship.class);
-                        if (allyTarget != null && allyTarget.isValid()) {
-                            return allyTarget;
-                        }
+    private Ship getTarget(Collection<? extends Player> ships) {
+        for (Player ship : ships) {
+            if (!shouldHelpPlayer(ship)) {
+                continue;
+            }
+
+            if (defenseConfig.helpAttack && ship.isAttacking() && ship.getTarget() != null) {
+                Entity playerTarget = ship.getTarget();
+                if (!(playerTarget instanceof Npc) && !(playerTarget instanceof Pet)
+                        && !isIgnoredPlayer(playerTarget.getId())) {
+                    Ship allyTarget = ship.getTargetAs(Ship.class);
+                    if (allyTarget != null && allyTarget.isValid()) {
+                        return allyTarget;
                     }
                 }
+            }
 
-                Ship tar = SharedFunctions.getAttacker(ship, players, heroapi,
-                        !defenseConfig.defendEvenAreNotEnemies);
-                if (tar != null && tar.isValid()
-                        && !isIgnoredPlayer(tar.getId())) {
-                    return tar;
-                }
+            Ship attacker = SharedFunctions.getAttacker(ship, players, heroapi,
+                    !defenseConfig.defendEvenAreNotEnemies);
+            if (attacker != null && attacker.isValid()
+                    && !isIgnoredPlayer(attacker.getId())) {
+                return attacker;
             }
         }
+
         return null;
+    }
+
+    private boolean shouldHelpPlayer(Player player) {
+        if (!player.isValid() || player instanceof Pet) {
+            return false;
+        }
+
+        return (defenseConfig.helpList.contains(HelpList.CLAN)
+                && player.getEntityInfo().getClanId() == heroapi.getEntityInfo().getClanId())
+                || (defenseConfig.helpList.contains(HelpList.ALLY)
+                        && player.getEntityInfo().getClanDiplomacy() == Diplomacy.ALLIED)
+                || (defenseConfig.helpList.contains(HelpList.GROUP)
+                        && inGroupAttacked(player.getId()))
+                || (defenseConfig.helpList.contains(HelpList.EVERYONE)
+                        && !player.getEntityInfo().isEnemy());
     }
 
     private boolean isIgnoredPlayer(int playerId) {
