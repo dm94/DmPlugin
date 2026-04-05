@@ -188,7 +188,10 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
                     Entity tar = ship.getTarget();
                     if (!(tar instanceof Npc) && !(tar instanceof Pet)
                             && !isIgnoredPlayer(tar.getId())) {
-                        return ship.getTargetAs(Ship.class);
+                        Ship allyTarget = ship.getTargetAs(Ship.class);
+                        if (allyTarget != null && allyTarget.isValid()) {
+                            return allyTarget;
+                        }
                     }
                 }
 
