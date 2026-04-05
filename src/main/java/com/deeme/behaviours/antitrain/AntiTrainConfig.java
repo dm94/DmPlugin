@@ -10,7 +10,7 @@ import eu.darkbot.api.config.annotations.Number;
 @Configuration("anti_train")
 public class AntiTrainConfig {
     @Option("anti_train.max_enemies")
-    @Number(min = 0, step = 1)
+    @Number(min = 1, step = 1)
     public int maxEnemies = 3;
 
     @Option("anti_train.ignore_distance")

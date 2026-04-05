@@ -75,7 +75,12 @@ public class AntiTrain implements Behavior, Configurable<AntiTrainConfig> {
             return;
         }
 
-        if (currentConfig.maxEnemies <= getNumberOfEnemies(currentConfig.ignoreDistance)) {
+        int maxEnemies = currentConfig.maxEnemies;
+        if (maxEnemies < 1) {
+            return;
+        }
+
+        if (maxEnemies <= getNumberOfEnemies(currentConfig.ignoreDistance)) {
             if (currentConfig.run) {
                 this.customSafety.escapeTick();
             }
