@@ -97,6 +97,17 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
 
     @Override
     public void onTickBehavior() {
+        if (defenseConfig == null) {
+            return;
+        }
+
+        if (antiPushLogic == null) {
+            setup();
+            if (antiPushLogic == null) {
+                return;
+            }
+        }
+
         if (heroapi.getMap() != null && heroapi.getMap().isGG()) {
             return;
         }
@@ -109,7 +120,7 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
                 && isUnderAttack()) {
             botApi.setModule(new DefenseModule(api, defenseConfig, target));
         }
-        this.antiPushLogic.registerTarget(target);
+        antiPushLogic.registerTarget(target);
     }
 
     private boolean inGroupAttacked(int id) {
@@ -162,7 +173,7 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
                 !defenseConfig.defendEvenAreNotEnemies);
         if (target != null && target.isValid()
                 && heroapi.distanceTo(target) <= defenseConfig.rangeForAttackedEnemy
-                && !this.antiPushLogic.getIgnoredPlayers().contains(target.getId())) {
+                && !isIgnoredPlayer(target.getId())) {
             return true;
         }
 
@@ -176,7 +187,7 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
                 if (defenseConfig.helpAttack && ship.isAttacking() && ship.getTarget() != null) {
                     Entity tar = ship.getTarget();
                     if (!(tar instanceof Npc) && !(tar instanceof Pet)
-                            && !antiPushLogic.getIgnoredPlayers().contains(tar.getId())) {
+                            && !isIgnoredPlayer(tar.getId())) {
                         return ship.getTargetAs(Ship.class);
                     }
                 }
@@ -184,12 +195,16 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
                 Ship tar = SharedFunctions.getAttacker(ship, players, heroapi,
                         !defenseConfig.defendEvenAreNotEnemies);
                 if (tar != null && tar.isValid()
-                        && !antiPushLogic.getIgnoredPlayers().contains(tar.getId())) {
+                        && !isIgnoredPlayer(tar.getId())) {
                     return tar;
                 }
             }
         }
         return null;
+    }
+
+    private boolean isIgnoredPlayer(int playerId) {
+        return antiPushLogic != null && antiPushLogic.getIgnoredPlayers().contains(playerId);
     }
 
     private void goToMemberAttacked() {
