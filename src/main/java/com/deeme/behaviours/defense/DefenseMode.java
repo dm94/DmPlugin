@@ -134,7 +134,7 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
     }
 
     private boolean isUnderAttack() {
-        if (hasPreviusTarget() || hasAttacker()) {
+        if (hasPreviousTarget() || hasAttacker()) {
             return true;
         }
 
@@ -145,7 +145,7 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
         return friendNeedsHelp;
     }
 
-    private boolean hasPreviusTarget() {
+    private boolean hasPreviousTarget() {
         return target != null && target.isValid() && target.getId() != heroapi.getId()
                 && !(target instanceof Pet) && target.getLocationInfo()
                         .distanceTo(heroapi) < defenseConfig.rangeForAttackedEnemy;
