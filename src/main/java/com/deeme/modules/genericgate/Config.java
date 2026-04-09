@@ -1,6 +1,7 @@
 package com.deeme.modules.genericgate;
 
 import eu.darkbot.api.config.annotations.Configuration;
+import eu.darkbot.api.config.annotations.Dropdown;
 import eu.darkbot.api.config.annotations.Option;
 import eu.darkbot.api.config.annotations.Number;
 
@@ -23,8 +24,9 @@ public class Config {
     @Option("generic_gate.repair_config")
     public boolean useRepairConfigWhenNeedRepair = false;
 
-    @Option("generic_gate.attack_closest")
-    public boolean alwaysTheClosestNPC = false;
+    @Option("generic_gate.npc_selection_mode")
+    @Dropdown
+    public NpcSelectionMode npcSelectionMode = NpcSelectionMode.DEFAULT;
 
     @Option("generic_gate.travel_to_next")
     public boolean travelToNextMap = false;

@@ -213,22 +213,31 @@ public class GenericGateDummy extends CollectorModule implements Configurable<Co
 
     private boolean findTarget() {
         if (!npcs.isEmpty()) {
-            if (!gateConfig.alwaysTheClosestNPC && !allLowLifeOrISH(true)) {
-                Npc target = bestNpc();
-                if (target != null) {
-                    attacker.setTarget(target);
-                }
-            } else {
-                Npc target = closestNpc();
-                if (target != null) {
-                    attacker.setTarget(target);
-                }
+            Npc target = getTargetForSelectionMode();
+            if (target != null) {
+                attacker.setTarget(target);
             }
         } else {
             resetTarget();
         }
 
         return attacker.getTarget() != null;
+    }
+
+    private Npc getTargetForSelectionMode() {
+        if (gateConfig.npcSelectionMode == NpcSelectionMode.ALWAYS_CLOSEST) {
+            return closestNpc();
+        }
+
+        if (gateConfig.npcSelectionMode == NpcSelectionMode.NPC_PRIORITY) {
+            return bestNpcWithoutHpFilter();
+        }
+
+        if (!allLowLifeOrISH(true)) {
+            return bestNpc();
+        }
+
+        return closestNpc();
     }
 
     private void resetTarget() {
@@ -261,11 +270,21 @@ public class GenericGateDummy extends CollectorModule implements Configurable<Co
     }
 
     private Npc bestNpc() {
-        return this.npcs.stream()
+        Npc target = this.npcs.stream()
                 .filter(n -> shouldKill(n) && n.getHealth().hpPercent() > 0.25)
                 .min(Comparator.<Npc>comparingDouble(n -> (n.getInfo().getPriority()))
                         .thenComparing(n -> (n.getLocationInfo().getCurrent().distanceTo(heroapi))))
                 .orElse(null);
+        return target != null ? target : closestNpc();
+    }
+
+    private Npc bestNpcWithoutHpFilter() {
+        Npc target = this.npcs.stream()
+                .filter(this::shouldKill)
+                .min(Comparator.<Npc>comparingDouble(n -> (n.getInfo().getPriority()))
+                        .thenComparing(n -> (n.getLocationInfo().getCurrent().distanceTo(heroapi))))
+                .orElse(null);
+        return target != null ? target : closestNpc();
     }
 
     private Npc closestNpc() {
