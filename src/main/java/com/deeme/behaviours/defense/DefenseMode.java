@@ -12,6 +12,7 @@ import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.extensions.Module;
 import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.entities.Pet;
@@ -34,7 +35,6 @@ import eu.darkbot.shared.modules.TemporalModule;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.stream.Collectors;
 
 @Feature(name = "Defense Mode", description = "Add enemy defense options")
@@ -97,19 +97,30 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
 
     @Override
     public void onTickBehavior() {
+        if (defenseConfig == null) {
+            return;
+        }
+
+        if (antiPushLogic == null) {
+            setup();
+            if (antiPushLogic == null) {
+                return;
+            }
+        }
+
         if (heroapi.getMap() != null && heroapi.getMap().isGG()) {
             return;
         }
-        if (botApi.getModule() != null && botApi.getModule().getClass() != DefenseModule.class
-                && !((botApi.getModule().getClass() == PVPModule.class
-                        || botApi.getModule().getClass() == SentinelModule.class)
+        Module currentModule = botApi.getModule();
+        if (currentModule != null && !(currentModule instanceof DefenseModule)
+                && !((currentModule instanceof PVPModule || currentModule instanceof SentinelModule)
                         && heroapi.isAttacking())
-                && !((botApi.getModule() instanceof TemporalModule)
-                        && botApi.getModule().getClass() != MapModule.class)
+                && !((currentModule instanceof TemporalModule)
+                        && currentModule.getClass() != MapModule.class)
                 && isUnderAttack()) {
             botApi.setModule(new DefenseModule(api, defenseConfig, target));
         }
-        this.antiPushLogic.registerTarget(target);
+        antiPushLogic.registerTarget(target);
     }
 
     private boolean inGroupAttacked(int id) {
@@ -126,29 +137,19 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
     private boolean isUnderAttack() {
         goToMemberAttacked();
 
-        return hasPreviusTarget() || hasAttacker() || friendUnderAttack();
+        return hasPreviousTarget() || hasAttacker() || friendUnderAttack();
     }
 
-    private boolean hasPreviusTarget() {
+    private boolean hasPreviousTarget() {
         return target != null && target.isValid() && target.getId() != heroapi.getId()
                 && !(target instanceof Pet) && target.getLocationInfo()
                         .distanceTo(heroapi) < defenseConfig.rangeForAttackedEnemy;
     }
 
     private boolean friendUnderAttack() {
-        List<Player> ships = players.stream().filter(Player::isValid)
-                .filter(s -> !(s instanceof Pet))
-                .filter(s -> (defenseConfig.helpList.contains(HelpList.CLAN)
-                        && s.getEntityInfo().getClanId() == heroapi.getEntityInfo().getClanId())
-                        || (defenseConfig.helpList.contains(HelpList.ALLY)
-                                && s.getEntityInfo().getClanDiplomacy() == Diplomacy.ALLIED)
-                        || (defenseConfig.helpList.contains(HelpList.GROUP)
-                                && inGroupAttacked(s.getId())
-                                || (defenseConfig.helpList.contains(HelpList.EVERYONE)
-                                        && !s.getEntityInfo().isEnemy())))
-                .collect(Collectors.toList());
-
-        target = getTarget(ships);
+        target = getTarget(players.stream()
+                .filter(this::shouldHelpPlayer)
+                .collect(Collectors.toList()));
 
         return target != null && target.isValid();
     }
@@ -162,7 +163,7 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
                 !defenseConfig.defendEvenAreNotEnemies);
         if (target != null && target.isValid()
                 && heroapi.distanceTo(target) <= defenseConfig.rangeForAttackedEnemy
-                && !this.antiPushLogic.getIgnoredPlayers().contains(target.getId())) {
+                && !isIgnoredPlayer(target.getId())) {
             return true;
         }
 
@@ -170,30 +171,53 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
         return false;
     }
 
-    private Ship getTarget(List<Player> ships) {
-        if (!ships.isEmpty()) {
-            for (Player ship : ships) {
-                if (defenseConfig.helpAttack && ship.isAttacking() && ship.getTarget() != null) {
-                    Entity tar = ship.getTarget();
-                    if (!(tar instanceof Npc) && !(tar instanceof Pet)
-                            && !antiPushLogic.getIgnoredPlayers().contains(tar.getId())) {
-                        return ship.getTargetAs(Ship.class);
+    private Ship getTarget(Collection<? extends Player> ships) {
+        for (Player ship : ships) {
+            if (defenseConfig.helpAttack && ship.isAttacking() && ship.getTarget() != null) {
+                Entity playerTarget = ship.getTarget();
+                if (!(playerTarget instanceof Npc) && !(playerTarget instanceof Pet)
+                        && !isIgnoredPlayer(playerTarget.getId())) {
+                    Ship allyTarget = ship.getTargetAs(Ship.class);
+                    if (allyTarget != null && allyTarget.isValid()) {
+                        return allyTarget;
                     }
                 }
+            }
 
-                Ship tar = SharedFunctions.getAttacker(ship, players, heroapi,
-                        !defenseConfig.defendEvenAreNotEnemies);
-                if (tar != null && tar.isValid()
-                        && !antiPushLogic.getIgnoredPlayers().contains(tar.getId())) {
-                    return tar;
-                }
+            Ship attacker = SharedFunctions.getAttacker(ship, players, heroapi,
+                    !defenseConfig.defendEvenAreNotEnemies);
+            if (attacker != null && attacker.isValid()
+                    && !isIgnoredPlayer(attacker.getId())) {
+                return attacker;
             }
         }
+
         return null;
     }
 
+    private boolean shouldHelpPlayer(Player player) {
+        if (!player.isValid() || player instanceof Pet) {
+            return false;
+        }
+
+        return (defenseConfig.helpList.contains(HelpList.CLAN)
+                && player.getEntityInfo().getClanId() == heroapi.getEntityInfo().getClanId())
+                || (defenseConfig.helpList.contains(HelpList.ALLY)
+                        && player.getEntityInfo().getClanDiplomacy() == Diplomacy.ALLIED)
+                || (defenseConfig.helpList.contains(HelpList.GROUP)
+                        && inGroupAttacked(player.getId()))
+                || (defenseConfig.helpList.contains(HelpList.EVERYONE)
+                        && !player.getEntityInfo().isEnemy());
+    }
+
+    private boolean isIgnoredPlayer(int playerId) {
+        return antiPushLogic != null && antiPushLogic.getIgnoredPlayers().contains(playerId);
+    }
+
     private void goToMemberAttacked() {
-        if (!defenseConfig.goToGroup) {
+        if (!defenseConfig.goToGroup
+                || !defenseConfig.respondAttacks
+                || !defenseConfig.helpList.contains(HelpList.GROUP)) {
             return;
         }
 
