@@ -261,11 +261,12 @@ public class GenericGateDummy extends CollectorModule implements Configurable<Co
     }
 
     private Npc bestNpc() {
-        return this.npcs.stream()
+        Npc target = this.npcs.stream()
                 .filter(n -> shouldKill(n) && n.getHealth().hpPercent() > 0.25)
                 .min(Comparator.<Npc>comparingDouble(n -> (n.getInfo().getPriority()))
                         .thenComparing(n -> (n.getLocationInfo().getCurrent().distanceTo(heroapi))))
                 .orElse(null);
+        return target != null ? target : closestNpc();
     }
 
     private Npc closestNpc() {
