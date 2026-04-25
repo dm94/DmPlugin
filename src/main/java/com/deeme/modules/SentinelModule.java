@@ -347,7 +347,10 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
 
     private boolean isAttacking() {
         if (this.randomWaitTime > System.currentTimeMillis()) {
-            return this.oldTarget != null;
+            if (shouldKeepOldTarget()) {
+                return true;
+            }
+            clearAttackTargets();
         }
 
         if (sConfig.humanizer.addRandomTime) {
@@ -373,11 +376,32 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
             target = SharedFunctions.getAttacker(heroapi, npcs, heroapi);
         }
 
+        if (target == null) {
+            clearAttackTargets();
+            return false;
+        }
+
         changeTarget(target);
 
         this.oldTarget = target;
 
-        return target != null;
+        return true;
+    }
+
+    private boolean shouldKeepOldTarget() {
+        if (this.oldTarget == null || !this.oldTarget.isValid() || this.sentinel == null) {
+            return false;
+        }
+
+        Entity sentinelTarget = this.sentinel.getTarget();
+        return sentinelTarget != null && sentinelTarget.getId() == this.oldTarget.getId();
+    }
+
+    private void clearAttackTargets() {
+        this.oldTarget = null;
+        this.isNpc = false;
+        this.attacker.setTarget(null);
+        this.shipAttacker.resetDefenseData();
     }
 
     private void changeTarget(Entity target) {
