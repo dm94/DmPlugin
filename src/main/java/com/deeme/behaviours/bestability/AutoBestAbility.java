@@ -51,7 +51,8 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
     private Collection<? extends Ship> allNPCs;
     private final ConditionsManagement conditionsManagement;
 
-    private final List<Ability> DAMAGE_ABILITIES = Arrays.asList(Ability.SPEARHEAD_TARGET_MARKER, Ability.DIMINISHER,
+    private static final List<Ability> DAMAGE_ABILITIES = Arrays.asList(Ability.SPEARHEAD_TARGET_MARKER,
+            Ability.DIMINISHER,
             Ability.GOLIATH_X_FROZEN_CLAW, Ability.VENOM, Ability.TARTARUS_RAPID_FIRE,
             Ability.DISRUPTOR_SHIELD_DISARRAY, Ability.HECATE_PARTICLE_BEAM, Ability.KERES_SPR, Ability.ZEPHYR_TBR,
             Ability.HOLO_ENEMY_REVERSAL, Ability.TARTARUS_PLUS_RAPID_FIRE,
@@ -59,36 +60,37 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
             Ability.TEMPEST_VOLT_DISCHARGE, Ability.HECATE_PLUS_PARTICLE_BEAM_PLUS, Ability.SPEARHEAD_PLUS_JAMX_CREED,
             Ability.SPEARHEAD_PLUS_NEUTRALIZING_MARKER);
 
-    private final List<Ability> DAMAGE_RANGE_ABILITIES = Arrays.asList(Ability.SOLARIS_INC,
+    private static final List<Ability> DAMAGE_RANGE_ABILITIES = Arrays.asList(Ability.SOLARIS_INC,
             Ability.SOLARIS_PLUS_INCINERATE_PLUS, Ability.BASILISK_NOXIOUS_NEBULA, Ability.TEMPEST_VOLTAGE_LINK);
 
-    private final List<Ability> SPEED_ABILITIES = Arrays.asList(Ability.CITADEL_TRAVEL, Ability.LIGHTNING,
+    private static final List<Ability> SPEED_ABILITIES = Arrays.asList(Ability.CITADEL_TRAVEL, Ability.LIGHTNING,
             Ability.KERES_SLE, Ability.MIMESIS_PHASE_OUT,
             Ability.ZEPHYR_MMT, Ability.PUSAT_PLUS_SPEED_SAP, Ability.RETIARUS_SPC);
 
-    private final List<Ability> HEALTH_ABILITIES_WITHOUT_LOCK = Arrays.asList(Ability.AEGIS_REPAIR_POD,
+    private static final List<Ability> HEALTH_ABILITIES_WITHOUT_LOCK = Arrays.asList(Ability.AEGIS_REPAIR_POD,
             Ability.LIBERATOR_PLUS_SELF_REPAIR, Ability.SOLACE, Ability.SOLACE_PLUS_NANO_CLUSTER_REPAIRER_PLUS);
 
-    private final List<Ability> HEALTH_ABILITIES_WITH_LOCK = Arrays.asList(Ability.AEGIS_HP_REPAIR,
+    private static final List<Ability> HEALTH_ABILITIES_WITH_LOCK = Arrays.asList(Ability.AEGIS_HP_REPAIR,
             Ability.HAMMERCLAW_PLUS_REALLOCATE);
 
-    private final List<Ability> EVADE_ABILITIES = Arrays.asList(Ability.SPEARHEAD_JAM_X,
+    private static final List<Ability> EVADE_ABILITIES = Arrays.asList(Ability.SPEARHEAD_JAM_X,
             Ability.SPEARHEAD_ULTIMATE_CLOAK, Ability.BERSERKER_RVG, Ability.MIMESIS_SCRAMBLE,
-            Ability.DISRUPTOR_DDOL, Ability.SPEARHEAD_PLUS_NEUTRALIZING_MARKER);
+            Ability.DISRUPTOR_DDOL, Ability.SPEARHEAD_PLUS_NEUTRALIZING_MARKER, Ability.ADMIN_ULTIMATE_CLOAKING);
 
-    private final List<Ability> EVADE_LAST_INSTANCE_ABILITIES = Arrays.asList(Ability.CITADEL_PLUS_PRISMATIC_ENDURANCE,
+    private static final List<Ability> EVADE_LAST_INSTANCE_ABILITIES = Arrays.asList(
+            Ability.CITADEL_PLUS_PRISMATIC_ENDURANCE,
             Ability.CITADEL_FORTIFY, Ability.DISRUPTOR_REDIRECT, Ability.SPECTRUM,
             Ability.SPECTRUM_PLUS_PRISMATIC_REFLECTING,
             Ability.SENTINEL, Ability.BERSERKER_BSK);
 
-    private final List<Ability> ALL_TIME_ABILITIES = Arrays.asList(Ability.SPEARHEAD_DOUBLE_MINIMAP);
+    private static final List<Ability> ALL_TIME_ABILITIES = Arrays.asList(Ability.SPEARHEAD_DOUBLE_MINIMAP);
 
-    private final List<Ability> TARTARUS_SPEED_ABILITIES = Arrays.asList(Ability.TARTARUS_SPEED_BOOST,
+    private static final List<Ability> TARTARUS_SPEED_ABILITIES = Arrays.asList(Ability.TARTARUS_SPEED_BOOST,
             Ability.TARTARUS_PLUS_SPEED_BOOST);
 
     private long nextCheck = 0;
 
-    private final int ABILITY_DISTANCE = 650;
+    private static final int ABILITY_DISTANCE = 650;
 
     public AutoBestAbility(PluginAPI api) {
         this(api, api.requireAPI(AuthAPI.class),
@@ -200,6 +202,8 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
                 return Optional.of(Ability.CITADEL_DRAW_FIRE);
             } else if (isAvailable(Ability.CITADEL_PROTECTION)) {
                 return Optional.of(Ability.CITADEL_PROTECTION);
+            } else if (isAvailable(Ability.BERSERKER_SHL)) {
+                return Optional.of(Ability.BERSERKER_SHL);
             }
         }
 
@@ -340,7 +344,7 @@ public class AutoBestAbility implements Behavior, Configurable<BestAbilityConfig
         } else if (this.heroapi.getHealth().hpPercent() <= this.config.minHealthToUseHealth) {
             return true;
         } else if (this.group.hasGroup()) {
-            return this.group.getMembers().stream().anyMatch((member) -> !member.isDead() && member.isAttacked()
+            return this.group.getMembers().stream().anyMatch(member -> !member.isDead() && member.isAttacked()
                     && member.getMemberInfo().hpPercent() <= this.config.minHealthToUseHealth
                     && (!needLock || (member.isLocked()
                             && this.heroapi.distanceTo(member.getLocation()) < ABILITY_DISTANCE)));
