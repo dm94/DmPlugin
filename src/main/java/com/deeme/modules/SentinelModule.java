@@ -23,6 +23,7 @@ import eu.darkbot.api.game.entities.Npc;
 import eu.darkbot.api.game.entities.Player;
 import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.entities.Ship;
+import eu.darkbot.api.game.group.GroupMember;
 import eu.darkbot.api.game.items.SelectableItem.Formation;
 import eu.darkbot.api.game.items.SelectableItem.Special;
 import eu.darkbot.api.game.other.GameMap;
@@ -104,13 +105,15 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
     private JLabel label = new JLabel("<html><b>Sentinel Module</b> <br>" +
             "It's important that the main ship is in a group <br>" +
             "Following priority: Master ID > Tag > Group Leader <br> " +
-            "If a \"Sentinel Tag\" is not defined, it will follow the group leader </html>");
+            "If a \"Sentinel Tag\" is not defined, it will follow the group leader <br>" +
+            "Enable map-only mode to travel to the group leader map without following coordinates </html>");
 
     private enum State {
         INIT("Init"),
         WAIT("Waiting for group invitation"),
         WAIT_GROUP_LOADING("Waiting while loading the group"),
         TRAVELLING_TO_MASTER("Travelling to the master's map"),
+        TRACKING_LEADER_MAP("Tracking group leader map"),
         FOLLOWING_MASTER("Following the master"),
         HELPING_MASTER("Helping the master"),
         TRAVELING_TO_WORKING_MAP("Travelling to the working map to wait");
@@ -222,9 +225,13 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
     public void onTickModule() {
         pet.setEnabled(true);
         if ((sConfig.ignoreSecurity || safety.tick()) && (!sConfig.collectorActive || collectorModule.canRefresh())) {
+            updateGroupLeaderId();
             if (hasSentinel()) {
                 updateLastMap();
-                if (isAttacking()) {
+                if (isGroupLeaderMapOnlyActive()) {
+                    currentStatus = State.TRACKING_LEADER_MAP;
+                    trackLeaderMapOnly();
+                } else if (isAttacking()) {
                     currentStatus = State.HELPING_MASTER;
                     attackLogic();
                 } else if (sentinel.isValid()) {
@@ -328,6 +335,13 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
             lastSentinelLocation = null;
         }
         return false;
+    }
+
+    private void trackLeaderMapOnly() {
+        setMode(configRoam.getValue());
+        if (sConfig.collectorActive) {
+            collectorModule.onTickModule();
+        }
     }
 
     private void moveToMaster() {
@@ -502,38 +516,87 @@ public class SentinelModule implements Module, Configurable<SentinelConfig>, Ins
     }
 
     private void goToGroup() {
-        group.getMembers().stream()
-                .filter(this::isGroupMemberValid)
-                .forEach(m -> {
-                    if (m.isLeader()) {
-                        groupLeaderID = m.getId();
-                    }
-                    masterID = m.getId();
+        GroupMember member = getGroupMaster();
+        if (member == null || heroapi.getMap() == null) {
+            return;
+        }
 
-                    if (heroapi.getMap() != null && m.getMapId() == heroapi.getMap().getId()) {
-                        lastSentinelLocation = m.getLocation();
-                    }
-                    if (m.getMapId() == heroapi.getMap().getId()) {
-                        movement.moveTo(m.getLocation());
-                        currentStatus = State.FOLLOWING_MASTER;
-                    } else {
-                        GameMap map = starSystem.findMap(m.getMapId()).orElse(null);
-                        if (map != null) {
-                            this.bot.setModule(api.requireInstance(MapModule.class))
-                                    .setTarget(map);
-                            currentStatus = State.TRAVELLING_TO_MASTER;
-                        }
-                    }
-                });
+        if (member.isLeader()) {
+            groupLeaderID = member.getId();
+        }
+        masterID = member.getId();
+
+        if (member.getMapId() == heroapi.getMap().getId()) {
+            lastSentinelLocation = member.getLocation();
+            if (isGroupLeaderMapOnlyActive(member)) {
+                currentStatus = State.TRACKING_LEADER_MAP;
+                trackLeaderMapOnly();
+            } else {
+                movement.moveTo(member.getLocation());
+                currentStatus = State.FOLLOWING_MASTER;
+            }
+        } else {
+            GameMap map = starSystem.findMap(member.getMapId()).orElse(null);
+            if (map != null) {
+                this.bot.setModule(api.requireInstance(MapModule.class))
+                        .setTarget(map);
+                currentStatus = State.TRAVELLING_TO_MASTER;
+            }
+        }
     }
 
-    private boolean isGroupMemberValid(eu.darkbot.api.game.group.GroupMember m) {
-        return !m.isDead() && m.getId() != heroapi.getId()
-                && ((sConfig.MASTER_ID != 0 && m.getId() == sConfig.MASTER_ID) ||
-                        (sConfig.SENTINEL_TAG != null
-                                && sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(m.getId())))
-                        ||
-                        (sConfig.followGroupLeader && m.isLeader()));
+    private GroupMember getGroupMaster() {
+        GroupMember configuredMaster = group.getMembers().stream()
+                .filter(this::isLivingGroupMember)
+                .filter(m -> sConfig.MASTER_ID != 0 && m.getId() == sConfig.MASTER_ID)
+                .findFirst().orElse(null);
+        if (configuredMaster != null) {
+            return configuredMaster;
+        }
+
+        GroupMember taggedMaster = group.getMembers().stream()
+                .filter(this::isLivingGroupMember)
+                .filter(m -> sConfig.SENTINEL_TAG != null
+                        && sConfig.SENTINEL_TAG.has(main.config.PLAYER_INFOS.get(m.getId())))
+                .findFirst().orElse(null);
+        if (taggedMaster != null) {
+            return taggedMaster;
+        }
+
+        if (!sConfig.followGroupLeader) {
+            return null;
+        }
+
+        return group.getMembers().stream()
+                .filter(this::isLivingGroupMember)
+                .filter(GroupMember::isLeader)
+                .findFirst().orElse(null);
+    }
+
+    private boolean isLivingGroupMember(GroupMember member) {
+        return member != null && !member.isDead() && member.getId() != heroapi.getId();
+    }
+
+    private void updateGroupLeaderId() {
+        if (!group.hasGroup()) {
+            return;
+        }
+
+        group.getMembers().stream()
+                .filter(this::isLivingGroupMember)
+                .filter(GroupMember::isLeader)
+                .findFirst()
+                .ifPresent(member -> groupLeaderID = member.getId());
+    }
+
+    private boolean isGroupLeaderMapOnlyActive() {
+        return sentinel != null && sConfig.groupLeaderMapOnly && sConfig.followGroupLeader
+                && groupLeaderID != 0 && sentinel.getId() == groupLeaderID;
+    }
+
+    private boolean isGroupLeaderMapOnlyActive(GroupMember member) {
+        return member != null && sConfig.groupLeaderMapOnly && sConfig.followGroupLeader
+                && member.isLeader();
     }
 
     private void acceptGroupSentinel() {
