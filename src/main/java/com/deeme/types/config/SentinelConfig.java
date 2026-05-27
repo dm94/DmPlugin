@@ -25,6 +25,9 @@ public class SentinelConfig {
     @Option("sentinel.follow_group")
     public boolean followGroupLeader = true;
 
+    @Option("sentinel.group_leader_only")
+    public boolean groupLeaderOnly = false;
+
     @Option("sentinel.ignore_safety")
     public boolean ignoreSecurity = false;
 
