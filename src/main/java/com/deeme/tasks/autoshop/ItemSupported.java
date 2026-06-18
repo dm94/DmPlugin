@@ -4,6 +4,15 @@ import eu.darkbot.api.config.annotations.Configuration;
 
 @Configuration("supported_item")
 public enum ItemSupported implements ShopItem {
+    THS_B03("ammunition_slug_ths-b03", "slug", 0, 100),
+    THS_C02("ammunition_slug_ths-c02", "slug", 0, 30),
+    THS_D01("ammunition_slug_ths-d01", "slug", 1000, 0),
+    COS_B03("ammunition_slug_cos-b03", "slug", 0, 100),
+    COS_C02("ammunition_slug_cos-c02", "slug", 0, 30),
+    COS_D01("ammunition_slug_cos-d01", "slug", 1000, 0),
+    ELS_B03("ammunition_slug_els-b03", "slug", 0, 100),
+    ELS_C02("ammunition_slug_els-c02", "slug", 0, 30),
+    ELS_D01("ammunition_slug_els-d01", "slug", 1000, 0),
     LCB_10("ammunition_laser_lcb-10", 10, 0),
     MCB_25("ammunition_laser_mcb-25", 0, 0.5),
     MCB_50("ammunition_laser_mcb-50", 0, 1),
