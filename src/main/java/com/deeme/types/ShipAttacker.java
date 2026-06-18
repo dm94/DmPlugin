@@ -125,7 +125,9 @@ public class ShipAttacker {
 
         if (lastAttacked != target.getId()) {
             lastAttacked = target.getId();
-            firstAttack = true;
+            firstAttack = false;
+            fixedTimes = 0;
+            laserTime = 0;
 
             if (humanizerConfig.addRandomTime) {
                 clickDelay = System.currentTimeMillis()
@@ -135,9 +137,6 @@ public class ShipAttacker {
             }
         }
 
-        fixedTimes = 0;
-        laserTime = 0;
-        firstAttack = false;
         if (heroapi.getLocationInfo().distanceTo(target) < 700
                 && (heroapi.getTarget() == null || heroapi.getTarget().getId() != target.getId())) {
             if (System.currentTimeMillis() > clickDelay) {
