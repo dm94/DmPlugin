@@ -1,6 +1,6 @@
-# DarkBot-MCP (MCP Bridge)
+# MCP Bridge — DmPlugin Feature
 
-A [DarkBot](https://github.com/darkbot-reloaded/DarkBot) plugin that exposes the bot's runtime state and control surface over the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/). Enables external AI agents to read live bot telemetry and execute actions through a local HTTP + SSE endpoint speaking JSON-RPC 2.0.
+MCP Bridge is a feature of [DmPlugin](../../../../../README.md) that exposes DarkBot's runtime state and control surface over the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/). Enables external AI agents to read live bot telemetry and execute actions through a local HTTP + SSE endpoint speaking JSON-RPC 2.0.
 
 ## Features
 
@@ -17,10 +17,9 @@ A [DarkBot](https://github.com/darkbot-reloaded/DarkBot) plugin that exposes the
 
 ## Build
 
-```bash
-git clone https://github.com/dm94/DarkBot-MCP.git
-cd DarkBot-MCP
+MCP Bridge is built as part of DmPlugin. From the project root:
 
+```bash
 # Build the plugin
 ./gradlew.bat build
 
@@ -31,11 +30,11 @@ cd DarkBot-MCP
 ./gradlew.bat signFile
 ```
 
-Output: `build/McpBridge.jar`
+Output: `DmPlugin.jar`
 
 ## Install
 
-Copy `McpBridge.jar` into DarkBot's `plugins/` folder and restart the bot.
+Copy `DmPlugin.jar` into DarkBot's `plugins/` folder and restart the bot.
 
 ## Usage
 
@@ -99,22 +98,23 @@ curl -X POST http://127.0.0.1:9876/mcp \
 ## Architecture
 
 ```
-McpPlugin          Feature entry, wires DarkBot APIs, starts/stops HTTP server
-├─ McpConfig       Host/port config (port 1024-65535, default 9876)
-├─ StatusPanelEditor  Adds MCP status to DarkBot UI
+McpBridge            Feature entry, wires DarkBot APIs, starts/stops HTTP server
+├─ McpConfig         Host/port config (port 1024-65535, default 9876)
+├─ StatusPanelEditor Adds MCP status to DarkBot UI
 ├─ server/
 │  ├─ McpHttpServer   JDK HttpServer on /mcp (SSE + POST)
 │  └─ McpProtocol     JSON-RPC 2.0 dispatcher
-├─ resources/       McpResource interface implementations
-├─ tools/           McpTool interface implementations
+├─ conditions/        Condition schema reflection
+├─ resources/         McpResource interface implementations
+├─ tools/             McpTool interface implementations
 └─ util/
-   ├─ Json          Gson helpers (no nulls, typed puts)
-   └─ ObjectInspector  Reflection-based runtime inspector
+   ├─ Json            Gson helpers (no nulls, typed puts)
+   └─ ObjectInspector Reflection-based runtime inspector
 ```
 
 ## Extending
 
-Implement `McpResource` or `McpTool` and register it in `McpPlugin`'s constructor.
+Implement `McpResource` or `McpTool` and register it in `McpBridge`'s constructor.
 
 ## Security
 

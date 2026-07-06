@@ -25,7 +25,7 @@ public class StatusPanelEditor implements OptionEditor<String> {
             restartBtn = new JButton("Restart Server");
             restartBtn.setMaximumSize(new Dimension(160, 26));
             restartBtn.addActionListener(e -> {
-                McpHttpServer s = McpPlugin.liveServer;
+                McpHttpServer s = McpBridge.liveServer;
                 if (s != null) {
                     s.stop();
                     s.start();
@@ -44,7 +44,7 @@ public class StatusPanelEditor implements OptionEditor<String> {
     }
 
     private void refresh() {
-        McpHttpServer s = McpPlugin.liveServer;
+        McpHttpServer s = McpBridge.liveServer;
         if (s != null && s.isRunning()) {
             statusLabel.setText("Running on http://" + s.getHost() + ":" + s.getPort() + "/mcp");
             connectionsLabel.setText("Active connections: " + s.getConnectionCount());

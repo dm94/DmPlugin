@@ -1,11 +1,11 @@
-# AGENTS.md
+# AGENTS.md — MCP Bridge Feature
 
-## Project Overview
+## Overview
 
-**DarkBot-MCP** (a.k.a. MCP Bridge) is a [DarkBot](https://github.com/darkbot-reloaded/DarkBot) plugin that exposes the bot's runtime state and control surface over the [Model Context Protocol (MCP)](https://agents.md/). External AI agents read live bot telemetry and act through a local HTTP + SSE endpoint speaking JSON-RPC 2.0.
+**MCP Bridge** is a feature of [DmPlugin](../../../../../README.md) that exposes DarkBot's runtime state and control surface over the [Model Context Protocol (MCP)](https://agents.md/). External AI agents read live bot telemetry and act through a local HTTP + SSE endpoint speaking JSON-RPC 2.0.
 
 - **Language:** Java 11 (source & target)
-- **Build:** Gradle with Kotlin DSL (`build.gradle.kts`)
+- **Build:** Part of DmPlugin's Gradle build (`build.gradle.kts` at project root)
 - **Key deps:** DarkBotAPI `0.9.5` (compile-only), Gson `2.10.1`
 - **Runtime:** JVM bundled with DarkBot; plugin loaded by DarkBot's plugin manager, not standalone
 - **MCP protocol version:** `2025-03-26` (in `McpProtocol.PROTOCOL_VERSION`)
@@ -13,10 +13,10 @@
 
 ## Architecture
 
-All sources under `src/main/java/dev/deeme/mcp/`. Single feature `McpPlugin` at the root.
+All sources under `src/main/java/com/deeme/tasks/mcp/`. Single feature `McpBridge` at the root.
 
 ```
-McpPlugin            @Feature + Task + Configurable<McpConfig> + Installable. Wires APIs, starts/stops server.
+McpBridge            @Feature + Task + Configurable<McpConfig> + Installable. Wires APIs, starts/stops server.
 ├─ McpConfig         Host/port config (port 1024-65535, default 9876).
 ├─ StatusPanelEditor Swing panel in DarkBot UI: status label, connection count, restart button.
 ├─ server/
@@ -49,7 +49,7 @@ McpPlugin            @Feature + Task + Configurable<McpConfig> + Installable. Wi
    └─ ObjectInspectorSelfCheck  Runnable self-check (no JUnit).
 ```
 
-**Extension points:** implement `McpResource` or `McpTool`, register in `McpPlugin` constructor — no auto-discovery.
+**Extension points:** implement `McpResource` or `McpTool`, register in `McpBridge` constructor — no auto-discovery.
 
 ## CRITICAL: PluginClassLoader blocks java.lang.reflect.\*
 
@@ -84,13 +84,15 @@ mh.invoke(args);
 
 ## Build & Deploy
 
+MCP Bridge is built as part of DmPlugin. From the project root:
+
 ```bash
 # Windows
-gradlew.bat build            # compile + jar → build/libs/mcp-bridge-1.0.0.jar
-gradlew.bat copyFile         # → build/McpBridge.jar (deployable name)
+gradlew.bat build            # compile + jar → build/libs/DmPlugin-2.2.0.jar
+gradlew.bat copyFile         # → DmPlugin.jar (deployable name)
 gradlew.bat signFile         # runs sign.bat (jarsigner, requires .keystore + USERKEY/KEYPASS)
 
-# Deploy: copy McpBridge.jar to DarkBot's plugins/ folder
+# Deploy: copy DmPlugin.jar to DarkBot's plugins/ folder
 ```
 
 No hot reload. Rebuild + restart DarkBot to test changes. Server starts lazily on first `onBackgroundTick()` after install.
@@ -107,13 +109,13 @@ curl -X POST http://127.0.0.1:9876/mcp \
 
 Then `tools/list`, `tools/call` with `{"name":"toggle_pause","arguments":{}}`, or `resources/read`, `resources/list`.
 
-Self-check runner (no JUnit): `ObjectInspectorSelfCheck` — `java -ea -cp ... dev.deeme.mcp.util.ObjectInspectorSelfCheck`
+Self-check runner (no JUnit): `ObjectInspectorSelfCheck` — `java -ea -cp ... com.deeme.tasks.mcp.util.ObjectInspectorSelfCheck`
 
 ## Code Style
 
 - One public class per file, filename matches classname.
 - PascalCase classes, camelCase methods/variables, `UPPER_SNAKE` constants.
-- Use `dev.deeme.mcp.util.Json` helpers for typed puts to `JsonObject`.
+- Use `com.deeme.tasks.mcp.util.Json` helpers for typed puts to `JsonObject`.
 - Catch specific exceptions; only bare `Exception` at the top-level dispatcher boundary in `McpProtocol.handleMessage`.
 - UTF-8 everywhere (`options.encoding = "UTF-8"`).
 - No Lombok annotations where plain Java is equally short.
@@ -154,8 +156,8 @@ Self-check runner (no JUnit): `ObjectInspectorSelfCheck` — `java -ea -cp ... d
 
 1. Implement `McpTool` or `McpResource` in the appropriate package.
 2. **Always use `java.lang.invoke.MethodHandle`** (not `java.lang.reflect.*`) for any reflection.
-3. Register in `McpPlugin` constructor: `protocol.registerTool(new FooTool(...))`.
-4. If the tool needs a DarkBot API, inject via the `McpPlugin` constructor (available: Bot/Hero/Stats/Extensions/StarSystem/Config/PluginAPI).
+3. Register in `McpBridge` constructor: `protocol.registerTool(new FooTool(...))`.
+4. If the tool needs a DarkBot API, inject via the `McpBridge` constructor (available: Bot/Hero/Stats/Extensions/StarSystem/Config/PluginAPI).
 
 ## Security
 

@@ -1,5 +1,7 @@
 package com.deeme.tasks.mcp;
 
+import java.util.Arrays;
+
 import com.deeme.tasks.mcp.conditions.ConditionSchemaResource;
 import com.deeme.tasks.mcp.resources.BotResource;
 import com.deeme.tasks.mcp.resources.ConfigTreeResource;
@@ -19,13 +21,18 @@ import com.deeme.tasks.mcp.tools.ResourceTool;
 import com.deeme.tasks.mcp.tools.SetConfigTool;
 import com.deeme.tasks.mcp.tools.SetProfileTool;
 import com.deeme.tasks.mcp.tools.ValidateConditionTool;
+import com.deeme.types.VerifierChecker;
+import com.deeme.types.backpage.Utils;
+
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.extensions.Task;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.extensions.FeatureInfo;
 import eu.darkbot.api.extensions.Installable;
 import eu.darkbot.api.extensions.PluginInfo;
+import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.ConfigAPI;
 import eu.darkbot.api.managers.ExtensionsAPI;
@@ -34,7 +41,7 @@ import eu.darkbot.api.managers.StarSystemAPI;
 import eu.darkbot.api.managers.StatsAPI;
 
 @Feature(name = "MCP Bridge", description = "Exposes bot state & control via MCP protocol for AI integration")
-public class McpPlugin implements Task, Configurable<McpConfig>, Installable {
+public class McpBridge implements Task, Configurable<McpConfig>, Installable {
 
     private McpHttpServer server;
     private boolean started;
@@ -46,9 +53,18 @@ public class McpPlugin implements Task, Configurable<McpConfig>, Installable {
         return pluginAPI;
     }
 
-    public McpPlugin(BotAPI bot, HeroAPI hero, StatsAPI stats,
+    public McpBridge(PluginAPI api, BotAPI bot, HeroAPI hero, StatsAPI stats,
             ExtensionsAPI extensions, StarSystemAPI starSystem,
-            ConfigAPI configAPI) {
+            ConfigAPI configAPI, AuthAPI auth) {
+        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) {
+            throw new SecurityException();
+        }
+
+        VerifierChecker.requireAuthenticity(auth);
+        ExtensionsAPI extensionsAPI = api.requireAPI(ExtensionsAPI.class);
+        FeatureInfo<?> feature = extensionsAPI.getFeatureInfo(this.getClass());
+        Utils.discordCheck(feature, auth.getAuthId());
+        Utils.showDonateDialog(feature, auth.getAuthId());
 
         String pName = "MCP Bridge";
         String pVersion = "1.0.0";
@@ -109,7 +125,7 @@ public class McpPlugin implements Task, Configurable<McpConfig>, Installable {
 
     @Override
     public void install(PluginAPI pluginAPI) {
-        McpPlugin.pluginAPI = pluginAPI;
+        McpBridge.pluginAPI = pluginAPI;
     }
 
     @Override
