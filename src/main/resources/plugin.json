@@ -19,6 +19,7 @@
 		"com.deeme.tasks.HitacFollower",
 		"com.deeme.tasks.externalchat.ExternalChat",
 		"com.deeme.tasks.AutoShopDummy",
+		"com.deeme.tasks.mcp.McpPlugin",
 		"com.deeme.behaviours.Others",
 		"com.deeme.behaviours.defense.DefenseMode",
 		"com.deeme.behaviours.CustomEvents",
