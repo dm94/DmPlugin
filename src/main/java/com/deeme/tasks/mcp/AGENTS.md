@@ -34,11 +34,13 @@ McpBridge            @Feature + Task + Configurable<McpConfig> + Installable. Wi
 │  ├─ ConfigValueResource  bot://config/value?path=...
 │  ├─ ConfigTreeResource   bot://config/tree
 │  ├─ InspectResource      bot://inspect?root=...&path=...&max_depth=...&max_items=...
+│  ├─ NpcConfigResource    bot://config/npc
 │  └─ ConditionSchemaResource  conditions://schema
 ├─ tools/            McpTool interface implementations:
 │  ├─ BotControlTool    toggle_pause — pause/resume bot
 │  ├─ PluginReloadTool  reload_plugins — reload all plugins (uses java.lang.invoke)
 │  ├─ SetConfigTool     set_config — update config value by dot-path
+│  ├─ SetNpcConfigTool  set_npc_config — configure NPC settings (kill, priority, radius)
 │  ├─ SetProfileTool    set_profile — switch config profile
 │  ├─ ResourceTool      resource — resource access as a tool (fallback for MCP clients)
 │  ├─ ValidateConditionTool  validate_condition — validate condition DSL string
@@ -127,6 +129,7 @@ Self-check runner (no JUnit): `ObjectInspectorSelfCheck` — `java -ea -cp ... c
 | `toggle_pause`       | Pause/resume bot (BotAPI)                                               |
 | `get_config`         | Read config by dot-separated path                                       |
 | `set_config`         | Update config value (auto-converts type)                                |
+| `set_npc_config`     | Configure NPC settings (kill, priority, radius)                         |
 | `explore_config`     | Navigate config tree                                                    |
 | `list_profiles`      | List config profiles                                                    |
 | `set_profile`        | Switch active profile                                                   |
@@ -149,6 +152,7 @@ Self-check runner (no JUnit): `ObjectInspectorSelfCheck` — `java -ea -cp ... c
 | `bot://profiles`                  | Config profiles                                      |
 | `bot://config/value?path=...`     | Config value reader                                  |
 | `bot://config/tree`               | Config tree navigator (supports path drilling)       |
+| `bot://config/npc`                | NPC configuration (list all or get by name)          |
 | `bot://inspect?root=...&path=...` | Object inspector (supports `max_depth`, `max_items`) |
 | `conditions://schema`             | Condition DSL schema (all types, values, enums)      |
 
