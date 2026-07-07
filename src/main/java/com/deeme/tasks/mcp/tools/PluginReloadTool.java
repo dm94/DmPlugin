@@ -27,7 +27,7 @@ public class PluginReloadTool implements McpTool {
 
     @Override
     public String getDescription() {
-        return "Reload all plugins. Useful for applying configuration changes or fixing plugin issues without restarting the bot.";
+        return "Reload all plugins. Useful for applying configuration changes or fixing plugin issues without restarting the bot. The MCP needs to be reset";
     }
 
     @Override
