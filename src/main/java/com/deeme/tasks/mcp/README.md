@@ -85,6 +85,9 @@ curl -X POST http://127.0.0.1:9876/mcp \
 | `list_plugins`   | List loaded plugins                       |
 | `reload_plugins` | Reload all plugins                        |
 | `inspect_object` | Deep-inspect DarkBot runtime objects      |
+| `set_pet`        | Enable/disable PET and/or change its gear |
+| `reset_deaths`   | Reset the hero death counter to 0         |
+| `move`           | Move hero: `goto x y`, `random`, or `stop` |
 
 ## Resources
 
@@ -94,6 +97,14 @@ curl -X POST http://127.0.0.1:9876/mcp \
 | `mcp://hero/info`     | Hero stats, ship, cargo                    |
 | `mcp://stats/session` | Session statistics                         |
 | `mcp://plugins/list`  | Loaded plugins list                        |
+| `mcp://entities`      | Live NPCs, players, pets, boxes, mines, portals on current map (`?type=`, `?limit=`) |
+| `mcp://pet`           | Hero PET status: gear, locator, stats (HP/shield/fuel/XP/heat) |
+| `mcp://group`         | Group/outfit: members, invites, leader flag |
+| `mcp://repair`        | Deaths, destroyed, last destroyer, revive locations |
+| `mcp://boosters`      | Active ship boosters with amount % and remaining time |
+| `mcp://inventory`     | Inventory items (loot id, name, amount)    |
+| `mcp://npc_event`     | NPC event status (generic + agatus), remaining time, NPCs/bosses left |
+| `mcp://ores`          | Owned amount per ore, sellability, upgrade slots |
 
 ## Architecture
 

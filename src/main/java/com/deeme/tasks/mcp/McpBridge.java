@@ -4,23 +4,34 @@ import java.util.Arrays;
 
 import com.deeme.tasks.mcp.conditions.ConditionSchemaResource;
 import com.deeme.tasks.mcp.resources.BotResource;
+import com.deeme.tasks.mcp.resources.BoosterResource;
 import com.deeme.tasks.mcp.resources.ConfigTreeResource;
 import com.deeme.tasks.mcp.resources.ConfigValueResource;
+import com.deeme.tasks.mcp.resources.EntitiesResource;
+import com.deeme.tasks.mcp.resources.GroupResource;
 import com.deeme.tasks.mcp.resources.HeroResource;
 import com.deeme.tasks.mcp.resources.InspectResource;
+import com.deeme.tasks.mcp.resources.InventoryResource;
 import com.deeme.tasks.mcp.resources.ModuleResource;
 import com.deeme.tasks.mcp.resources.NpcConfigResource;
+import com.deeme.tasks.mcp.resources.NpcEventResource;
+import com.deeme.tasks.mcp.resources.OreResource;
+import com.deeme.tasks.mcp.resources.PetResource;
 import com.deeme.tasks.mcp.resources.PluginResource;
 import com.deeme.tasks.mcp.resources.ProfileListResource;
+import com.deeme.tasks.mcp.resources.RepairResource;
 import com.deeme.tasks.mcp.resources.StatsResource;
 import com.deeme.tasks.mcp.server.McpHttpServer;
 import com.deeme.tasks.mcp.server.McpProtocol;
 import com.deeme.tasks.mcp.tools.BotControlTool;
 import com.deeme.tasks.mcp.tools.BuildConditionTool;
+import com.deeme.tasks.mcp.tools.MoveToTool;
 import com.deeme.tasks.mcp.tools.PluginReloadTool;
+import com.deeme.tasks.mcp.tools.ResetDeathsTool;
 import com.deeme.tasks.mcp.tools.ResourceTool;
 import com.deeme.tasks.mcp.tools.SetConfigTool;
 import com.deeme.tasks.mcp.tools.SetNpcConfigTool;
+import com.deeme.tasks.mcp.tools.SetPetGearTool;
 import com.deeme.tasks.mcp.tools.SetProfileTool;
 import com.deeme.tasks.mcp.tools.ValidateConditionTool;
 import com.deeme.types.VerifierChecker;
@@ -35,10 +46,19 @@ import eu.darkbot.api.extensions.FeatureInfo;
 import eu.darkbot.api.extensions.Installable;
 import eu.darkbot.api.extensions.PluginInfo;
 import eu.darkbot.api.managers.AuthAPI;
+import eu.darkbot.api.managers.BoosterAPI;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.ConfigAPI;
+import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.ExtensionsAPI;
+import eu.darkbot.api.managers.GroupAPI;
 import eu.darkbot.api.managers.HeroAPI;
+import eu.darkbot.api.managers.InventoryAPI;
+import eu.darkbot.api.managers.MovementAPI;
+import eu.darkbot.api.managers.NpcEventAPI;
+import eu.darkbot.api.managers.OreAPI;
+import eu.darkbot.api.managers.PetAPI;
+import eu.darkbot.api.managers.RepairAPI;
 import eu.darkbot.api.managers.StarSystemAPI;
 import eu.darkbot.api.managers.StatsAPI;
 
@@ -90,6 +110,17 @@ public class McpBridge implements Task, Configurable<McpConfig>, Installable {
         protocol.registerResource(new InspectResource(bot, hero, stats, extensions, starSystem, configAPI));
         protocol.registerResource(new NpcConfigResource(configAPI));
         protocol.registerResource(new ConditionSchemaResource());
+
+        // Live game state (Tier 1 read-only resources)
+        protocol.registerResource(new EntitiesResource(api.requireAPI(EntitiesAPI.class)));
+        protocol.registerResource(new PetResource(api.requireAPI(PetAPI.class)));
+        protocol.registerResource(new GroupResource(api.requireAPI(GroupAPI.class)));
+        protocol.registerResource(new RepairResource(api.requireAPI(RepairAPI.class)));
+        protocol.registerResource(new BoosterResource(api.requireAPI(BoosterAPI.class)));
+        protocol.registerResource(new InventoryResource(api.requireAPI(InventoryAPI.class)));
+        protocol.registerResource(new NpcEventResource(api.requireAPI(NpcEventAPI.class)));
+        protocol.registerResource(new OreResource(api.requireAPI(OreAPI.class)));
+
         protocol.registerTool(new ResourceTool(protocol.getResources()));
         protocol.registerTool(new BotControlTool(bot));
         protocol.registerTool(new PluginReloadTool(bot));
@@ -98,6 +129,11 @@ public class McpBridge implements Task, Configurable<McpConfig>, Installable {
         protocol.registerTool(new SetProfileTool(configAPI));
         protocol.registerTool(new ValidateConditionTool());
         protocol.registerTool(new BuildConditionTool());
+
+        // Action tools (Tier 2)
+        protocol.registerTool(new SetPetGearTool(api.requireAPI(PetAPI.class)));
+        protocol.registerTool(new ResetDeathsTool(api.requireAPI(RepairAPI.class)));
+        protocol.registerTool(new MoveToTool(api.requireAPI(MovementAPI.class)));
 
         this.server = new McpHttpServer(new McpConfig(), protocol);
         liveServer = this.server;

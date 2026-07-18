@@ -35,6 +35,14 @@ McpBridge            @Feature + Task + Configurable<McpConfig> + Installable. Wi
 │  ├─ ConfigTreeResource   bot://config/tree
 │  ├─ InspectResource      bot://inspect?root=...&path=...&max_depth=...&max_items=...
 │  ├─ NpcConfigResource    bot://config/npc
+│  ├─ EntitiesResource     mcp://entities — live NPCs, players, pets, boxes, mines, portals
+│  ├─ PetResource          mcp://pet — PET gear, locator, stats
+│  ├─ GroupResource        mcp://group — group members, invites
+│  ├─ RepairResource       mcp://repair — deaths, last destroyer, revive locations
+│  ├─ BoosterResource      mcp://boosters — active boosters with amount % and remaining time
+│  ├─ InventoryResource    mcp://inventory — items in inventory
+│  ├─ NpcEventResource     mcp://npc_event — NPC event status (generic + agatus)
+│  ├─ OreResource          mcp://ores — owned amounts and upgrade slots
 │  └─ ConditionSchemaResource  conditions://schema
 ├─ tools/            McpTool interface implementations:
 │  ├─ BotControlTool    toggle_pause — pause/resume bot
@@ -43,6 +51,9 @@ McpBridge            @Feature + Task + Configurable<McpConfig> + Installable. Wi
 │  ├─ SetNpcConfigTool  set_npc_config — configure NPC settings (kill, priority, radius)
 │  ├─ SetProfileTool    set_profile — switch config profile
 │  ├─ ResourceTool      resource — resource access as a tool (fallback for MCP clients)
+│  ├─ SetPetGearTool    set_pet — enable/disable PET and/or set its gear
+│  ├─ ResetDeathsTool   reset_deaths — zero the hero death counter
+│  ├─ MoveToTool        move — goto x y | random | stop
 │  ├─ ValidateConditionTool  validate_condition — validate condition DSL string
 │  └─ BuildConditionTool     build_condition — build condition DSL from JSON tree
 └─ util/
@@ -159,6 +170,16 @@ Self-check runner (no JUnit): `ObjectInspectorSelfCheck` — `java -ea -cp ... c
 ## Adding a new tool / resource
 
 1. Implement `McpTool` or `McpResource` in the appropriate package.
+2. **Always use `java.lang.invoke.MethodHandle`** (not `java.lang.reflect.*`) for any reflection.
+3. Register in `McpBridge` constructor: `protocol.registerTool(new FooTool(...))`.
+4. If the tool needs a DarkBot API, inject via the `McpBridge` constructor (available: Bot/Hero/Stats/Extensions/StarSystem/Config/PluginAPI).
+
+## Security
+
+- Server binds to `127.0.0.1` by default. Do not change default to `0.0.0.0`.
+- CORS allows `*` origin (required for browser-based MCP clients).
+- No auth layer — keep it on loopback.
+- `McpConfig.port` validated `[1024, 65535]` via `@Number`; don't weaken.
 2. **Always use `java.lang.invoke.MethodHandle`** (not `java.lang.reflect.*`) for any reflection.
 3. Register in `McpBridge` constructor: `protocol.registerTool(new FooTool(...))`.
 4. If the tool needs a DarkBot API, inject via the `McpBridge` constructor (available: Bot/Hero/Stats/Extensions/StarSystem/Config/PluginAPI).
