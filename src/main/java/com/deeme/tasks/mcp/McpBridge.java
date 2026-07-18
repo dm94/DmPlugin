@@ -23,6 +23,7 @@ import com.deeme.tasks.mcp.resources.RepairResource;
 import com.deeme.tasks.mcp.resources.StatsResource;
 import com.deeme.tasks.mcp.server.McpHttpServer;
 import com.deeme.tasks.mcp.server.McpProtocol;
+import com.deeme.tasks.mcp.tools.AttackEntityTool;
 import com.deeme.tasks.mcp.tools.BotControlTool;
 import com.deeme.tasks.mcp.tools.BuildConditionTool;
 import com.deeme.tasks.mcp.tools.MoveToTool;
@@ -134,6 +135,7 @@ public class McpBridge implements Task, Configurable<McpConfig>, Installable {
         protocol.registerTool(new SetPetGearTool(api.requireAPI(PetAPI.class)));
         protocol.registerTool(new ResetDeathsTool(api.requireAPI(RepairAPI.class)));
         protocol.registerTool(new MoveToTool(api.requireAPI(MovementAPI.class)));
+        protocol.registerTool(new AttackEntityTool(api, bot, api.requireAPI(EntitiesAPI.class)));
 
         this.server = new McpHttpServer(new McpConfig(), protocol);
         liveServer = this.server;
