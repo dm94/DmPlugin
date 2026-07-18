@@ -56,58 +56,65 @@ public class EntitiesResource implements McpResource {
 
     JsonObject obj = new JsonObject();
     JsonArray arr = new JsonArray();
+    int added = 0;
 
     if (type.isEmpty() || "npcs".equals(type)) {
       addCount(obj, "npc_count", entities.getNpcs());
       for (Npc e : entities.getNpcs()) {
-        if (arr.size() >= limit)
+        if (added >= limit)
           break;
         arr.add(shipJson(e, "npc", npcExtra(e)));
+        added++;
       }
     }
     if (type.isEmpty() || "players".equals(type)) {
       addCount(obj, "player_count", entities.getPlayers());
       for (Player e : entities.getPlayers()) {
-        if (arr.size() >= limit)
+        if (added >= limit)
           break;
         arr.add(shipJson(e, "player", playerExtra(e)));
+        added++;
       }
     }
     if (type.isEmpty() || "pets".equals(type)) {
       addCount(obj, "pet_count", entities.getPets());
       for (Pet e : entities.getPets()) {
-        if (arr.size() >= limit)
+        if (added >= limit)
           break;
         arr.add(petJson(e));
+        added++;
       }
     }
     if (type.isEmpty() || "boxes".equals(type)) {
       addCount(obj, "box_count", entities.getBoxes());
       for (Box e : entities.getBoxes()) {
-        if (arr.size() >= limit)
+        if (added >= limit)
           break;
         arr.add(boxJson(e));
+        added++;
       }
     }
     if (type.isEmpty() || "mines".equals(type)) {
       addCount(obj, "mine_count", entities.getMines());
       for (Mine e : entities.getMines()) {
-        if (arr.size() >= limit)
+        if (added >= limit)
           break;
         arr.add(entityJson(e, "mine"));
+        added++;
       }
     }
     if (type.isEmpty() || "portals".equals(type)) {
       addCount(obj, "portal_count", entities.getPortals());
       for (Portal e : entities.getPortals()) {
-        if (arr.size() >= limit)
+        if (added >= limit)
           break;
         arr.add(portalJson(e));
+        added++;
       }
     }
 
     obj.add("entities", arr);
-    Json.put(obj, "returned", Json.size(arr));
+    Json.put(obj, "returned", added);
     return gson.toJson(obj);
   }
 
