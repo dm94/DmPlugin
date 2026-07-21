@@ -33,7 +33,7 @@ McpBridge            @Feature + Task + Configurable<McpConfig> + Installable. Wi
 │  ├─ ProfileListResource  bot://profiles
 │  ├─ ConfigValueResource  bot://config/value?path=...
 │  ├─ ConfigTreeResource   bot://config/tree
-│  ├─ InspectResource      bot://inspect?root=...&path=...&max_depth=...&max_items=...
+│  ├─ InspectResource      bot://inspect?root=...&path=...&max_depth=...&max_items=... or ?address=0x...
 │  ├─ NpcConfigResource    bot://config/npc
 │  ├─ EntitiesResource     mcp://entities — live NPCs, players, pets, boxes, mines, portals
 │  ├─ PetResource          mcp://pet — PET gear, locator, stats
@@ -59,7 +59,9 @@ McpBridge            @Feature + Task + Configurable<McpConfig> + Installable. Wi
 └─ util/
    ├─ Json              Gson helpers (no nulls, typed puts, size counter for ProGuard-stripped methods).
    ├─ ObjectInspector    Reflection-based runtime object snapshotter (delegates to Gson, not java.lang.reflect).
-   └─ ObjectInspectorSelfCheck  Runnable self-check (no JUnit).
+   ├─ ObjectInspectorSelfCheck  Runnable self-check (no JUnit).
+   ├─ MemoryInspector    Address-based object snapshotter (uses java.lang.invoke to read memory + slots from DarkBot's ObjectInspector).
+   └─ MemoryInspectorSelfCheck  Runnable self-check for the address parser (no JUnit, no DarkBot).
 ```
 
 **Extension points:** implement `McpResource` or `McpTool`, register in `McpBridge` constructor — no auto-discovery.
@@ -89,6 +91,7 @@ mh.invoke(args);
 - `ObjectInspector` — delegates all reflection to Gson (parent classloader)
 - `ValidateConditionTool` (fixed) — uses `findStatic` / `findVirtual` / `findGetter`
 - `ConditionSchemaResource` (fixed) — uses `findStaticGetter` / `findGetter` / `findVirtual`
+- `MemoryInspector` — uses `findStaticGetter` / `findStatic` / `findVirtual` / `findGetter` to read memory and enumerate slots
 
 **Gotchas:**
 
@@ -122,7 +125,7 @@ curl -X POST http://127.0.0.1:9876/mcp \
 
 Then `tools/list`, `tools/call` with `{"name":"toggle_pause","arguments":{}}`, or `resources/read`, `resources/list`.
 
-Self-check runner (no JUnit): `ObjectInspectorSelfCheck` — `java -ea -cp ... com.deeme.tasks.mcp.util.ObjectInspectorSelfCheck`
+Self-check runner (no JUnit): `ObjectInspectorSelfCheck` — `java -ea -cp ... com.deeme.tasks.mcp.util.ObjectInspectorSelfCheck`. Address-parser self-check: `MemoryInspectorSelfCheck` — same `java -ea` invocation, no DarkBot required.
 
 ## Code Style
 
@@ -165,6 +168,7 @@ Self-check runner (no JUnit): `ObjectInspectorSelfCheck` — `java -ea -cp ... c
 | `bot://config/tree`               | Config tree navigator (supports path drilling)       |
 | `bot://config/npc`                | NPC configuration (list all or get by name)          |
 | `bot://inspect?root=...&path=...` | Object inspector (supports `max_depth`, `max_items`) |
+| `bot://inspect?address=0x...` | Address-based object inspector (mirrors DarkBot's address box) |
 | `conditions://schema`             | Condition DSL schema (all types, values, enums)      |
 
 ## Adding a new tool / resource
