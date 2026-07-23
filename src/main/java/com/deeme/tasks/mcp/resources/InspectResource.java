@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.deeme.tasks.mcp.util.MemoryInspector;
 import com.deeme.tasks.mcp.util.ObjectInspector;
 import eu.darkbot.api.managers.BotAPI;
 import eu.darkbot.api.managers.ConfigAPI;
@@ -49,17 +50,25 @@ public class InspectResource implements McpResource {
 
     @Override
     public String getDescription() {
-        return "Inspect DarkBot runtime objects by reflection, similar to Object.inspector. Useful for AI-assisted debugging and discovery.";
+        return "Inspect DarkBot runtime objects by reflection, similar to Object.inspector. "
+                + "Use root=...&path=... to navigate from a known root, or address=0x... to "
+                + "read an object at a specific memory address (like the DarkBot inspector's "
+                + "address box). Useful for AI-assisted debugging and discovery.";
     }
 
     @Override
     public String read(String uri) {
         Map<String, String> params = parseQuery(uri);
 
+        String address = params.get("address");
+        if (address != null && !address.isEmpty()) {
+            return readByAddress(address);
+        }
+
         String rootName = params.get("root");
         if (rootName == null || rootName.isEmpty()) {
             JsonObject err = new JsonObject();
-            err.addProperty("error", "Missing 'root' parameter");
+            err.addProperty("error", "Missing 'root' or 'address' parameter");
             err.add("available_roots", availableRoots());
             return gson.toJson(err);
         }
@@ -79,6 +88,14 @@ public class InspectResource implements McpResource {
         ObjectInspector inspector = new ObjectInspector(maxDepth, maxItems);
         JsonObject result = inspector.inspect(rootName, root, path);
         result.add("available_roots", availableRoots());
+        return gson.toJson(result);
+    }
+
+    private String readByAddress(String address) {
+        JsonObject result = new MemoryInspector().inspect(address);
+        if (result.get("available_roots") == null) {
+            result.add("available_roots", availableRoots());
+        }
         return gson.toJson(result);
     }
 

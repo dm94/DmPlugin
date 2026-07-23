@@ -19,21 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Snapshots DarkBot runtime objects to JSON for AI-assisted inspection.
- *
- * ponytail: Two DarkBot constraints shape this design.
- * 1. PluginClassLoader blocks java.lang.reflect.* in plugin bytecode, so all
- * reflection is delegated to Gson, which runs under DarkBot's parent loader.
- * 2. DarkBot runs on JDK 17 without --add-opens=java.desktop, so Gson cannot
- * reflect into JDK types like java.awt.Color. A catch-all TypeAdapterFactory
- * wraps every adapter: on any failure it emits an error marker instead of
- * aborting the whole snapshot. The same factory bounds recursion depth,
- * which also makes cyclic graphs safe (a cycle hits the ceiling, not the
- * stack). Breadth is capped by post-pruning the serialized JSON tree.
- * Only Gson methods DarkBot itself uses are called (registerTypeAdapterFactory,
- * toJsonTree) — ProGuard strips the rest from the bundled Gson.
- */
 public class ObjectInspector {
 
     private final int maxDepth;
@@ -76,7 +61,7 @@ public class ObjectInspector {
             if (current.isJsonObject()) {
                 current = current.getAsJsonObject().get(segment);
             } else if (current.isJsonArray()) {
-                current = current.getAsJsonArray().get(parseIndex(segment));
+                current = nthElement(current.getAsJsonArray(), parseIndex(segment));
             } else {
                 throw new IllegalArgumentException("Cannot navigate into primitive at '" + segment + "'");
             }
@@ -100,21 +85,21 @@ public class ObjectInspector {
         return element;
     }
 
-    // ponytail: ProGuard strips JsonArray.size() and JsonObject.size() from
-    // DarkBot's bundled Gson. entrySet().size() is safe (JDK Set), arrays are
-    // counted by iteration — same pattern as the existing Json.size() helper.
     private JsonElement pruneArray(JsonArray array, int depth) {
         int size = countElements(array);
         if (depth >= maxDepth) {
             return depthMarker(size);
         }
         JsonArray pruned = new JsonArray();
-        int limit = Math.min(size, maxItems);
-        for (int i = 0; i < limit; i++) {
-            pruned.add(prune(array.get(i), depth + 1));
+        int included = 0;
+        for (JsonElement el : array) {
+            if (included >= maxItems)
+                break;
+            pruned.add(prune(el, depth + 1));
+            included++;
         }
         if (size > maxItems) {
-            pruned.add(truncationMarker(size, limit));
+            pruned.add(truncationMarker(size, included));
         }
         return pruned;
     }
@@ -196,6 +181,16 @@ public class ObjectInspector {
         }
     }
 
+    private static JsonElement nthElement(JsonArray array, int index) {
+        int i = 0;
+        for (JsonElement el : array) {
+            if (i == index)
+                return el;
+            i++;
+        }
+        throw new IndexOutOfBoundsException("Index " + index + " out of bounds (size=" + i + ")");
+    }
+
     /**
      * Wraps every Gson adapter to bound recursion depth and swallow reflection
      * failures (JPMS-blocked types like java.awt.Color, cyclic graphs, etc.).
@@ -216,9 +211,7 @@ public class ObjectInspector {
             try {
                 return buildSafeAdapter(gson, type);
             } catch (Exception e) {
-                // ponytail: Adapter creation can fail when ReflectiveTypeAdapterFactory
-                // tries to access JPMS-blocked fields (e.g. java.awt.Color.value).
-                // Returning a marker adapter lets the parent object still serialize.
+
                 return markerAdapter(type.getRawType().getName());
             }
         }
