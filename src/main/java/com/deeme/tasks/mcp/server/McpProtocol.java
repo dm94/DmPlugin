@@ -23,7 +23,7 @@ public class McpProtocol {
     private Consumer<String> broadcaster = json -> {
     };
 
-    private boolean initialized = false;
+    private boolean initialized = true;
 
     public McpProtocol(String serverName, String serverVersion) {
         this.serverName = serverName;
