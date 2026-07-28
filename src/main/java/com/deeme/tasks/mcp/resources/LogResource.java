@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -127,7 +128,7 @@ public class LogResource implements McpResource {
 
     JsonArray arr = new JsonArray();
     for (String line : lines) {
-      arr.add(line);
+      arr.add(new JsonPrimitive(line));
     }
     result.add("lines", arr);
     return gson.toJson(result);
