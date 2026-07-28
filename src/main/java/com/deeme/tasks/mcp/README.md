@@ -105,6 +105,7 @@ curl -X POST http://127.0.0.1:9876/mcp \
 | `mcp://inventory`     | Inventory items (loot id, name, amount)    |
 | `mcp://npc_event`     | NPC event status (generic + agatus), remaining time, NPCs/bosses left |
 | `mcp://ores`          | Owned amount per ore, sellability, upgrade slots |
+| `mcp://log`           | DarkBot session log: `?tail=N`, `?file=YYYY-MM-DD_HH-mm-ss_SSS`, `?pattern=substr`, `?list=true` |
 
 ## Architecture
 

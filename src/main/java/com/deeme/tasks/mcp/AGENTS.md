@@ -43,6 +43,7 @@ McpBridge            @Feature + Task + Configurable<McpConfig> + Installable. Wi
 │  ├─ InventoryResource    mcp://inventory — items in inventory
 │  ├─ NpcEventResource     mcp://npc_event — NPC event status (generic + agatus)
 │  ├─ OreResource          mcp://ores — owned amounts and upgrade slots
+│  ├─ LogResource          mcp://log — DarkBot session log (tail/filter/list)
 │  └─ ConditionSchemaResource  conditions://schema
 ├─ tools/            McpTool interface implementations:
 │  ├─ BotControlTool    toggle_pause — pause/resume bot
@@ -170,6 +171,7 @@ Self-check runner (no JUnit): `ObjectInspectorSelfCheck` — `java -ea -cp ... c
 | `bot://inspect?root=...&path=...` | Object inspector (supports `max_depth`, `max_items`) |
 | `bot://inspect?address=0x...` | Address-based object inspector (mirrors DarkBot's address box) |
 | `conditions://schema`             | Condition DSL schema (all types, values, enums)      |
+| `mcp://log`                      | DarkBot session log reader (tail, filter, list)      |
 
 ## Adding a new tool / resource
 

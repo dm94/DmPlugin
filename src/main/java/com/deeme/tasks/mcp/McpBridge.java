@@ -12,6 +12,7 @@ import com.deeme.tasks.mcp.resources.GroupResource;
 import com.deeme.tasks.mcp.resources.HeroResource;
 import com.deeme.tasks.mcp.resources.InspectResource;
 import com.deeme.tasks.mcp.resources.InventoryResource;
+import com.deeme.tasks.mcp.resources.LogResource;
 import com.deeme.tasks.mcp.resources.ModuleResource;
 import com.deeme.tasks.mcp.resources.NpcConfigResource;
 import com.deeme.tasks.mcp.resources.NpcEventResource;
@@ -121,6 +122,7 @@ public class McpBridge implements Task, Configurable<McpConfig>, Installable {
         protocol.registerResource(new InventoryResource(api.requireAPI(InventoryAPI.class)));
         protocol.registerResource(new NpcEventResource(api.requireAPI(NpcEventAPI.class)));
         protocol.registerResource(new OreResource(api.requireAPI(OreAPI.class)));
+        protocol.registerResource(new LogResource());
 
         protocol.registerTool(new ResourceTool(protocol.getResources()));
         protocol.registerTool(new BotControlTool(bot));

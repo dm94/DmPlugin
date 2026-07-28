@@ -5,11 +5,11 @@ description: "Drives the DmPlugin MCP Bridge (JSON-RPC 2.0 over HTTP+SSE) to rea
 
 # DmPlugin MCP Bridge
 
-Local MCP server exposed by [DmPlugin](d:\Github\DmPlugin\src\main\java\com\deeme\tasks\mcp\AGENTS.md) inside DarkBot. Speaks JSON-RPC 2.0 over HTTP, with SSE for streaming.
+Local MCP server exposed by DmPlugin inside DarkBot. Speaks JSON-RPC 2.0 over HTTP, with SSE for streaming.
 
 - **Endpoint:** `http://127.0.0.1:9876/mcp` (port configurable 1024-65535; auto-increments up to 10 tries if busy)
 - **Protocol version:** `2025-03-26`
-- **Authoritative docs:** [AGENTS.md](d:\Github\DmPlugin\src\main\java\com\deeme\tasks\mcp\AGENTS.md) — architecture, full tools/resources tables, extension rules, and the `java.lang.invoke` reflection constraint. Read it before extending the bridge.
+- **Authoritative docs:** AGENTS.md — architecture, full tools/resources tables, extension rules, and the `java.lang.invoke` reflection constraint. Read it before extending the bridge.
 
 ## Hard requirements
 
@@ -56,7 +56,7 @@ Always read the live list rather than hard-coding — the bridge is extended in 
 {"jsonrpc":"2.0","id":3,"method":"resources/list","params":{}}
 ```
 
-Current tool and resource URIs are listed in the [AGENTS.md](d:\Github\DmPlugin\src\main\java\com\deeme\tasks\mcp\AGENTS.md) reference tables.
+Current tool and resource URIs are listed in the AGENTS.md reference tables.
 
 ## Calling a tool
 
@@ -97,7 +97,7 @@ URIs with query params (`bot://config/value?path=...`, `mcp://entities?type=npc&
 
 ## Critical: PluginClassLoader constraint
 
-DarkBot's `PluginClassLoader` rejects any bytecode referencing `java.lang.reflect.*`. If you write or extend tools/resources under `src/main/java/com/deeme/tasks/mcp/`, use `java.lang.invoke.MethodHandle` for reflection. See the [AGENTS.md](d:\Github\DmPlugin\src\main\java\com\deeme\tasks\mcp\AGENTS.md) section "CRITICAL: PluginClassLoader blocks java.lang.reflect.*" for the pattern and the gotchas (`invoke` throws `Throwable`, `findStaticGetter` only sees accessible fields).
+DarkBot's `PluginClassLoader` rejects any bytecode referencing `java.lang.reflect.*`. If you write or extend tools/resources under `src/main/java/com/deeme/tasks/mcp/`, use `java.lang.invoke.MethodHandle` for reflection. See the AGENTS.md section "CRITICAL: PluginClassLoader blocks java.lang.reflect.*" for the pattern and the gotchas (`invoke` throws `Throwable`, `findStaticGetter` only sees accessible fields).
 
 ## When something goes wrong
 
