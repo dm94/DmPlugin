@@ -1,12 +1,13 @@
 package com.deeme.tasks.mcp.resources;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.util.Map;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 
 /**
  * Catalog of live memory addresses for DarkBot core objects (managers,
@@ -28,6 +29,8 @@ public class AddressesResource implements McpResource {
   private static final String FACADE_PKG = "com.github.manolo8.darkbot.core.objects.facades.";
   private static final String GUI_BASE = "com.github.manolo8.darkbot.core.objects.Gui";
   private static final String GUI_PKG = "com.github.manolo8.darkbot.core.objects.gui.";
+  private static final String FLASH_MAP_CLASS = "com.github.manolo8.darkbot.core.objects.swf.FlashMap";
+  private static final String UPDATABLE_CLASS = "com.github.manolo8.darkbot.core.itf.Updatable";
 
   /** Field specs on {@code Main}: {fieldName, declaredTypeFqcn}. */
   private static final String[][] MANAGERS = {
@@ -89,6 +92,25 @@ public class AddressesResource implements McpResource {
       { "shipWarpProxy", FACADE_PKG + "ShipWarpProxy" },
   };
 
+  /**
+   * FacadeManager.proxies entries registered by key, not exposed as public
+   * fields.
+   */
+  private static final String[] PROXY_KEYS = {
+      "QuestProxy",
+  };
+
+  /**
+   * FacadeManager.mediators entries registered by key, not exposed as public
+   * fields.
+   */
+  private static final String[] MEDIATOR_KEYS = {
+      "seasonPass",
+      "diminish_quests",
+      "QuestGiverWindowMediator",
+      "battle_pass",
+  };
+
   private static final MethodType GET_ADDRESS_TYPE = MethodType.methodType(long.class);
 
   private final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
@@ -128,6 +150,8 @@ public class AddressesResource implements McpResource {
     root.add("managers", collect(main, MANAGERS));
     root.add("guis", collect(guiManager, GUIS));
     root.add("facades", collect(facadeManager, FACADES));
+    root.add("proxies", collectFromFlashMap(facadeManager, "proxies", PROXY_KEYS));
+    root.add("mediators", collectFromFlashMap(facadeManager, "mediators", MEDIATOR_KEYS));
 
     return gson.toJson(root);
   }
@@ -148,6 +172,42 @@ public class AddressesResource implements McpResource {
         continue;
       }
       group.addProperty(spec[0], String.format("0x%x", address));
+    }
+    return group;
+  }
+
+  /**
+   * Resolve addresses for entries stored in a FacadeManager FlashMap
+   * ({@code proxies}/{@code mediators}), which are registered by key and
+   * not exposed as public fields. Each value is an {@code Updatable}
+   * whose {@code address} field points to the underlying game object.
+   */
+  private JsonObject collectFromFlashMap(Object facadeManager, String mapField, String[] keys) {
+    JsonObject group = new JsonObject();
+    if (facadeManager == null) {
+      return group;
+    }
+    try {
+      Class<?> flashMapClass = Class.forName(FLASH_MAP_CLASS);
+      MethodHandle getter = findGetter(facadeManager.getClass(), mapField, flashMapClass);
+      Object map = getter.invoke(facadeManager);
+      if (!(map instanceof Map)) {
+        return group;
+      }
+      Class<?> updatableClass = Class.forName(UPDATABLE_CLASS);
+      MethodHandle addrGetter = findGetter(updatableClass, "address", long.class);
+      for (String key : keys) {
+        Object entry = ((Map<?, ?>) map).get(key);
+        if (entry == null) {
+          continue;
+        }
+        long address = (long) addrGetter.invoke(entry);
+        if (address != 0L) {
+          group.addProperty(key, String.format("0x%x", address));
+        }
+      }
+    } catch (Throwable t) {
+      // FlashMap layout mismatch or field renamed — skip silently.
     }
     return group;
   }
