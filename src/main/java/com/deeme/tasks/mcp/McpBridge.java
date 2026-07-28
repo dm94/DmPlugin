@@ -3,6 +3,7 @@ package com.deeme.tasks.mcp;
 import java.util.Arrays;
 
 import com.deeme.tasks.mcp.conditions.ConditionSchemaResource;
+import com.deeme.tasks.mcp.resources.AddressesResource;
 import com.deeme.tasks.mcp.resources.BotResource;
 import com.deeme.tasks.mcp.resources.BoosterResource;
 import com.deeme.tasks.mcp.resources.ConfigTreeResource;
@@ -17,6 +18,7 @@ import com.deeme.tasks.mcp.resources.ModuleResource;
 import com.deeme.tasks.mcp.resources.NpcConfigResource;
 import com.deeme.tasks.mcp.resources.NpcEventResource;
 import com.deeme.tasks.mcp.resources.OreResource;
+import com.deeme.tasks.mcp.resources.PeekResource;
 import com.deeme.tasks.mcp.resources.PetResource;
 import com.deeme.tasks.mcp.resources.PluginResource;
 import com.deeme.tasks.mcp.resources.ProfileListResource;
@@ -109,7 +111,9 @@ public class McpBridge implements Task, Configurable<McpConfig>, Installable {
         protocol.registerResource(new ProfileListResource(configAPI));
         protocol.registerResource(new ConfigValueResource(configAPI, bot));
         protocol.registerResource(new ConfigTreeResource(configAPI));
-        protocol.registerResource(new InspectResource(bot, hero, stats, extensions, starSystem, configAPI));
+        protocol.registerResource(new InspectResource());
+        protocol.registerResource(new PeekResource());
+        protocol.registerResource(new AddressesResource());
         protocol.registerResource(new NpcConfigResource(configAPI));
         protocol.registerResource(new ConditionSchemaResource());
 
