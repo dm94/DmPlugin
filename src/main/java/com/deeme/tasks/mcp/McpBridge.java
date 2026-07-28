@@ -109,7 +109,7 @@ public class McpBridge implements Task, Configurable<McpConfig>, Installable {
         protocol.registerResource(new ProfileListResource(configAPI));
         protocol.registerResource(new ConfigValueResource(configAPI, bot));
         protocol.registerResource(new ConfigTreeResource(configAPI));
-        protocol.registerResource(new InspectResource(bot, hero, stats, extensions, starSystem, configAPI));
+        protocol.registerResource(new InspectResource());
         protocol.registerResource(new NpcConfigResource(configAPI));
         protocol.registerResource(new ConditionSchemaResource());
 

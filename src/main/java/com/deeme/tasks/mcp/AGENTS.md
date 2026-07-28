@@ -33,7 +33,7 @@ McpBridge            @Feature + Task + Configurable<McpConfig> + Installable. Wi
 │  ├─ ProfileListResource  bot://profiles
 │  ├─ ConfigValueResource  bot://config/value?path=...
 │  ├─ ConfigTreeResource   bot://config/tree
-│  ├─ InspectResource      bot://inspect?root=...&path=...&max_depth=...&max_items=... or ?address=0x...
+│  ├─ InspectResource      bot://inspect?address=0x... (address-based only)
 │  ├─ NpcConfigResource    bot://config/npc
 │  ├─ EntitiesResource     mcp://entities — live NPCs, players, pets, boxes, mines, portals
 │  ├─ PetResource          mcp://pet — PET gear, locator, stats
@@ -168,7 +168,6 @@ Self-check runner (no JUnit): `ObjectInspectorSelfCheck` — `java -ea -cp ... c
 | `bot://config/value?path=...`     | Config value reader                                  |
 | `bot://config/tree`               | Config tree navigator (supports path drilling)       |
 | `bot://config/npc`                | NPC configuration (list all or get by name)          |
-| `bot://inspect?root=...&path=...` | Object inspector (supports `max_depth`, `max_items`) |
 | `bot://inspect?address=0x...` | Address-based object inspector (mirrors DarkBot's address box) |
 | `conditions://schema`             | Condition DSL schema (all types, values, enums)      |
 | `mcp://log`                      | DarkBot session log reader (tail, filter, list)      |

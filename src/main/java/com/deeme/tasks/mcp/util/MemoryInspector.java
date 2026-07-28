@@ -126,7 +126,7 @@ public final class MemoryInspector {
         }
         if (total > MAX_SLOTS) {
             JsonObject marker = new JsonObject();
-            marker.addProperty("truncated", true);
+            Json.put(marker, "truncated", true);
             marker.addProperty("included", included);
             marker.addProperty("total", total);
             marker.addProperty("reason", "max_slots");
@@ -182,7 +182,7 @@ public final class MemoryInspector {
                 }
                 JsonObject o = new JsonObject();
                 o.addProperty("address", String.format("0x%x", ptr));
-                o.addProperty("is_pointer", true);
+                Json.put(o, "is_pointer", true);
                 return o;
             }
         }
