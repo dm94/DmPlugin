@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "darkbot": {
+      "type": "http",
+      "url": "http://localhost:9876/mcp"
+    }
+  }
+}
