@@ -10,7 +10,7 @@ import eu.darkbot.api.managers.StarSystemAPI;
 import eu.darkbot.api.managers.StatsAPI;
 import eu.darkbot.api.utils.Inject;
 
-@Feature(name = "Fix BL Travel", description = "Routes via 4-4 when traveling to enemy X-6/7/8 maps and ship level is too low for BL-to-BL portals")
+@Feature(name = "Fix BL Travel", description = "Routes via 4-4 when traveling to enemy X-6/7/8 maps and ship level is too low for BL-to-BL portals", enabledByDefault = true)
 public class SmartBlTravel extends FourFourRouter {
   private static final int BL_PORTAL_MIN_LEVEL = 25;
 

@@ -96,7 +96,8 @@ public abstract class FourFourRouter implements Behavior {
   }
 
   /**
-   * @return true when the current/target combination should trigger a reroute via 4-4.
+   * @return true when the current/target combination should trigger a reroute via
+   *         4-4.
    */
   protected abstract boolean shouldRouteViaFourFour(GameMap current, GameMap target);
 
@@ -121,6 +122,7 @@ public abstract class FourFourRouter implements Behavior {
   }
 
   private boolean hasConflictiveModuleInUse() {
-    return bot.getModule().getClass().getName().contains("CaptchaPicker");
+    return bot.getModule() != null && bot.getModule().getClass() != null
+        && bot.getModule().getClass().getName().contains("CaptchaPicker");
   }
 }
