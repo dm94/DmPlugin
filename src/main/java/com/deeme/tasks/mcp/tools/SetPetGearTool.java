@@ -41,12 +41,12 @@ public class SetPetGearTool implements McpTool {
     @Override
     public JsonObject getInputSchema() {
         JsonObject enabledProp = new JsonObject();
-        enabledProp.addProperty("type", "boolean");
-        enabledProp.addProperty("description", "true to enable PET, false to disable.");
+        Json.put(enabledProp, "type", "boolean");
+        Json.put(enabledProp, "description", "true to enable PET, false to disable.");
 
         JsonObject gearProp = new JsonObject();
-        gearProp.addProperty("type", "string");
-        gearProp.addProperty("description", "PetGear enum name. Pass null/empty to reset to user-configured gear.");
+        Json.put(gearProp, "type", "string");
+        Json.put(gearProp, "description", "PetGear enum name. Pass null/empty to reset to user-configured gear.");
         JsonArray gearEnum = new JsonArray();
         for (PetGear g : PetGear.values()) {
             gearEnum.add(new JsonPrimitive(g.name()));
@@ -58,7 +58,7 @@ public class SetPetGearTool implements McpTool {
         props.add("gear", gearProp);
 
         JsonObject schema = new JsonObject();
-        schema.addProperty("type", "object");
+        Json.put(schema, "type", "object");
         schema.add("properties", props);
         return schema;
     }
@@ -102,10 +102,10 @@ public class SetPetGearTool implements McpTool {
         Json.put(result, "previous_enabled", prevEnabled);
         Json.put(result, "current_enabled", pet.isEnabled());
         if (prevGear != null) {
-            result.addProperty("previous_gear", prevGear.name());
+            Json.put(result, "previous_gear", prevGear.name());
         }
         if (pet.getGear() != null) {
-            result.addProperty("current_gear", pet.getGear().name());
+            Json.put(result, "current_gear", pet.getGear().name());
         }
         return gson.toJson(result);
     }
@@ -116,7 +116,7 @@ public class SetPetGearTool implements McpTool {
 
     private String error(String message) {
         JsonObject err = new JsonObject();
-        err.addProperty("error", message);
+        Json.put(err, "error", message);
         return gson.toJson(err);
     }
 }

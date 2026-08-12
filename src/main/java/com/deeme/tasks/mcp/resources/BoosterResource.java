@@ -44,13 +44,13 @@ public class BoosterResource implements McpResource {
         for (BoosterAPI.Booster b : boosters.getBoosters()) {
             if (b == null) continue;
             JsonObject o = new JsonObject();
-            o.addProperty("category", b.getCategory());
-            o.addProperty("name", b.getName());
+            Json.put(o, "category", b.getCategory());
+            Json.put(o, "name", b.getName());
             Json.put(o, "amount_percent", Math.round(b.getAmount() * 10000.0) / 100.0);
             Json.put(o, "remaining_seconds", Math.round(b.getRemainingTime() * 100.0) / 100.0);
             if (b.getType() != null) {
-                o.addProperty("type", b.getType().name());
-                o.addProperty("short", b.getSmall());
+                Json.put(o, "type", b.getType().name());
+                Json.put(o, "short", b.getSmall());
             }
             arr.add(o);
         }

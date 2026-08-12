@@ -37,9 +37,9 @@ public class ObjectInspector {
                 .create();
 
         JsonObject result = new JsonObject();
-        result.addProperty("root", rootName);
-        result.addProperty("path", normalizePath(path));
-        result.addProperty("type", root != null ? root.getClass().getName() : "null");
+        Json.put(result, "root", rootName);
+        Json.put(result, "path", normalizePath(path));
+        Json.put(result, "type", root != null ? root.getClass().getName() : "null");
 
         try {
             JsonElement tree = gson.toJsonTree(root);
@@ -135,23 +135,23 @@ public class ObjectInspector {
     private JsonObject depthMarker(int childCount) {
         JsonObject marker = new JsonObject();
         marker.add("truncated", new JsonPrimitive(true));
-        marker.addProperty("reason", "max_depth");
-        marker.addProperty("child_count", childCount);
+        Json.put(marker, "reason", "max_depth");
+        Json.put(marker, "child_count", childCount);
         return marker;
     }
 
     private JsonObject truncationMarker(int total, int included) {
         JsonObject marker = new JsonObject();
         marker.add("truncated", new JsonPrimitive(true));
-        marker.addProperty("included", included);
-        marker.addProperty("total", total);
+        Json.put(marker, "included", included);
+        Json.put(marker, "total", total);
         return marker;
     }
 
     private JsonObject errorNode(String kind, String message) {
         JsonObject node = new JsonObject();
-        node.addProperty("kind", kind);
-        node.addProperty("message", message);
+        Json.put(node, "kind", kind);
+        Json.put(node, "message", message);
         return node;
     }
 

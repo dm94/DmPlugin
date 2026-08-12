@@ -42,7 +42,7 @@ public class ConfigValueResource implements McpResource {
 
         if (path.isEmpty()) {
             JsonObject result = new JsonObject();
-            result.addProperty("module",
+            Json.put(result, "module",
                     bot.getModule() != null ? bot.getModule().getClass().getSimpleName() : "(none)");
             Json.put(result, "running", bot.isRunning());
             return gson.toJson(result);
@@ -51,13 +51,13 @@ public class ConfigValueResource implements McpResource {
         try {
             Object value = configAPI.getConfigValue(path);
             JsonObject result = new JsonObject();
-            result.addProperty("path", path);
+            Json.put(result, "path", path);
             result.add("value", gson.toJsonTree(value));
             return result.toString();
         } catch (Exception e) {
             JsonObject err = new JsonObject();
-            err.addProperty("error", "Path not found: " + path);
-            err.addProperty("details", e.getMessage());
+            Json.put(err, "error", "Path not found: " + path);
+            Json.put(err, "details", e.getMessage());
             return err.toString();
         }
     }

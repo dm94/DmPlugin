@@ -44,10 +44,10 @@ public class RepairResource implements McpResource {
 
         String destroyer = repair.getLastDestroyerName();
         if (destroyer != null)
-            obj.addProperty("last_destroyer", destroyer);
+            Json.put(obj, "last_destroyer", destroyer);
 
         if (repair.getLastDeathTime() != null) {
-            obj.addProperty("last_death_time", repair.getLastDeathTime().toString());
+            Json.put(obj, "last_death_time", repair.getLastDeathTime().toString());
             Json.put(obj, "last_death_epoch", repair.getLastDeathTime().getEpochSecond());
         }
 

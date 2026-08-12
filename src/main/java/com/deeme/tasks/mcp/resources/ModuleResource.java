@@ -41,23 +41,23 @@ public class ModuleResource implements McpResource {
         Json.put(obj, "running", bot.isRunning());
 
         if (module != null) {
-            obj.addProperty("module_name", module.getClass().getSimpleName());
-            obj.addProperty("module_class", module.getClass().getName());
+            Json.put(obj, "module_name", module.getClass().getSimpleName());
+            Json.put(obj, "module_class", module.getClass().getName());
 
             String status = module.getStatus();
             if (status != null)
-                obj.addProperty("status", status);
+                Json.put(obj, "status", status);
 
             String stoppedStatus = module.getStoppedStatus();
             if (stoppedStatus != null)
-                obj.addProperty("stopped_status", stoppedStatus);
+                Json.put(obj, "stopped_status", stoppedStatus);
         } else {
-            obj.addProperty("module_name", "(none)");
+            Json.put(obj, "module_name", "(none)");
         }
 
         if (starSystem.getCurrentMap() != null) {
             Json.put(obj, "map_id", starSystem.getCurrentMap().getId());
-            obj.addProperty("map_name", starSystem.getCurrentMap().getName());
+            Json.put(obj, "map_name", starSystem.getCurrentMap().getName());
         }
 
         return gson.toJson(obj);

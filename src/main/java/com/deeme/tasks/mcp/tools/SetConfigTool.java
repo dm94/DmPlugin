@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.deeme.tasks.mcp.util.Json;
 import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.managers.ConfigAPI;
 
@@ -33,18 +34,18 @@ public class SetConfigTool implements McpTool {
     @Override
     public JsonObject getInputSchema() {
         JsonObject pathProp = new JsonObject();
-        pathProp.addProperty("type", "string");
-        pathProp.addProperty("description", "Dot-separated config path (e.g. general.working_map).");
+        Json.put(pathProp, "type", "string");
+        Json.put(pathProp, "description", "Dot-separated config path (e.g. general.working_map).");
 
         JsonObject valueProp = new JsonObject();
-        valueProp.addProperty("description", "New value for the setting (boolean, number or string).");
+        Json.put(valueProp, "description", "New value for the setting (boolean, number or string).");
 
         JsonObject props = new JsonObject();
         props.add("path", pathProp);
         props.add("value", valueProp);
 
         JsonObject schema = new JsonObject();
-        schema.addProperty("type", "object");
+        Json.put(schema, "type", "object");
         schema.add("properties", props);
         JsonArray required = new JsonArray();
         required.add(new JsonPrimitive("path"));
@@ -76,8 +77,8 @@ public class SetConfigTool implements McpTool {
         setting.setValue(converted);
 
         JsonObject result = new JsonObject();
-        result.addProperty("path", path);
-        result.addProperty("type", setting.getType().getSimpleName());
+        Json.put(result, "path", path);
+        Json.put(result, "type", setting.getType().getSimpleName());
         result.add("previous_value", gson.toJsonTree(previous));
         result.add("new_value", gson.toJsonTree(converted));
         return gson.toJson(result);
@@ -116,7 +117,7 @@ public class SetConfigTool implements McpTool {
 
     private String error(String message) {
         JsonObject err = new JsonObject();
-        err.addProperty("error", message);
+        Json.put(err, "error", message);
         return gson.toJson(err);
     }
 }

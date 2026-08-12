@@ -4,6 +4,7 @@ import com.google.gson.*;
 
 import com.deeme.tasks.mcp.resources.McpResource;
 import com.deeme.tasks.mcp.tools.McpTool;
+import com.deeme.tasks.mcp.util.Json;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,10 +50,10 @@ public class McpProtocol {
 
     public void notifyResourceUpdated(String uri) {
         JsonObject params = new JsonObject();
-        params.addProperty("uri", uri);
+        Json.put(params, "uri", uri);
         JsonObject notif = new JsonObject();
-        notif.addProperty("jsonrpc", "2.0");
-        notif.addProperty("method", "notifications/resources/updated");
+        Json.put(notif, "jsonrpc", "2.0");
+        Json.put(notif, "method", "notifications/resources/updated");
         notif.add("params", params);
         broadcaster.accept(gson.toJson(notif));
     }
@@ -125,11 +126,11 @@ public class McpProtocol {
         caps.add("tools", toolCaps);
 
         JsonObject serverInfo = new JsonObject();
-        serverInfo.addProperty("name", serverName);
-        serverInfo.addProperty("version", serverVersion);
+        Json.put(serverInfo, "name", serverName);
+        Json.put(serverInfo, "version", serverVersion);
 
         JsonObject result = new JsonObject();
-        result.addProperty("protocolVersion", PROTOCOL_VERSION);
+        Json.put(result, "protocolVersion", PROTOCOL_VERSION);
         result.add("capabilities", caps);
         result.add("serverInfo", serverInfo);
         return jsonRpcResult(id, result);
@@ -139,11 +140,11 @@ public class McpProtocol {
         JsonArray arr = new JsonArray();
         for (McpResource res : resources.values()) {
             JsonObject r = new JsonObject();
-            r.addProperty("uri", res.getUri());
-            r.addProperty("name", res.getName());
-            r.addProperty("description", res.getDescription());
+            Json.put(r, "uri", res.getUri());
+            Json.put(r, "name", res.getName());
+            Json.put(r, "description", res.getDescription());
             if (res.getMimeType() != null)
-                r.addProperty("mimeType", res.getMimeType());
+                Json.put(r, "mimeType", res.getMimeType());
             arr.add(r);
         }
         JsonObject result = new JsonObject();
@@ -164,10 +165,10 @@ public class McpProtocol {
             return jsonRpcError(id, -32602, "Resource not found: " + uri);
 
         JsonObject content = new JsonObject();
-        content.addProperty("uri", uri);
+        Json.put(content, "uri", uri);
         if (res.getMimeType() != null)
-            content.addProperty("mimeType", res.getMimeType());
-        content.addProperty("text", res.read(uri));
+            Json.put(content, "mimeType", res.getMimeType());
+        Json.put(content, "text", res.read(uri));
 
         JsonArray contents = new JsonArray();
         contents.add(content);
@@ -224,8 +225,8 @@ public class McpProtocol {
         JsonArray arr = new JsonArray();
         for (McpTool tool : tools.values()) {
             JsonObject t = new JsonObject();
-            t.addProperty("name", tool.getName());
-            t.addProperty("description", tool.getDescription());
+            Json.put(t, "name", tool.getName());
+            Json.put(t, "description", tool.getDescription());
             t.add("inputSchema", tool.getInputSchema());
             arr.add(t);
         }
@@ -259,8 +260,8 @@ public class McpProtocol {
             String result = tool.call(argMap);
             JsonArray contents = new JsonArray();
             JsonObject content = new JsonObject();
-            content.addProperty("type", "text");
-            content.addProperty("text", result);
+            Json.put(content, "type", "text");
+            Json.put(content, "text", result);
             contents.add(content);
 
             JsonObject res = new JsonObject();
@@ -273,7 +274,7 @@ public class McpProtocol {
 
     private String jsonRpcResult(String id, JsonObject result) {
         JsonObject msg = new JsonObject();
-        msg.addProperty("jsonrpc", "2.0");
+        Json.put(msg, "jsonrpc", "2.0");
         msg.add("result", result);
         if (id != null)
             msg.add("id", parseJson(id));
@@ -282,11 +283,11 @@ public class McpProtocol {
 
     private String jsonRpcError(String id, int code, String message) {
         JsonObject error = new JsonObject();
-        error.addProperty("code", code);
-        error.addProperty("message", message);
+        Json.put(error, "code", code);
+        Json.put(error, "message", message);
 
         JsonObject msg = new JsonObject();
-        msg.addProperty("jsonrpc", "2.0");
+        Json.put(msg, "jsonrpc", "2.0");
         msg.add("error", error);
         if (id != null)
             msg.add("id", parseJson(id));
