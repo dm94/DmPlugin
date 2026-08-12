@@ -38,13 +38,13 @@ public class BotResource implements McpResource {
         JsonObject obj = new JsonObject();
         Json.put(obj, "running", bot.isRunning());
         Json.put(obj, "paused", !bot.isRunning());
-        obj.addProperty("module_name", bot.getModule() != null ? bot.getModule().getClass().getSimpleName() : "(none)");
+        Json.put(obj, "module_name", bot.getModule() != null ? bot.getModule().getClass().getSimpleName() : "(none)");
         if (starSystem.getCurrentMap() != null) {
             Json.put(obj, "map_id", starSystem.getCurrentMap().getId());
-            obj.addProperty("map_name", starSystem.getCurrentMap().getName());
+            Json.put(obj, "map_name", starSystem.getCurrentMap().getName());
         }
         Json.put(obj, "tick_time_ms", Math.round(bot.getTickTime() * 100.0) / 100.0);
-        obj.addProperty("bot_version", bot.getVersion().toString());
+        Json.put(obj, "bot_version", bot.getVersion().toString());
         return gson.toJson(obj);
     }
 }

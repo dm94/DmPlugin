@@ -1,5 +1,7 @@
 package com.deeme.tasks.mcp.resources;
 
+import com.deeme.tasks.mcp.util.Json;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -55,6 +57,7 @@ public class LogResource implements McpResource {
   // the response bounded for huge logs; user can still use `tail` to
   // shrink the returned line count further.
   private static final int MAX_BYTES = 1_048_576; // 1 MiB
+  private static final String SIZE_BYTES_KEY = "size_bytes";
 
   private final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
   private final Resolved resolved = Resolved.lazyResolve();
@@ -103,11 +106,11 @@ public class LogResource implements McpResource {
     }
 
     JsonObject result = new JsonObject();
-    result.addProperty("file", logFile.getFileName().toString());
-    result.addProperty("path", logFile.toString());
+    Json.put(result, "file", logFile.getFileName().toString());
+    Json.put(result, "path", logFile.toString());
 
     if (!Files.exists(logFile)) {
-      result.addProperty("error", "Log file not found");
+      Json.put(result, "error", "Log file not found");
       return gson.toJson(result);
     }
 
@@ -117,13 +120,13 @@ public class LogResource implements McpResource {
     } catch (IOException e) {
       return gson.toJson(error("size_error", e.getMessage()));
     }
-    result.addProperty("size_bytes", size);
+    Json.put(result, SIZE_BYTES_KEY, size);
 
     List<String> lines = readTail(logFile, tail, pattern);
-    result.addProperty("returned_lines", lines.size());
-    result.addProperty("tail", tail);
+    Json.put(result, "returned_lines", lines.size());
+    Json.put(result, "tail", tail);
     if (pattern != null) {
-      result.addProperty("pattern", pattern);
+      Json.put(result, "pattern", pattern);
     }
 
     JsonArray arr = new JsonArray();
@@ -152,7 +155,7 @@ public class LogResource implements McpResource {
       return gson.toJson(error("log_folder_missing", "LOG_FOLDER is null"));
     }
 
-    result.addProperty("folder", folder.toString());
+    Json.put(result, "folder", folder.toString());
     JsonArray arr = new JsonArray();
 
     if (Files.exists(folder)) {
@@ -170,16 +173,16 @@ public class LogResource implements McpResource {
 
   private JsonObject fileInfo(Path p) {
     JsonObject obj = new JsonObject();
-    obj.addProperty("name", p.getFileName().toString());
+    Json.put(obj, "name", p.getFileName().toString());
     try {
-      obj.addProperty("size_bytes", Files.size(p));
+      Json.put(obj, SIZE_BYTES_KEY, Files.size(p));
     } catch (IOException e) {
-      obj.addProperty("size_bytes", -1);
+      Json.put(obj, SIZE_BYTES_KEY, -1);
     }
     try {
-      obj.addProperty("modified", Files.getLastModifiedTime(p).toString());
+      Json.put(obj, "modified", Files.getLastModifiedTime(p).toString());
     } catch (IOException e) {
-      obj.addProperty("modified", "");
+      Json.put(obj, "modified", "");
     }
     return obj;
   }
@@ -254,10 +257,10 @@ public class LogResource implements McpResource {
 
   private JsonObject error(String code, String message) {
     JsonObject err = new JsonObject();
-    err.addProperty("code", code);
-    err.addProperty("message", message == null ? "" : message);
+    Json.put(err, "code", code);
+    Json.put(err, "message", message == null ? "" : message);
     JsonObject obj = new JsonObject();
-    obj.addProperty("error", code);
+    Json.put(obj, "error", code);
     obj.add("details", err);
     return obj;
   }

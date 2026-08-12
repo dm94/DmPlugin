@@ -33,8 +33,8 @@ public class ValidateConditionTool implements McpTool {
     @Override
     public JsonObject getInputSchema() {
         JsonObject conditionProp = new JsonObject();
-        conditionProp.addProperty("type", "string");
-        conditionProp.addProperty("description",
+        Json.put(conditionProp, "type", "string");
+        Json.put(conditionProp, "description",
                 "The condition DSL string to validate. " +
                         "Examples: 'all(has-quest(), if(health(hero()) > number(5000)))', " +
                         "'any(has-effect(singularity, target()), has-formation(chevron, hero()))'");
@@ -43,7 +43,7 @@ public class ValidateConditionTool implements McpTool {
         props.add("condition", conditionProp);
 
         JsonObject schema = new JsonObject();
-        schema.addProperty("type", "object");
+        Json.put(schema, "type", "object");
         schema.add("properties", props);
         JsonArray required = new JsonArray();
         required.add(new JsonPrimitive("condition"));
@@ -58,19 +58,19 @@ public class ValidateConditionTool implements McpTool {
         JsonArray examples = new JsonArray();
 
         JsonObject ex1 = new JsonObject();
-        ex1.addProperty("condition", "all(has-quest(), if(health(hero()) > number(5000)))");
+        Json.put(ex1, "condition", "all(has-quest(), if(health(hero()) > number(5000)))");
         examples.add(ex1);
 
         JsonObject ex2 = new JsonObject();
-        ex2.addProperty("condition", "any(has-effect(singularity, target()), has-formation(chevron, hero()))");
+        Json.put(ex2, "condition", "any(has-effect(singularity, target()), has-formation(chevron, hero()))");
         examples.add(ex2);
 
         JsonObject ex3 = new JsonObject();
-        ex3.addProperty("condition", "after(7.5, has-quest())");
+        Json.put(ex3, "condition", "after(7.5, has-quest())");
         examples.add(ex3);
 
         JsonObject ex4 = new JsonObject();
-        ex4.addProperty("condition", "boolean(true)");
+        Json.put(ex4, "condition", "boolean(true)");
         examples.add(ex4);
 
         schema.add("_examples", examples);
@@ -98,8 +98,8 @@ public class ValidateConditionTool implements McpTool {
 
             JsonObject result = new JsonObject();
             Json.put(result, "valid", true);
-            result.addProperty("condition", condition);
-            result.addProperty("message", "Condition is valid");
+            Json.put(result, "condition", condition);
+            Json.put(result, "message", "Condition is valid");
             return GSON.toJson(result);
 
         } catch (ClassNotFoundException e) {
@@ -142,8 +142,8 @@ public class ValidateConditionTool implements McpTool {
     private String handleParseError(String condition, Throwable cause) {
         JsonObject result = new JsonObject();
         Json.put(result, "valid", false);
-        result.addProperty("condition", condition);
-        result.addProperty("error", cause.getMessage());
+        Json.put(result, "condition", condition);
+        Json.put(result, "error", cause.getMessage());
 
         if (cause.getClass().getName().equals(DARKBOT_PKG + ".SyntaxException")) {
             extractErrorDetails(cause, result);
@@ -174,7 +174,7 @@ public class ValidateConditionTool implements McpTool {
                     MethodType.methodType(String.class));
             String at = invoke(getAt, cause);
             if (at != null && !at.isEmpty()) {
-                result.addProperty("position", at);
+                Json.put(result, "position", at);
             }
 
             MethodHandle getExpected = lookup.findVirtual(causeClass, "getExpected",
@@ -210,8 +210,8 @@ public class ValidateConditionTool implements McpTool {
                             String name = invoke(getName, vd);
                             String desc = invoke(getDesc, vd);
                             JsonObject s = new JsonObject();
-                            s.addProperty("name", name);
-                            s.addProperty("description", desc);
+                            Json.put(s, "name", name);
+                            Json.put(s, "description", desc);
                             suggestions.add(s);
                         } catch (Exception ignored) {
                         }
@@ -228,7 +228,7 @@ public class ValidateConditionTool implements McpTool {
     private String error(String message) {
         JsonObject err = new JsonObject();
         Json.put(err, "valid", false);
-        err.addProperty("error", message);
+        Json.put(err, "error", message);
         return GSON.toJson(err);
     }
 }

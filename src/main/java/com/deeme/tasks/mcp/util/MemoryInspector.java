@@ -50,6 +50,9 @@ public final class MemoryInspector {
 
     /** Maximum slots returned in one snapshot. Keeps payload bounded. */
     private static final int MAX_SLOTS = 256;
+    private static final String ADDRESS_KEY = "address";
+    private static final String ERROR_KEY = "error";
+    private static final String REASON_KEY = "reason";
 
     private final Resolved resolved;
 
@@ -66,23 +69,23 @@ public final class MemoryInspector {
      */
     public JsonObject inspect(String addressText) {
         JsonObject result = new JsonObject();
-        result.addProperty("root", "address");
-        result.addProperty("path", addressText == null ? "" : addressText.trim());
+        Json.put(result, "root", ADDRESS_KEY);
+        Json.put(result, "path", addressText == null ? "" : addressText.trim());
 
         Optional<Long> parsed = parseAddress(addressText);
         if (!parsed.isPresent()) {
-            result.addProperty("type", "error");
-            result.add("error", errorNode("invalid_address",
+            Json.put(result, "type", ERROR_KEY);
+            result.add(ERROR_KEY, errorNode("invalid_address",
                     "Address must be hex (0x...) or decimal, got: " + addressText));
             return result;
         }
 
         long raw = parsed.get();
-        result.addProperty("address", String.format("0x%x", raw));
+        Json.put(result, ADDRESS_KEY, String.format("0x%x", raw));
 
         if (resolved == null) {
-            result.addProperty("type", "error");
-            result.add("error", errorNode("darkbot_unavailable",
+            Json.put(result, "type", ERROR_KEY);
+            result.add(ERROR_KEY, errorNode("darkbot_unavailable",
                     "DarkBot internal classes are not reachable from this plugin"));
             return result;
         }
@@ -93,7 +96,7 @@ public final class MemoryInspector {
             if (name == null || "ERROR".equals(name)) {
                 name = "Unknown";
             }
-            result.addProperty("type", name);
+            Json.put(result, "type", name);
 
             Object slotsObj = resolved.getObjectSlots.invoke(address);
             if (!(slotsObj instanceof List)) {
@@ -127,9 +130,9 @@ public final class MemoryInspector {
         if (total > MAX_SLOTS) {
             JsonObject marker = new JsonObject();
             Json.put(marker, "truncated", true);
-            marker.addProperty("included", included);
-            marker.addProperty("total", total);
-            marker.addProperty("reason", "max_slots");
+            Json.put(marker, "included", included);
+            Json.put(marker, "total", total);
+            Json.put(marker, REASON_KEY, "max_slots");
             arr.add(marker);
         }
         return arr;
@@ -137,16 +140,16 @@ public final class MemoryInspector {
 
     private JsonElement slotToJson(Object slot, long baseAddress) throws Throwable {
         JsonObject obj = new JsonObject();
-        obj.addProperty("offset", ((Number) resolved.slotOffset.invoke(slot)).longValue());
-        obj.addProperty("name", (String) resolved.slotName.invoke(slot));
-        obj.addProperty("type", (String) resolved.slotTypeName.invoke(slot));
+        Json.put(obj, "offset", ((Number) resolved.slotOffset.invoke(slot)).longValue());
+        Json.put(obj, "name", (String) resolved.slotName.invoke(slot));
+        Json.put(obj, "type", (String) resolved.slotTypeName.invoke(slot));
         Object template = resolved.slotTemplateType.invoke(slot);
         if (template != null) {
-            obj.addProperty("template_type", template.toString());
+            Json.put(obj, "template_type", template.toString());
         }
-        obj.addProperty("size", ((Number) resolved.slotSize.invoke(slot)).longValue());
+        Json.put(obj, "size", ((Number) resolved.slotSize.invoke(slot)).longValue());
         Object typeEnum = resolved.slotType.invoke(slot);
-        obj.addProperty("slot_type", typeEnum == null ? "OBJECT" : typeEnum.toString());
+        Json.put(obj, "slot_type", typeEnum == null ? "OBJECT" : typeEnum.toString());
         obj.add("value", readSlotValue(slot, baseAddress, typeEnum));
         return obj;
     }
@@ -181,7 +184,7 @@ public final class MemoryInspector {
                     return new JsonPrimitive("null");
                 }
                 JsonObject o = new JsonObject();
-                o.addProperty("address", String.format("0x%x", ptr));
+                Json.put(o, ADDRESS_KEY, String.format("0x%x", ptr));
                 Json.put(o, "is_pointer", true);
                 return o;
             }
@@ -190,8 +193,8 @@ public final class MemoryInspector {
 
     private static JsonObject errorNode(String kind, String message) {
         JsonObject node = new JsonObject();
-        node.addProperty("error", kind);
-        node.addProperty("message", message == null ? "" : message);
+        Json.put(node, ERROR_KEY, kind);
+        Json.put(node, "message", message == null ? "" : message);
         return node;
     }
 

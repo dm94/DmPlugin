@@ -21,6 +21,8 @@ import java.util.Optional;
 
 public class ObjectInspector {
 
+    private static final String REASON_KEY = "reason";
+
     private final int maxDepth;
     private final int maxItems;
 
@@ -37,9 +39,9 @@ public class ObjectInspector {
                 .create();
 
         JsonObject result = new JsonObject();
-        result.addProperty("root", rootName);
-        result.addProperty("path", normalizePath(path));
-        result.addProperty("type", root != null ? root.getClass().getName() : "null");
+        Json.put(result, "root", rootName);
+        Json.put(result, "path", normalizePath(path));
+        Json.put(result, "type", root != null ? root.getClass().getName() : "null");
 
         try {
             JsonElement tree = gson.toJsonTree(root);
@@ -135,23 +137,23 @@ public class ObjectInspector {
     private JsonObject depthMarker(int childCount) {
         JsonObject marker = new JsonObject();
         marker.add("truncated", new JsonPrimitive(true));
-        marker.addProperty("reason", "max_depth");
-        marker.addProperty("child_count", childCount);
+        Json.put(marker, REASON_KEY, "max_depth");
+        Json.put(marker, "child_count", childCount);
         return marker;
     }
 
     private JsonObject truncationMarker(int total, int included) {
         JsonObject marker = new JsonObject();
         marker.add("truncated", new JsonPrimitive(true));
-        marker.addProperty("included", included);
-        marker.addProperty("total", total);
+        Json.put(marker, "included", included);
+        Json.put(marker, "total", total);
         return marker;
     }
 
     private JsonObject errorNode(String kind, String message) {
         JsonObject node = new JsonObject();
-        node.addProperty("kind", kind);
-        node.addProperty("message", message);
+        Json.put(node, "kind", kind);
+        Json.put(node, "message", message);
         return node;
     }
 
@@ -247,7 +249,7 @@ public class ObjectInspector {
                 private void writeMarker(JsonWriter out, Object value, String reason) throws IOException {
                     out.beginObject();
                     out.name("truncated").value(true);
-                    out.name("reason").value(reason);
+                    out.name(REASON_KEY).value(reason);
                     out.name("type").value(value.getClass().getName());
                     out.endObject();
                 }
@@ -260,7 +262,7 @@ public class ObjectInspector {
                 public void write(JsonWriter out, T value) throws IOException {
                     out.beginObject();
                     out.name("truncated").value(true);
-                    out.name("reason").value("inaccessible");
+                    out.name(REASON_KEY).value("inaccessible");
                     out.name("type").value(value != null ? value.getClass().getName() : typeName);
                     out.endObject();
                 }

@@ -47,8 +47,8 @@ public class InventoryResource implements McpResource {
         for (InventoryAPI.Item item : inventory.getItems(waitMs)) {
             if (item == null) continue;
             JsonObject o = new JsonObject();
-            o.addProperty("loot_id", item.getLootId());
-            o.addProperty("name", item.getName());
+            Json.put(o, "loot_id", item.getLootId());
+            Json.put(o, "name", item.getName());
             Json.put(o, "amount", Math.round(item.getAmount() * 100.0) / 100.0);
             arr.add(o);
         }

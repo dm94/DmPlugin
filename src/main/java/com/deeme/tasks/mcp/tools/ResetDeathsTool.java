@@ -35,7 +35,7 @@ public class ResetDeathsTool implements McpTool {
     @Override
     public JsonObject getInputSchema() {
         JsonObject schema = new JsonObject();
-        schema.addProperty("type", "object");
+        Json.put(schema, "type", "object");
         schema.add("properties", new JsonObject());
         return schema;
     }

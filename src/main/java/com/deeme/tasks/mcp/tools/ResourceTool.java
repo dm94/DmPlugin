@@ -1,5 +1,7 @@
 package com.deeme.tasks.mcp.tools;
 
+import com.deeme.tasks.mcp.util.Json;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -11,6 +13,8 @@ import com.deeme.tasks.mcp.resources.McpResource;
 import java.util.Map;
 
 public class ResourceTool implements McpTool {
+
+    private static final String DESCRIPTION_KEY = "description";
 
     private final Map<String, McpResource> resources;
     private final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
@@ -34,13 +38,13 @@ public class ResourceTool implements McpTool {
     @Override
     public JsonObject getInputSchema() {
         JsonObject schema = new JsonObject();
-        schema.addProperty("type", "object");
+        Json.put(schema, "type", "object");
 
         JsonObject props = new JsonObject();
 
         JsonObject actionProp = new JsonObject();
-        actionProp.addProperty("type", "string");
-        actionProp.addProperty("description", "Action: 'list' to enumerate resources, 'read' to get a resource by URI");
+        Json.put(actionProp, "type", "string");
+        Json.put(actionProp, DESCRIPTION_KEY, "Action: 'list' to enumerate resources, 'read' to get a resource by URI");
         JsonArray enum_ = new JsonArray();
         enum_.add(new JsonPrimitive("list"));
         enum_.add(new JsonPrimitive("read"));
@@ -48,8 +52,8 @@ public class ResourceTool implements McpTool {
         props.add("action", actionProp);
 
         JsonObject uriProp = new JsonObject();
-        uriProp.addProperty("type", "string");
-        uriProp.addProperty("description", "Resource URI to read (required when action is 'read')");
+        Json.put(uriProp, "type", "string");
+        Json.put(uriProp, DESCRIPTION_KEY, "Resource URI to read (required when action is 'read')");
         props.add("uri", uriProp);
 
         schema.add("properties", props);
@@ -85,11 +89,11 @@ public class ResourceTool implements McpTool {
         JsonArray arr = new JsonArray();
         for (McpResource res : resources.values()) {
             JsonObject r = new JsonObject();
-            r.addProperty("uri", res.getUri());
-            r.addProperty("name", res.getName());
-            r.addProperty("description", res.getDescription());
+            Json.put(r, "uri", res.getUri());
+            Json.put(r, "name", res.getName());
+            Json.put(r, DESCRIPTION_KEY, res.getDescription());
             if (res.getMimeType() != null)
-                r.addProperty("mimeType", res.getMimeType());
+                Json.put(r, "mimeType", res.getMimeType());
             arr.add(r);
         }
         JsonObject result = new JsonObject();

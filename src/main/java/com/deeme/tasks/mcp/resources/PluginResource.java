@@ -1,5 +1,7 @@
 package com.deeme.tasks.mcp.resources;
 
+import com.deeme.tasks.mcp.util.Json;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -38,10 +40,10 @@ public class PluginResource implements McpResource {
         JsonArray loaded = new JsonArray();
         for (PluginInfo pl : extensions.getPluginInfos()) {
             JsonObject p = new JsonObject();
-            p.addProperty("name", pl.getName());
-            p.addProperty("author", pl.getAuthor());
+            Json.put(p, "name", pl.getName());
+            Json.put(p, "author", pl.getAuthor());
             if (pl.getVersion() != null)
-                p.addProperty("version", pl.getVersion().toString());
+                Json.put(p, "version", pl.getVersion().toString());
             loaded.add(p);
         }
         obj.add("loaded", loaded);

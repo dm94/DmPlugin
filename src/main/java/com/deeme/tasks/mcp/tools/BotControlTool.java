@@ -1,5 +1,7 @@
 package com.deeme.tasks.mcp.tools;
 
+import com.deeme.tasks.mcp.util.Json;
+
 import com.google.gson.JsonObject;
 import eu.darkbot.api.managers.BotAPI;
 
@@ -26,7 +28,7 @@ public class BotControlTool implements McpTool {
     @Override
     public JsonObject getInputSchema() {
         JsonObject schema = new JsonObject();
-        schema.addProperty("type", "object");
+        Json.put(schema, "type", "object");
         schema.add("properties", new JsonObject());
         return schema;
     }
@@ -36,8 +38,8 @@ public class BotControlTool implements McpTool {
         boolean wasRunning = bot.isRunning();
         bot.setRunning(!wasRunning);
         JsonObject result = new JsonObject();
-        result.addProperty("previous_state", wasRunning ? "running" : "paused");
-        result.addProperty("current_state", bot.isRunning() ? "running" : "paused");
+        Json.put(result, "previous_state", wasRunning ? "running" : "paused");
+        Json.put(result, "current_state", bot.isRunning() ? "running" : "paused");
         return result.toString();
     }
 }

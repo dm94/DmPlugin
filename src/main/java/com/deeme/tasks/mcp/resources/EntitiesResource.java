@@ -141,10 +141,10 @@ public class EntitiesResource implements McpResource {
 
   private JsonObject playerExtra(Player p) {
     JsonObject o = new JsonObject();
-    o.addProperty("ship_type", p.getShipType());
+    Json.put(o, "ship_type", p.getShipType());
     Json.put(o, "has_pet", p.hasPet());
     if (p.getFormation() != null)
-      o.addProperty("formation", p.getFormation().name());
+      Json.put(o, "formation", p.getFormation().name());
     return o;
   }
 
@@ -157,8 +157,8 @@ public class EntitiesResource implements McpResource {
 
   private JsonObject boxJson(Box b) {
     JsonObject o = baseEntity(b, "box");
-    o.addProperty("type_name", b.getTypeName());
-    o.addProperty("hash", b.getHash());
+    Json.put(o, "type_name", b.getTypeName());
+    Json.put(o, "hash", b.getHash());
     return o;
   }
 
@@ -166,10 +166,10 @@ public class EntitiesResource implements McpResource {
     JsonObject o = baseEntity(p, "portal");
     Json.put(o, "type_id", p.getTypeId());
     if (p.getPortalType() != null)
-      o.addProperty("portal_type", p.getPortalType().name());
+      Json.put(o, "portal_type", p.getPortalType().name());
     p.getTargetMap().ifPresent(m -> {
       Json.put(o, "target_map_id", m.getId());
-      o.addProperty("target_map_name", m.getName());
+      Json.put(o, "target_map_name", m.getName());
     });
     Json.put(o, "jumping", p.isJumping());
     return o;
@@ -177,7 +177,7 @@ public class EntitiesResource implements McpResource {
 
   private JsonObject baseEntity(Entity e, String type) {
     JsonObject o = new JsonObject();
-    o.addProperty("type", type);
+    Json.put(o, "type", type);
     Json.put(o, "id", e.getId());
     Json.put(o, "x", round(e.getX()));
     Json.put(o, "y", round(e.getY()));

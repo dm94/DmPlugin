@@ -1,5 +1,7 @@
 package com.deeme.tasks.mcp.resources;
 
+import com.deeme.tasks.mcp.util.Json;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -43,7 +45,7 @@ public class ProfileListResource implements McpResource {
 
         JsonObject result = new JsonObject();
         result.add("profiles", arr);
-        result.addProperty("count", profiles.size());
+        Json.put(result, "count", profiles.size());
         return gson.toJson(result);
     }
 }

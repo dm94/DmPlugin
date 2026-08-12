@@ -51,14 +51,14 @@ public class NpcEventResource implements McpResource {
         }
         Json.put(o, "available", true);
         if (ev.getStatus() != null)
-            o.addProperty("status", ev.getStatus().name());
+            Json.put(o, "status", ev.getStatus().name());
         Json.put(o, "remaining_seconds", Math.round(ev.getRemainingTime() * 100.0) / 100.0);
         if (ev.getEventName() != null)
-            o.addProperty("name", ev.getEventName());
+            Json.put(o, "name", ev.getEventName());
         if (ev.getEventId() != null)
-            o.addProperty("event_id", ev.getEventId());
+            Json.put(o, "event_id", ev.getEventId());
         if (ev.getEventDescription() != null)
-            o.addProperty("description", ev.getEventDescription());
+            Json.put(o, "description", ev.getEventDescription());
         Json.put(o, "npc_left", ev.npcLeft());
         Json.put(o, "boss_npc_left", ev.bossNpcLeft());
         return o;
