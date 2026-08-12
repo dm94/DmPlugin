@@ -30,13 +30,13 @@ public class BuildConditionTool implements McpTool {
     @Override
     public JsonObject getInputSchema() {
         JsonObject conditionProp = new JsonObject();
-        conditionProp.addProperty("type", "object");
-        conditionProp.addProperty("description",
+        Json.put(conditionProp, "type", "object");
+        Json.put(conditionProp, "description",
                 "Condition tree node with 'type' and type-specific fields. " +
                         "See conditions://schema for all types, parameters, and enum values.");
         JsonObject typeProp = new JsonObject();
-        typeProp.addProperty("type", "string");
-        typeProp.addProperty("description",
+        Json.put(typeProp, "type", "string");
+        Json.put(typeProp, "description",
                 "Condition type: all, any, none, one, if, equal, has-effect, " +
                         "has-formation, has-relation, has-quest, after, until, boolean");
         conditionProp.add("properties", new JsonObject());
@@ -49,21 +49,21 @@ public class BuildConditionTool implements McpTool {
         JsonArray examples = new JsonArray();
 
         JsonObject ex1 = new JsonObject();
-        ex1.addProperty("condition",
+        Json.put(ex1, "condition",
                 "{\"type\":\"all\",\"children\":[{\"type\":\"has-quest\"},{\"type\":\"if\"," +
                         "\"a\":{\"type\":\"health\",\"ship\":{\"type\":\"hero\"}},\"operation\":\">\"," +
                         "\"b\":{\"type\":\"number\",\"value\":5000}}]}");
         examples.add(ex1);
 
         JsonObject ex2 = new JsonObject();
-        ex2.addProperty("condition",
+        Json.put(ex2, "condition",
                 "{\"type\":\"any\",\"children\":[" +
                         "{\"type\":\"has-effect\",\"effect\":\"singularity\",\"ship\":{\"type\":\"target\"}}," +
                         "{\"type\":\"has-formation\",\"formation\":\"chevron\",\"ship\":{\"type\":\"hero\"}}]}");
         examples.add(ex2);
 
         JsonObject schema = new JsonObject();
-        schema.addProperty("type", "object");
+        Json.put(schema, "type", "object");
         schema.add("properties", props);
         JsonArray required = new JsonArray();
         required.add(new JsonPrimitive("condition"));
@@ -89,7 +89,7 @@ public class BuildConditionTool implements McpTool {
         try {
             String dsl = buildNode(condition);
             JsonObject result = new JsonObject();
-            result.addProperty("condition", dsl);
+            Json.put(result, "condition", dsl);
             Json.put(result, "valid", true);
             return GSON.toJson(result);
         } catch (Exception e) {
@@ -266,7 +266,7 @@ public class BuildConditionTool implements McpTool {
     private String error(String message) {
         JsonObject err = new JsonObject();
         Json.put(err, "valid", false);
-        err.addProperty("error", message);
+        Json.put(err, "error", message);
         return GSON.toJson(err);
     }
 }

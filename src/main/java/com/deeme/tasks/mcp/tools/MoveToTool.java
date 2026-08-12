@@ -36,8 +36,8 @@ public class MoveToTool implements McpTool {
     @Override
     public JsonObject getInputSchema() {
         JsonObject actionProp = new JsonObject();
-        actionProp.addProperty("type", "string");
-        actionProp.addProperty("description", "Movement action.");
+        Json.put(actionProp, "type", "string");
+        Json.put(actionProp, "description", "Movement action.");
         com.google.gson.JsonArray actionEnum = new com.google.gson.JsonArray();
         actionEnum.add(new com.google.gson.JsonPrimitive("goto"));
         actionEnum.add(new com.google.gson.JsonPrimitive("random"));
@@ -45,16 +45,16 @@ public class MoveToTool implements McpTool {
         actionProp.add("enum", actionEnum);
 
         JsonObject xProp = new JsonObject();
-        xProp.addProperty("type", "number");
-        xProp.addProperty("description", "Target X coordinate. Required for 'goto'.");
+        Json.put(xProp, "type", "number");
+        Json.put(xProp, "description", "Target X coordinate. Required for 'goto'.");
 
         JsonObject yProp = new JsonObject();
-        yProp.addProperty("type", "number");
-        yProp.addProperty("description", "Target Y coordinate. Required for 'goto'.");
+        Json.put(yProp, "type", "number");
+        Json.put(yProp, "description", "Target Y coordinate. Required for 'goto'.");
 
         JsonObject stopHardProp = new JsonObject();
-        stopHardProp.addProperty("type", "boolean");
-        stopHardProp.addProperty("description", "For 'stop': true to hard-stop in current location (default false).");
+        Json.put(stopHardProp, "type", "boolean");
+        Json.put(stopHardProp, "description", "For 'stop': true to hard-stop in current location (default false).");
 
         JsonObject props = new JsonObject();
         props.add("action", actionProp);
@@ -63,7 +63,7 @@ public class MoveToTool implements McpTool {
         props.add("stop_hard", stopHardProp);
 
         JsonObject schema = new JsonObject();
-        schema.addProperty("type", "object");
+        Json.put(schema, "type", "object");
         schema.add("properties", props);
         com.google.gson.JsonArray required = new com.google.gson.JsonArray();
         required.add(new com.google.gson.JsonPrimitive("action"));
@@ -107,7 +107,7 @@ public class MoveToTool implements McpTool {
 
     private String resultJson(String action, Double x, Double y) {
         JsonObject o = new JsonObject();
-        o.addProperty("action", action);
+        Json.put(o, "action", action);
         if (x != null) Json.put(o, "x", Math.round(x * 100.0) / 100.0);
         if (y != null) Json.put(o, "y", Math.round(y * 100.0) / 100.0);
         JsonObject dest = new JsonObject();
@@ -125,7 +125,7 @@ public class MoveToTool implements McpTool {
 
     private String error(String message) {
         JsonObject err = new JsonObject();
-        err.addProperty("error", message);
+        Json.put(err, "error", message);
         return gson.toJson(err);
     }
 }

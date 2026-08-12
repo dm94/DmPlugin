@@ -1,5 +1,7 @@
 package com.deeme.tasks.mcp.resources;
 
+import com.deeme.tasks.mcp.util.Json;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -35,6 +37,8 @@ import java.util.Optional;
  */
 public class PeekResource implements McpResource {
 
+    private static final String ERROR_KEY = "error";
+
     private static final String MAIN_CLASS = "com.github.manolo8.darkbot.Main";
     private static final String IDARK_BOT_API_CLASS = "com.github.manolo8.darkbot.core.IDarkBotAPI";
     private static final String BYTE_UTILS_CLASS = "com.github.manolo8.darkbot.core.utils.ByteUtils";
@@ -68,15 +72,15 @@ public class PeekResource implements McpResource {
         Map<String, String> params = parseQuery(uri);
         Optional<Long> parsed = parseAddress(params.get("address"));
         if (!parsed.isPresent()) {
-            result.addProperty("error", "Missing or invalid 'address'");
+            Json.put(result, ERROR_KEY, "Missing or invalid 'address'");
             return gson.toJson(result);
         }
         long address = parsed.get();
-        result.addProperty("address", String.format("0x%x", address));
+        Json.put(result, "address", String.format("0x%x", address));
 
         String offsets = params.get("offsets");
         if (offsets == null || offsets.isEmpty() || resolved == null) {
-            result.addProperty("error",
+            Json.put(result, ERROR_KEY,
                     offsets == null || offsets.isEmpty()
                             ? "Missing 'offsets' (e.g. 40:int;56:int)"
                             : "DarkBot API not reachable");
@@ -93,7 +97,10 @@ public class PeekResource implements McpResource {
 
     private JsonObject readOne(String spec, long base) {
         JsonObject out = new JsonObject();
-        out.addProperty("spec", spec);
+        if (spec == null || spec.trim().isEmpty()) {
+            return error(out, "Missing spec, use offset:type");
+        }
+        Json.put(out, "spec", spec);
         String[] parts = spec.split(":");
         if (parts.length != 2) {
             return error(out, "Bad spec, use offset:type");
@@ -153,7 +160,7 @@ public class PeekResource implements McpResource {
     }
 
     private JsonObject error(JsonObject out, String message) {
-        out.addProperty("error", message);
+        Json.put(out, ERROR_KEY, message);
         return out;
     }
 

@@ -57,7 +57,7 @@ public class GroupResource implements McpResource {
             if (m == null) continue;
             JsonObject mo = new JsonObject();
             Json.put(mo, "id", m.getId());
-            mo.addProperty("username", m.getUsername());
+            Json.put(mo, "username", m.getUsername());
             Json.put(mo, "map_id", m.getMapId());
             Json.put(mo, "level", m.getLevel());
             Json.put(mo, "leader", m.isLeader());
@@ -82,9 +82,9 @@ public class GroupResource implements McpResource {
             Json.put(io, "incoming", inv.isIncoming());
             Json.put(io, "valid", inv.isValid());
             if (inv.getInviter() != null)
-                io.addProperty("inviter", inv.getInviter().getUsername());
+                Json.put(io, "inviter", inv.getInviter().getUsername());
             if (inv.getInvited() != null)
-                io.addProperty("invited", inv.getInvited().getUsername());
+                Json.put(io, "invited", inv.getInvited().getUsername());
             invites.add(io);
         }
         obj.add("invites", invites);

@@ -1,5 +1,7 @@
 package com.deeme.tasks.mcp.conditions;
 
+import com.deeme.tasks.mcp.util.Json;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -16,6 +18,7 @@ public class ConditionSchemaResource implements McpResource {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     private static final String DARKBOT_PKG = "com.github.manolo8.darkbot.config.actions";
+    private static final String DESCRIPTION_KEY = "description";
 
     private volatile String cachedSchema;
     private volatile String cachedError;
@@ -49,7 +52,7 @@ public class ConditionSchemaResource implements McpResource {
             return json;
         } catch (Exception e) {
             JsonObject err = new JsonObject();
-            err.addProperty("error", "Failed to load condition schema: " + e.getMessage());
+            Json.put(err, "error", "Failed to load condition schema: " + e.getMessage());
             String json = GSON.toJson(err);
             cachedError = json;
             return json;
@@ -58,16 +61,16 @@ public class ConditionSchemaResource implements McpResource {
 
     private JsonObject buildSchema() throws Exception {
         JsonObject schema = new JsonObject();
-        schema.addProperty("format", "Condition DSL uses function-call syntax: name(arg1, arg2, ...)");
-        schema.addProperty("description",
+        Json.put(schema, "format", "Condition DSL uses function-call syntax: name(arg1, arg2, ...)");
+        Json.put(schema, DESCRIPTION_KEY,
                 "Conditions are used in SAB config and Extra Actions. " +
                         "They return ALLOW, DENY, or ABSTAIN (three-valued logic). " +
                         "ABSTAIN acts as neutral (not DENY).");
 
         JsonObject results = new JsonObject();
-        results.addProperty("ALLOW", "Condition met (true)");
-        results.addProperty("DENY", "Condition failed (false)");
-        results.addProperty("ABSTAIN", "Neutral - data unavailable, treated as not-DENY");
+        Json.put(results, "ALLOW", "Condition met (true)");
+        Json.put(results, "DENY", "Condition failed (false)");
+        Json.put(results, "ABSTAIN", "Neutral - data unavailable, treated as not-DENY");
         schema.add("result_types", results);
 
         Map<String, Object> valuesMap = getValuesMap();
@@ -126,18 +129,18 @@ public class ConditionSchemaResource implements McpResource {
         Object params = invoke(getPar, meta);
 
         String name = callAnnotationMethod(valueData, "name", lookup);
-        String description = callAnnotationMethod(valueData, "description", lookup);
+        String description = callAnnotationMethod(valueData, DESCRIPTION_KEY, lookup);
         String example = callAnnotationMethod(valueData, "example", lookup);
 
         JsonObject item = new JsonObject();
-        item.addProperty("name", name);
-        item.addProperty("description", description);
-        item.addProperty("example", example);
-        item.addProperty("returnType", type.getSimpleName());
-        item.addProperty("className", clazz.getSimpleName());
+        Json.put(item, "name", name);
+        Json.put(item, DESCRIPTION_KEY, description);
+        Json.put(item, "example", example);
+        Json.put(item, "returnType", type.getSimpleName());
+        Json.put(item, "className", clazz.getSimpleName());
 
         Class<?> parserClass = Class.forName(DARKBOT_PKG + ".Parser");
-        item.addProperty("customParser", parserClass.isAssignableFrom(clazz));
+        Json.put(item, "customParser", parserClass.isAssignableFrom(clazz));
 
         JsonArray paramList = new JsonArray();
         if (params != null) {
@@ -178,8 +181,8 @@ public class ConditionSchemaResource implements McpResource {
         String fieldName = (String) invoke(getName, field);
 
         JsonObject p = new JsonObject();
-        p.addProperty("name", fieldName);
-        p.addProperty("type", pType.getSimpleName());
+        Json.put(p, "name", fieldName);
+        Json.put(p, "type", pType.getSimpleName());
 
         if (pType.isEnum()) {
             JsonArray values = new JsonArray();
