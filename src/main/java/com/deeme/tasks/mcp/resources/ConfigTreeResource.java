@@ -54,7 +54,7 @@ public class ConfigTreeResource implements McpResource {
 
         if (setting == null) {
             JsonObject err = new JsonObject();
-            err.addProperty("error", "Config path not found: " + path);
+            Json.put(err, "error", "Config path not found: " + path);
             return gson.toJson(err);
         }
 
@@ -98,16 +98,16 @@ public class ConfigTreeResource implements McpResource {
         Map<String, ConfigSetting<?>> children = parent.getChildren();
 
         JsonObject result = new JsonObject();
-        result.addProperty("path", path.isEmpty() ? "(root)" : path);
-        result.addProperty("type", "parent");
+        Json.put(result, "path", path.isEmpty() ? "(root)" : path);
+        Json.put(result, "type", "parent");
 
         if (children == null || children.isEmpty()) {
-            result.addProperty("child_count", 0);
+            Json.put(result, "child_count", 0);
             result.add("children", new JsonArray());
             return gson.toJson(result);
         }
 
-        result.addProperty("child_count", children.size());
+        Json.put(result, "child_count", children.size());
 
         JsonArray arr = new JsonArray();
         int count = 0;
@@ -120,12 +120,12 @@ public class ConfigTreeResource implements McpResource {
             boolean isParent = child instanceof ConfigSetting.Parent;
 
             JsonObject item = new JsonObject();
-            item.addProperty("name", entry.getKey());
-            item.addProperty("type", isParent ? "parent" : friendlyTypeName(child.getType()));
+            Json.put(item, "name", entry.getKey());
+            Json.put(item, "type", isParent ? "parent" : friendlyTypeName(child.getType()));
 
             if (isParent) {
                 Map<String, ConfigSetting<?>> sub = ((ConfigSetting.Parent) child).getChildren();
-                item.addProperty("child_count", sub != null ? sub.size() : 0);
+                Json.put(item, "child_count", sub != null ? sub.size() : 0);
             } else {
                 Object val = child.getValue();
                 if (val != null) {
@@ -135,7 +135,7 @@ public class ConfigTreeResource implements McpResource {
 
             String desc = child.getDescription();
             if (desc != null && !desc.isEmpty()) {
-                item.addProperty("description", desc);
+                Json.put(item, "description", desc);
             }
 
             arr.add(item);
@@ -144,8 +144,8 @@ public class ConfigTreeResource implements McpResource {
         if (children.size() > MAX_DISPLAY_ITEMS) {
             JsonObject truncated = new JsonObject();
             Json.put(truncated, "truncated", true);
-            truncated.addProperty("included", count);
-            truncated.addProperty("total", children.size());
+            Json.put(truncated, "included", count);
+            Json.put(truncated, "total", children.size());
             arr.add(truncated);
         }
 
@@ -155,8 +155,8 @@ public class ConfigTreeResource implements McpResource {
 
     private String describeLeaf(String path, ConfigSetting<?> setting) {
         JsonObject result = new JsonObject();
-        result.addProperty("path", path);
-        result.addProperty("type", friendlyTypeName(setting.getType()));
+        Json.put(result, "path", path);
+        Json.put(result, "type", friendlyTypeName(setting.getType()));
 
         Object value = setting.getValue();
         if (value != null) {
@@ -165,7 +165,7 @@ public class ConfigTreeResource implements McpResource {
 
         String desc = setting.getDescription();
         if (desc != null && !desc.isEmpty()) {
-            result.addProperty("description", desc);
+            Json.put(result, "description", desc);
         }
 
         Class<?> type = setting.getType();
@@ -197,19 +197,19 @@ public class ConfigTreeResource implements McpResource {
 
             Object min = setting.getMetadata("min");
             if (min instanceof Number) {
-                c.addProperty("min", ((Number) min).doubleValue());
+                Json.put(c, "min", ((Number) min).doubleValue());
                 hasAny = true;
             }
 
             Object max = setting.getMetadata("max");
             if (max instanceof Number) {
-                c.addProperty("max", ((Number) max).doubleValue());
+                Json.put(c, "max", ((Number) max).doubleValue());
                 hasAny = true;
             }
 
             Object step = setting.getMetadata("step");
             if (step instanceof Number) {
-                c.addProperty("step", ((Number) step).doubleValue());
+                Json.put(c, "step", ((Number) step).doubleValue());
                 hasAny = true;
             }
 

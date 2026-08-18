@@ -33,14 +33,14 @@ public class SetProfileTool implements McpTool {
     @Override
     public JsonObject getInputSchema() {
         JsonObject profileProp = new JsonObject();
-        profileProp.addProperty("type", "string");
-        profileProp.addProperty("description", "Name of the config profile to switch to.");
+        Json.put(profileProp, "type", "string");
+        Json.put(profileProp, "description", "Name of the config profile to switch to.");
 
         JsonObject props = new JsonObject();
         props.add("profile", profileProp);
 
         JsonObject schema = new JsonObject();
-        schema.addProperty("type", "object");
+        Json.put(schema, "type", "object");
         schema.add("properties", props);
         JsonArray required = new JsonArray();
         required.add(new JsonPrimitive("profile"));
@@ -61,14 +61,14 @@ public class SetProfileTool implements McpTool {
         configAPI.setConfigProfile(profile);
 
         JsonObject result = new JsonObject();
-        result.addProperty("profile", profile);
+        Json.put(result, "profile", profile);
         Json.put(result, "success", true);
         return gson.toJson(result);
     }
 
     private String error(String message) {
         JsonObject err = new JsonObject();
-        err.addProperty("error", message);
+        Json.put(err, "error", message);
         return gson.toJson(err);
     }
 }

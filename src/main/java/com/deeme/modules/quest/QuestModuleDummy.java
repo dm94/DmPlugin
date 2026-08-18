@@ -1,8 +1,5 @@
 package com.deeme.modules.quest;
 
-import eu.darkbot.api.managers.AuthAPI;
-import eu.darkbot.api.managers.ExtensionsAPI;
-
 import java.util.Arrays;
 
 import javax.swing.JComponent;
@@ -13,9 +10,13 @@ import com.deeme.types.backpage.Utils;
 import com.deemeplus.modules.quest.QuestModule;
 
 import eu.darkbot.api.PluginAPI;
+import eu.darkbot.api.extensions.Draw;
 import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.extensions.InstructionProvider;
+import eu.darkbot.api.managers.AuthAPI;
+import eu.darkbot.api.managers.ExtensionsAPI;
 
+@Draw(value = Draw.Stage.OVERLAY)
 @Feature(name = "Quest Module [PLUS]", description = "For do quests")
 public class QuestModuleDummy extends QuestModule implements InstructionProvider {
     private JLabel label = new JLabel("");

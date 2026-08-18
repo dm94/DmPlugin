@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.deeme.tasks.mcp.util.Json;
 import eu.darkbot.api.managers.BotAPI;
 
 import java.lang.invoke.MethodHandle;
@@ -33,7 +34,7 @@ public class PluginReloadTool implements McpTool {
     @Override
     public JsonObject getInputSchema() {
         JsonObject schema = new JsonObject();
-        schema.addProperty("type", "object");
+        Json.put(schema, "type", "object");
         schema.add("properties", new JsonObject());
         return schema;
     }
@@ -53,12 +54,12 @@ public class PluginReloadTool implements McpTool {
 
             JsonObject result = new JsonObject();
             result.add("success", new JsonPrimitive(true));
-            result.addProperty("message", "Plugin reload triggered successfully");
+            Json.put(result, "message", "Plugin reload triggered successfully");
             return gson.toJson(result);
         } catch (Throwable e) {
             JsonObject result = new JsonObject();
             result.add("success", new JsonPrimitive(false));
-            result.addProperty("error", "Failed to reload plugins: " + e.getMessage());
+            Json.put(result, "error", "Failed to reload plugins: " + e.getMessage());
             return gson.toJson(result);
         }
     }

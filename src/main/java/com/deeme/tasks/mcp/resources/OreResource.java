@@ -44,7 +44,7 @@ public class OreResource implements McpResource {
         JsonArray oreArr = new JsonArray();
         for (OreAPI.Ore ore : OreAPI.Ore.values()) {
             JsonObject o = new JsonObject();
-            o.addProperty("ore", ore.getName());
+            Json.put(o, "ore", ore.getName());
             Json.put(o, "amount", ores.getAmount(ore));
             Json.put(o, "sellable", ore.isSellable());
             Json.put(o, "upgradable", ore.isUpgradable());
@@ -55,11 +55,11 @@ public class OreResource implements McpResource {
         JsonArray upArr = new JsonArray();
         for (OreAPI.UpgradeSlot slot : OreAPI.UpgradeSlot.values()) {
             JsonObject o = new JsonObject();
-            o.addProperty("slot", slot.name());
+            Json.put(o, "slot", slot.name());
             OreAPI.Upgrade up = ores.getUpgrade(slot);
             if (up != null) {
                 if (up.getOre() != null)
-                    o.addProperty("ore", up.getOre().getName());
+                    Json.put(o, "ore", up.getOre().getName());
                 Json.put(o, "amount", up.getAmount());
             }
             upArr.add(o);

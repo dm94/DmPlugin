@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.deeme.tasks.mcp.util.Json;
 import eu.darkbot.api.managers.ConfigAPI;
 
 import java.util.List;
@@ -43,7 +44,7 @@ public class ProfileListResource implements McpResource {
 
         JsonObject result = new JsonObject();
         result.add("profiles", arr);
-        result.addProperty("count", profiles.size());
+        Json.put(result, "count", profiles.size());
         return gson.toJson(result);
     }
 }
