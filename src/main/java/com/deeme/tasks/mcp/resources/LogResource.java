@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.deeme.tasks.mcp.util.Json;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -103,11 +104,11 @@ public class LogResource implements McpResource {
     }
 
     JsonObject result = new JsonObject();
-    result.addProperty("file", logFile.getFileName().toString());
-    result.addProperty("path", logFile.toString());
+    Json.put(result, "file", logFile.getFileName().toString());
+    Json.put(result, "path", logFile.toString());
 
     if (!Files.exists(logFile)) {
-      result.addProperty("error", "Log file not found");
+      Json.put(result, "error", "Log file not found");
       return gson.toJson(result);
     }
 
@@ -117,13 +118,13 @@ public class LogResource implements McpResource {
     } catch (IOException e) {
       return gson.toJson(error("size_error", e.getMessage()));
     }
-    result.addProperty("size_bytes", size);
+    Json.put(result, "size_bytes", size);
 
     List<String> lines = readTail(logFile, tail, pattern);
-    result.addProperty("returned_lines", lines.size());
-    result.addProperty("tail", tail);
+    Json.put(result, "returned_lines", lines.size());
+    Json.put(result, "tail", tail);
     if (pattern != null) {
-      result.addProperty("pattern", pattern);
+      Json.put(result, "pattern", pattern);
     }
 
     JsonArray arr = new JsonArray();
@@ -152,7 +153,7 @@ public class LogResource implements McpResource {
       return gson.toJson(error("log_folder_missing", "LOG_FOLDER is null"));
     }
 
-    result.addProperty("folder", folder.toString());
+    Json.put(result, "folder", folder.toString());
     JsonArray arr = new JsonArray();
 
     if (Files.exists(folder)) {
@@ -170,16 +171,16 @@ public class LogResource implements McpResource {
 
   private JsonObject fileInfo(Path p) {
     JsonObject obj = new JsonObject();
-    obj.addProperty("name", p.getFileName().toString());
+    Json.put(obj, "name", p.getFileName().toString());
     try {
-      obj.addProperty("size_bytes", Files.size(p));
+      Json.put(obj, "size_bytes", Files.size(p));
     } catch (IOException e) {
-      obj.addProperty("size_bytes", -1);
+      Json.put(obj, "size_bytes", -1);
     }
     try {
-      obj.addProperty("modified", Files.getLastModifiedTime(p).toString());
+      Json.put(obj, "modified", Files.getLastModifiedTime(p).toString());
     } catch (IOException e) {
-      obj.addProperty("modified", "");
+      Json.put(obj, "modified", "");
     }
     return obj;
   }
@@ -254,10 +255,10 @@ public class LogResource implements McpResource {
 
   private JsonObject error(String code, String message) {
     JsonObject err = new JsonObject();
-    err.addProperty("code", code);
-    err.addProperty("message", message == null ? "" : message);
+    Json.put(err, "code", code);
+    Json.put(err, "message", message == null ? "" : message);
     JsonObject obj = new JsonObject();
-    obj.addProperty("error", code);
+    Json.put(obj, "error", code);
     obj.add("details", err);
     return obj;
   }

@@ -47,7 +47,7 @@ public class NpcConfigResource implements McpResource {
 
         if (npcInfos == null) {
             JsonObject result = new JsonObject();
-            result.addProperty("npc_count", 0);
+            Json.put(result, "npc_count", 0);
             result.add("npcs", new JsonArray());
             return gson.toJson(result);
         }
@@ -61,23 +61,23 @@ public class NpcConfigResource implements McpResource {
 
     private String listAllNpcs(Map<String, NpcInfo> npcInfos) {
         JsonObject result = new JsonObject();
-        result.addProperty("npc_count", npcInfos.size());
+        Json.put(result, "npc_count", npcInfos.size());
 
         JsonArray arr = new JsonArray();
         for (Map.Entry<String, NpcInfo> entry : npcInfos.entrySet()) {
             JsonObject item = new JsonObject();
-            item.addProperty("name", entry.getKey());
+            Json.put(item, "name", entry.getKey());
 
             NpcInfo info = entry.getValue();
             if (info != null) {
                 Json.put(item, "should_kill", info.getShouldKill());
-                item.addProperty("priority", info.getPriority());
-                item.addProperty("radius", info.getRadius());
+                Json.put(item, "priority", info.getPriority());
+                Json.put(item, "radius", info.getRadius());
                 if (info.getAmmo().isPresent()) {
-                    item.addProperty("ammo", info.getAmmo().get().getId());
+                    Json.put(item, "ammo", info.getAmmo().get().getId());
                 }
                 if (info.getFormation().isPresent()) {
-                    item.addProperty("formation", info.getFormation().get().getId());
+                    Json.put(item, "formation", info.getFormation().get().getId());
                 }
             }
 
@@ -92,25 +92,25 @@ public class NpcConfigResource implements McpResource {
         NpcInfo info = npcInfos.get(npcName);
 
         JsonObject result = new JsonObject();
-        result.addProperty("name", npcName);
+        Json.put(result, "name", npcName);
 
         if (info == null) {
             Json.put(result, "configured", false);
-            result.addProperty("message", "NPC not found in configuration. Create it in DarkBot's UI first.");
+            Json.put(result, "message", "NPC not found in configuration. Create it in DarkBot's UI first.");
             return gson.toJson(result);
         }
 
         Json.put(result, "configured", true);
         Json.put(result, "should_kill", info.getShouldKill());
-        result.addProperty("priority", info.getPriority());
-        result.addProperty("radius", info.getRadius());
+        Json.put(result, "priority", info.getPriority());
+        Json.put(result, "radius", info.getRadius());
 
         info.getAmmo().ifPresent(ammo -> {
-            result.addProperty("ammo", ammo.getId());
+            Json.put(result, "ammo", ammo.getId());
         });
 
         info.getFormation().ifPresent(formation -> {
-            result.addProperty("formation", formation.getId());
+            Json.put(result, "formation", formation.getId());
         });
 
         result.add("map_ids", gson.toJsonTree(info.getMapIds()));

@@ -58,15 +58,15 @@ public class HeroResource implements McpResource {
 
         if (starSystem.getCurrentMap() != null) {
             Json.put(obj, "map_id", starSystem.getCurrentMap().getId());
-            obj.addProperty("map_name", starSystem.getCurrentMap().getName());
+            Json.put(obj, "map_name", starSystem.getCurrentMap().getName());
         }
 
         if (hero.getConfiguration() != null) {
             Json.put(obj, "config", hero.getConfiguration().ordinal());
-            obj.addProperty("config_name", hero.getConfiguration().name());
+            Json.put(obj, "config_name", hero.getConfiguration().name());
         }
         if (hero.getFormation() != null) {
-            obj.addProperty("formation", hero.getFormation().name());
+            Json.put(obj, "formation", hero.getFormation().name());
         }
 
         Lockable target = hero.getLocalTarget();

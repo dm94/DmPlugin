@@ -48,8 +48,8 @@ public class PetResource implements McpResource {
 
         PetGear gear = pet.getGear();
         if (gear != null) {
-            obj.addProperty("gear_id", gear.getId());
-            obj.addProperty("gear_name", gear.getName());
+            Json.put(obj, "gear_id", gear.getId());
+            Json.put(obj, "gear_name", gear.getName());
         }
 
         pet.getLocatorNpcLoc().ifPresent(loc -> {

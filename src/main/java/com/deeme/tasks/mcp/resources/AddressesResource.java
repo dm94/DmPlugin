@@ -8,6 +8,7 @@ import java.util.Map;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.deeme.tasks.mcp.util.Json;
 
 /**
  * Catalog of live memory addresses for DarkBot core objects (managers,
@@ -140,7 +141,7 @@ public class AddressesResource implements McpResource {
     JsonObject root = new JsonObject();
     Object main = getMainInstance();
     if (main == null) {
-      root.addProperty("error", "DarkBot Main instance not available yet");
+      Json.put(root, "error", "DarkBot Main instance not available yet");
       return gson.toJson(root);
     }
 
@@ -171,7 +172,7 @@ public class AddressesResource implements McpResource {
         // Object exposes no getAddress() — nothing to inspect.
         continue;
       }
-      group.addProperty(spec[0], String.format("0x%x", address));
+      Json.put(group, spec[0], String.format("0x%x", address));
     }
     return group;
   }
@@ -203,7 +204,7 @@ public class AddressesResource implements McpResource {
         }
         long address = (long) addrGetter.invoke(entry);
         if (address != 0L) {
-          group.addProperty(key, String.format("0x%x", address));
+          Json.put(group, key, String.format("0x%x", address));
         }
       }
     } catch (Throwable t) {

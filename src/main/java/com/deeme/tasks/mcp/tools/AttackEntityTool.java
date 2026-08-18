@@ -24,9 +24,11 @@ import java.util.Map;
  * ({@link TargetKillerModule}) that takes over until the target dies or
  * {@code timeout_seconds} elapses, then resumes the user's previous module.
  *
- * <p>Action {@code stop} aborts an ongoing MCP attack and returns control to the
+ * <p>
+ * Action {@code stop} aborts an ongoing MCP attack and returns control to the
  * user module. The tool returns immediately (asynchronous); poll
- * {@code mcp://entities} or {@code bot://module} to track progress.</p>
+ * {@code mcp://entities} or {@code bot://module} to track progress.
+ * </p>
  */
 public class AttackEntityTool implements McpTool {
 
@@ -63,20 +65,20 @@ public class AttackEntityTool implements McpTool {
     @Override
     public JsonObject getInputSchema() {
         JsonObject actionProp = new JsonObject();
-        actionProp.addProperty("type", "string");
-        actionProp.addProperty("description", "'attack' (default) to hunt entity_id, or 'stop' to abort.");
+        Json.put(actionProp, "type", "string");
+        Json.put(actionProp, "description", "'attack' (default) to hunt entity_id, or 'stop' to abort.");
         JsonArray actionEnum = new JsonArray();
         actionEnum.add(new JsonPrimitive(ACTION_ATTACK));
         actionEnum.add(new JsonPrimitive(ACTION_STOP));
         actionProp.add("enum", actionEnum);
 
         JsonObject idProp = new JsonObject();
-        idProp.addProperty("type", "integer");
-        idProp.addProperty("description", "Entity id to attack (from mcp://entities). Required for 'attack'.");
+        Json.put(idProp, "type", "integer");
+        Json.put(idProp, "description", "Entity id to attack (from mcp://entities). Required for 'attack'.");
 
         JsonObject timeoutProp = new JsonObject();
-        timeoutProp.addProperty("type", "integer");
-        timeoutProp.addProperty("description",
+        Json.put(timeoutProp, "type", "integer");
+        Json.put(timeoutProp, "description",
                 "Max seconds to chase the target before giving up (default 120, 0 = no timeout, max 1800).");
 
         JsonObject props = new JsonObject();
@@ -85,7 +87,7 @@ public class AttackEntityTool implements McpTool {
         props.add("timeout_seconds", timeoutProp);
 
         JsonObject schema = new JsonObject();
-        schema.addProperty("type", "object");
+        Json.put(schema, "type", "object");
         schema.add("properties", props);
         return schema;
     }
@@ -118,24 +120,27 @@ public class AttackEntityTool implements McpTool {
         bot.setModule(module);
 
         JsonObject result = new JsonObject();
-        result.addProperty("action", ACTION_ATTACK);
+        Json.put(result, "action", ACTION_ATTACK);
         Json.put(result, "entity_id", id);
-        result.addProperty("entity_type", typeOf(found));
+        Json.put(result, "entity_type", typeOf(found));
         Json.put(result, "timeout_seconds", timeout);
-        result.addProperty("status", "hunting");
+        Json.put(result, "status", "hunting");
         return gson.toJson(result);
     }
 
     private String stopAttack() {
         boolean wasHunter = abortCurrentHunter();
         JsonObject result = new JsonObject();
-        result.addProperty("action", ACTION_STOP);
+        Json.put(result, "action", ACTION_STOP);
         Json.put(result, "was_hunting", wasHunter);
-        result.addProperty("status", wasHunter ? "aborted" : "idle");
+        Json.put(result, "status", wasHunter ? "aborted" : "idle");
         return gson.toJson(result);
     }
 
-    /** If a {@link TargetKillerModule} is active, stop it. Returns true if one was stopped. */
+    /**
+     * If a {@link TargetKillerModule} is active, stop it. Returns true if one was
+     * stopped.
+     */
     private boolean abortCurrentHunter() {
         Module current = bot.getModule();
         if (current instanceof TargetKillerModule) {
@@ -208,7 +213,7 @@ public class AttackEntityTool implements McpTool {
 
     private String error(String message) {
         JsonObject err = new JsonObject();
-        err.addProperty("error", message);
+        Json.put(err, "error", message);
         return gson.toJson(err);
     }
 }

@@ -36,28 +36,28 @@ public class SetNpcConfigTool implements McpTool {
     @Override
     public JsonObject getInputSchema() {
         JsonObject nameProp = new JsonObject();
-        nameProp.addProperty("type", "string");
-        nameProp.addProperty("description", "NPC name to configure.");
+        Json.put(nameProp, "type", "string");
+        Json.put(nameProp, "description", "NPC name to configure.");
 
         JsonObject actionProp = new JsonObject();
-        actionProp.addProperty("type", "string");
-        actionProp.addProperty("description", "Action: 'set' (default) or 'remove'.");
+        Json.put(actionProp, "type", "string");
+        Json.put(actionProp, "description", "Action: 'set' (default) or 'remove'.");
         JsonArray actionEnum = new JsonArray();
         actionEnum.add(new JsonPrimitive("set"));
         actionEnum.add(new JsonPrimitive("remove"));
         actionProp.add("enum", actionEnum);
 
         JsonObject shouldKillProp = new JsonObject();
-        shouldKillProp.addProperty("type", "boolean");
-        shouldKillProp.addProperty("description", "Whether to kill this NPC.");
+        Json.put(shouldKillProp, "type", "boolean");
+        Json.put(shouldKillProp, "description", "Whether to kill this NPC.");
 
         JsonObject priorityProp = new JsonObject();
-        priorityProp.addProperty("type", "integer");
-        priorityProp.addProperty("description", "Priority (lower = more important).");
+        Json.put(priorityProp, "type", "integer");
+        Json.put(priorityProp, "description", "Priority (lower = more important).");
 
         JsonObject radiusProp = new JsonObject();
-        radiusProp.addProperty("type", "number");
-        radiusProp.addProperty("description", "Distance to stand from NPC.");
+        Json.put(radiusProp, "type", "number");
+        Json.put(radiusProp, "description", "Distance to stand from NPC.");
 
         JsonObject props = new JsonObject();
         props.add("name", nameProp);
@@ -67,7 +67,7 @@ public class SetNpcConfigTool implements McpTool {
         props.add("radius", radiusProp);
 
         JsonObject schema = new JsonObject();
-        schema.addProperty("type", "object");
+        Json.put(schema, "type", "object");
         schema.add("properties", props);
 
         JsonArray required = new JsonArray();
@@ -132,17 +132,17 @@ public class SetNpcConfigTool implements McpTool {
         configSetting.setValue(npcInfos);
 
         JsonObject result = new JsonObject();
-        result.addProperty("npc_name", npcName);
-        result.addProperty("action", "updated");
+        Json.put(result, "npc_name", npcName);
+        Json.put(result, "action", "updated");
 
         if (args.containsKey("should_kill")) {
             Json.put(result, "should_kill", Boolean.parseBoolean(String.valueOf(args.get("should_kill"))));
         }
         if (args.containsKey("priority")) {
-            result.addProperty("priority", parseNumber(args.get("priority")).intValue());
+            Json.put(result, "priority", parseNumber(args.get("priority")).intValue());
         }
         if (args.containsKey("radius")) {
-            result.addProperty("radius", parseNumber(args.get("radius")).doubleValue());
+            Json.put(result, "radius", parseNumber(args.get("radius")).doubleValue());
         }
 
         return gson.toJson(result);
@@ -154,17 +154,17 @@ public class SetNpcConfigTool implements McpTool {
 
         if (removed == null) {
             JsonObject result = new JsonObject();
-            result.addProperty("npc_name", npcName);
-            result.addProperty("action", "not_found");
-            result.addProperty("message", "NPC was not configured");
+            Json.put(result, "npc_name", npcName);
+            Json.put(result, "action", "not_found");
+            Json.put(result, "message", "NPC was not configured");
             return gson.toJson(result);
         }
 
         configSetting.setValue(npcInfos);
 
         JsonObject result = new JsonObject();
-        result.addProperty("npc_name", npcName);
-        result.addProperty("action", "removed");
+        Json.put(result, "npc_name", npcName);
+        Json.put(result, "action", "removed");
         return gson.toJson(result);
     }
 
@@ -176,7 +176,7 @@ public class SetNpcConfigTool implements McpTool {
 
     private String error(String message) {
         JsonObject err = new JsonObject();
-        err.addProperty("error", message);
+        Json.put(err, "error", message);
         return gson.toJson(err);
     }
 }
