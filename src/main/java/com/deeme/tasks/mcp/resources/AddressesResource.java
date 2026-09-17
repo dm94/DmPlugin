@@ -5,10 +5,10 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.Map;
 
+import com.deeme.tasks.mcp.util.Json;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import com.deeme.tasks.mcp.util.Json;
 
 /**
  * Catalog of live memory addresses for DarkBot core objects (managers,
@@ -148,11 +148,18 @@ public class AddressesResource implements McpResource {
     Object guiManager = readField(main, "guiManager", MGR_PKG + "GuiManager");
     Object facadeManager = readField(main, "facadeManager", MGR_PKG + "FacadeManager");
 
+    boolean allManaged = uri.contains("all=1");
+
     root.add("managers", collect(main, MANAGERS));
     root.add("guis", collect(guiManager, GUIS));
     root.add("facades", collect(facadeManager, FACADES));
-    root.add("proxies", collectFromFlashMap(facadeManager, "proxies", PROXY_KEYS));
-    root.add("mediators", collectFromFlashMap(facadeManager, "mediators", MEDIATOR_KEYS));
+    // Plugin-registered GUIs (visible with ?all=1 or when listed here).
+    root.add("pluginGuis",
+        collectFromFlashMap(guiManager, "guis", new String[] { "miniclient_reward" }, allManaged));
+    // bot://addresses?all=1 also dumps every dynamic key of
+    // proxies/mediators (game objects not registered by DarkBot core).
+    root.add("proxies", collectFromFlashMap(facadeManager, "proxies", PROXY_KEYS, allManaged));
+    root.add("mediators", collectFromFlashMap(facadeManager, "mediators", MEDIATOR_KEYS, allManaged));
 
     return gson.toJson(root);
   }
@@ -180,10 +187,16 @@ public class AddressesResource implements McpResource {
   /**
    * Resolve addresses for entries stored in a FacadeManager FlashMap
    * ({@code proxies}/{@code mediators}), which are registered by key and
-   * not exposed as public fields. Each value is an {@code Updatable}
-   * whose {@code address} field points to the underlying game object.
+  /**
+   * Resolve addresses for entries stored in a manager/container FlashMap
+   * ({@code proxies}, {@code mediators}, or plugin-registered GUIs), which are
+   * registered by key and not exposed as public fields. When {@code allKeys}
+   * is true, all map entries are resolved; otherwise, only the supplied keys
+   * are resolved. Each value is an {@code Updatable} whose {@code address}
+   * field points to the underlying game object.
    */
-  private JsonObject collectFromFlashMap(Object facadeManager, String mapField, String[] keys) {
+  private JsonObject collectFromFlashMap(Object facadeManager, String mapField,
+      String[] keys, boolean allKeys) {
     JsonObject group = new JsonObject();
     if (facadeManager == null) {
       return group;
@@ -197,6 +210,19 @@ public class AddressesResource implements McpResource {
       }
       Class<?> updatableClass = Class.forName(UPDATABLE_CLASS);
       MethodHandle addrGetter = findGetter(updatableClass, "address", long.class);
+      if (allKeys) {
+        for (Map.Entry<?, ?> entry : ((Map<?, ?>) map).entrySet()) {
+          if (!updatableClass.isInstance(entry.getValue())) {
+            continue;
+          }
+          long address = (long) addrGetter.invoke(entry.getValue());
+          String key = String.valueOf(entry.getKey());
+          if (address != 0L) {
+            Json.put(group, key, String.format("0x%x", address));
+          }
+        }
+        return group;
+      }
       for (String key : keys) {
         Object entry = ((Map<?, ?>) map).get(key);
         if (entry == null) {
