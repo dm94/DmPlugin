@@ -187,8 +187,13 @@ public class AddressesResource implements McpResource {
   /**
    * Resolve addresses for entries stored in a FacadeManager FlashMap
    * ({@code proxies}/{@code mediators}), which are registered by key and
-   * not exposed as public fields. Each value is an {@code Updatable}
-   * whose {@code address} field points to the underlying game object.
+  /**
+   * Resolve addresses for entries stored in a manager/container FlashMap
+   * ({@code proxies}, {@code mediators}, or plugin-registered GUIs), which are
+   * registered by key and not exposed as public fields. When {@code allKeys}
+   * is true, all map entries are resolved; otherwise, only the supplied keys
+   * are resolved. Each value is an {@code Updatable} whose {@code address}
+   * field points to the underlying game object.
    */
   private JsonObject collectFromFlashMap(Object facadeManager, String mapField,
       String[] keys, boolean allKeys) {
