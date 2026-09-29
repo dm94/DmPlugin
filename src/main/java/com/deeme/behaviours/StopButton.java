@@ -13,6 +13,8 @@ import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.ExtraMenus;
 import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.extensions.FeatureInfo;
+import eu.darkbot.api.extensions.PluginInfo;
 import eu.darkbot.api.game.entities.Portal;
 import eu.darkbot.api.game.other.Gui;
 import eu.darkbot.api.managers.AuthAPI;
@@ -21,6 +23,7 @@ import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.GameScreenAPI;
 import eu.darkbot.api.managers.HeroAPI;
+import eu.darkbot.api.managers.I18nAPI;
 import eu.darkbot.api.managers.MovementAPI;
 import eu.darkbot.api.utils.Inject;
 
@@ -87,9 +90,13 @@ public class StopButton implements Behavior, ExtraMenus {
 
     @Override
     public Collection<JComponent> getExtraMenuItems(PluginAPI pluginAPI) {
+        I18nAPI i18n = pluginAPI.requireAPI(I18nAPI.class);
+        FeatureInfo<?> featureInfo = pluginAPI.requireAPI(ExtensionsAPI.class).getFeatureInfo(this.getClass());
+        PluginInfo pluginInfo = featureInfo != null ? featureInfo.getPluginInfo() : null;
         return Arrays.asList(
-                createSeparator("StopButton"),
-                create("Stop Bot", e -> stopBot = true), create("Stop Bot + Close", e -> {
+                createSeparator(i18n.getOrDefault(pluginInfo, "stop_button.menu.title", "StopButton")),
+                create(i18n.getOrDefault(pluginInfo, "stop_button.menu.stop", "Stop Bot"), e -> stopBot = true),
+                create(i18n.getOrDefault(pluginInfo, "stop_button.menu.stop_and_close", "Stop Bot + Close"), e -> {
                     stopBot = true;
                     closeBot = true;
                 }));

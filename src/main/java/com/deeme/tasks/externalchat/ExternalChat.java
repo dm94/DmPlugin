@@ -26,11 +26,13 @@ import eu.darkbot.api.events.Listener;
 import eu.darkbot.api.extensions.ExtraMenus;
 import eu.darkbot.api.extensions.Feature;
 import eu.darkbot.api.extensions.FeatureInfo;
+import eu.darkbot.api.extensions.PluginInfo;
 import eu.darkbot.api.extensions.Task;
 import eu.darkbot.api.game.other.Gui;
 import eu.darkbot.api.managers.AuthAPI;
 import eu.darkbot.api.managers.ExtensionsAPI;
 import eu.darkbot.api.managers.GameScreenAPI;
+import eu.darkbot.api.managers.I18nAPI;
 import eu.darkbot.api.managers.ChatAPI.MessageSentEvent;
 import eu.darkbot.api.utils.Inject;
 import eu.darkbot.util.Popups;
@@ -185,9 +187,12 @@ public class ExternalChat implements Task, Listener, ExtraMenus {
 
     @Override
     public Collection<JComponent> getExtraMenuItems(PluginAPI pluginAPI) {
+        I18nAPI i18n = pluginAPI.requireAPI(I18nAPI.class);
+        FeatureInfo<?> featureInfo = this.extensionsAPI.getFeatureInfo(this.getClass());
+        PluginInfo pluginInfo = featureInfo != null ? featureInfo.getPluginInfo() : null;
         return Arrays.asList(
-                createSeparator("ExternalChat"),
-                create("Show chat", e -> showChat()));
+                createSeparator(i18n.getOrDefault(pluginInfo, "external_chat.menu.title", "ExternalChat")),
+                create(i18n.getOrDefault(pluginInfo, "external_chat.menu.show_chat", "Show chat"), e -> showChat()));
     }
 
     private void showChat() {
