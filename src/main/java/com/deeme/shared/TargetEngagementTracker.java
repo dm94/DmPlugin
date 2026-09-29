@@ -59,6 +59,9 @@ public class TargetEngagementTracker {
 
         if (target.getId() != lastTargetId) {
             lastTargetId = target.getId();
+            if (target.getHealth() == null) {
+                return hero.isAttacking(target);
+            }
             lastTargetHp = target.getHealth().getHp();
             seconds = 0;
             return false;
