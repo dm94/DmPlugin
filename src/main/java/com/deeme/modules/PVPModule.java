@@ -7,6 +7,7 @@ import com.deeme.types.ShipAttacker;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 import com.deeme.shared.configchanger.ExtraCChangerLogic;
+import com.deeme.shared.TargetEngagementTracker;
 import com.deeme.shared.movement.ExtraMovementLogic;
 
 import eu.darkbot.api.PluginAPI;
@@ -62,8 +63,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
     private ExtraCChangerLogic extraConfigChangerLogic;
     private CollectorModule collectorModule;
 
-    private long nextAttackCheck = 0;
-    private int timeOut = 0;
+    private final TargetEngagementTracker engagementTracker;
 
     private AntiPushLogic antiPushLogic;
 
@@ -95,6 +95,7 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         this.bot = api.requireAPI(BotAPI.class);
         this.pet = api.requireAPI(PetAPI.class);
         this.workingMap = configApi.requireConfig("general.working_map");
+        this.engagementTracker = new TargetEngagementTracker(hero);
 
         EntitiesAPI entities = api.requireAPI(EntitiesAPI.class);
         this.portals = entities.getPortals();
@@ -110,8 +111,8 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         if (safety.state() != SafetyFinder.Escaping.NONE) {
             return safety.status();
         } else if (target != null) {
-            return shipAttacker.getStatus() + " | Time out:" + timeOut + "/"
-                    + pvpConfig.maxSecondsTimeOut;
+            return shipAttacker.getStatus() + " | Time out:"
+                    + engagementTracker.getStatus(pvpConfig.maxSecondsTimeOut);
         }
         return collectorModule.getStatus();
     }
@@ -177,20 +178,9 @@ public class PVPModule implements Module, Configurable<PVPConfig> {
         if (pvpConfig.move) {
             extraMovementLogic.tick();
         }
-        timeOutCheck();
-    }
-
-    private void timeOutCheck() {
-        if (nextAttackCheck < System.currentTimeMillis()) {
-            nextAttackCheck = System.currentTimeMillis() + 1000;
-            if (heroapi.isAttacking(shipAttacker.getTarget())) {
-                timeOut = 0;
-            } else {
-                timeOut++;
-                if (timeOut >= pvpConfig.maxSecondsTimeOut) {
-                    target = null;
-                }
-            }
+        if (engagementTracker.isTimeOut(shipAttacker.getTarget(), pvpConfig.maxSecondsTimeOut,
+                pvpConfig.rangeForAttackedEnemy)) {
+            target = null;
         }
     }
 
