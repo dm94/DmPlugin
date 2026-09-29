@@ -1,6 +1,7 @@
 package com.deeme.behaviours.defense;
 
 import com.deeme.types.ShipAttacker;
+import com.deeme.shared.TargetEngagementTracker;
 import com.deeme.shared.movement.ExtraMovementLogic;
 import com.deeme.shared.configchanger.ExtraCChangerLogic;
 
@@ -25,11 +26,9 @@ public class DefenseModule extends TemporalModule {
     private DefenseConfig defenseConfig;
     private Entity target = null;
 
-    private long nextAttackCheck = 0;
-    private ExtraMovementLogic extraMovementLogic;
-    private ExtraCChangerLogic extraConfigChangerLogic;
-
-    private int timeOut = 0;
+    private final TargetEngagementTracker engagementTracker;
+    private final ExtraMovementLogic extraMovementLogic;
+    private final ExtraCChangerLogic extraConfigChangerLogic;
 
     public DefenseModule(PluginAPI api, DefenseConfig defenseConfig, Entity target) {
         this(api, api.requireAPI(BotAPI.class),
@@ -47,8 +46,7 @@ public class DefenseModule extends TemporalModule {
         this.extraMovementLogic = new ExtraMovementLogic(api, defenseConfig.movementConfig);
         this.extraConfigChangerLogic = new ExtraCChangerLogic(api, defenseConfig.extraConfigChangerConfig);
         this.target = target;
-        this.nextAttackCheck = 0;
-        this.timeOut = 0;
+        this.engagementTracker = new TargetEngagementTracker(hero);
     }
 
     @Override
@@ -58,8 +56,8 @@ public class DefenseModule extends TemporalModule {
 
     @Override
     public String getStatus() {
-        return "Defense Mode | " + shipAttacker.getStatus() + " | Time out:" + timeOut
-                + "/" + defenseConfig.maxSecondsTimeOut;
+        return "Defense Mode | " + shipAttacker.getStatus() + " | Time out:"
+                + engagementTracker.getStatus(defenseConfig.maxSecondsTimeOut);
     }
 
     @Override
@@ -93,20 +91,10 @@ public class DefenseModule extends TemporalModule {
     }
 
     private void timeOutCheck() {
-        if (nextAttackCheck < System.currentTimeMillis()) {
-            nextAttackCheck = System.currentTimeMillis() + 1000;
-            if (shipAttacker.getTarget() != null && shipAttacker.getTarget().getHealth().hpDecreasedIn(1000)
-                    && heroapi.isAttacking(shipAttacker.getTarget())
-                    && shipAttacker.getTarget().getLocationInfo()
-                            .distanceTo(heroapi) < defenseConfig.rangeForAttackedEnemy) {
-                timeOut = 0;
-            } else {
-                timeOut++;
-                if (timeOut >= defenseConfig.maxSecondsTimeOut) {
-                    target = null;
-                    super.goBack();
-                }
-            }
+        if (engagementTracker.isTimeOut(shipAttacker.getTarget(), defenseConfig.maxSecondsTimeOut,
+                defenseConfig.rangeForAttackedEnemy)) {
+            target = null;
+            super.goBack();
         }
     }
 
