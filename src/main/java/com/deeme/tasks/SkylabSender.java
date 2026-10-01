@@ -26,7 +26,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PushbackInputStream;
 import java.util.Arrays;
+import java.util.zip.GZIPInputStream;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -133,7 +135,7 @@ public class SkylabSender implements Task, Configurable<SkylabSender.SkylabConfi
             if (this.waitingTransport) {
                 this.waitingTransport = this.backpageManager
                         .getConnection("indexInternal.es?action=internalSkylab", Method.GET)
-                        .consumeInputStream(this::checkTransport);
+                        .consumeInputStream(in -> this.checkTransport(unwrapGzip(in)));
                 if (this.waitingTransport) {
                     changeStatus(State.WAITING);
                     return false;
@@ -159,7 +161,19 @@ public class SkylabSender implements Task, Configurable<SkylabSender.SkylabConfi
     private String getToken() throws IOException, RuntimeException {
         return this.backpageManager.getConnection("indexInternal.es", Method.GET)
                 .setRawParam("action", "internalSkylab")
-                .consumeInputStream(backpageManager::getReloadToken);
+                .consumeInputStream(in -> backpageManager.getReloadToken(unwrapGzip(in)));
+    }
+
+    private static InputStream unwrapGzip(InputStream input) throws IOException {
+        PushbackInputStream in = new PushbackInputStream(input, 2);
+
+        byte[] header = in.readNBytes(2);
+        in.unread(header);
+
+        if (header.length == 2 && header[0] == (byte) 0x1f && header[1] == (byte) 0x8b) {
+            return new GZIPInputStream(in);
+        }
+        return in;
     }
 
     private void sendSkylabResources(String token) throws IOException {
