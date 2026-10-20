@@ -37,7 +37,8 @@
 		"com.deeme.behaviours.bootykeymanager.BootyKeyCollectorManager",
 		"com.deeme.behaviours.travel.SmartX1Travel",
 		"com.deeme.behaviours.travel.SmartBlTravel",
-		"com.deeme.behaviours.calendarbonus.CalendarBonus"
+		"com.deeme.behaviours.calendarbonus.CalendarBonus",
+		"com.deeme.behaviours.ai.AiBrain"
 	],
 	"donation": "https://ko-fi.com/deeme",
 	"discord": "https://discord.gg/GPRTRRZJPw",
