@@ -5,7 +5,6 @@ import java.util.Arrays;
 import com.deeme.types.VerifierChecker;
 import com.deeme.types.backpage.Utils;
 import com.deemeplus.modules.ai.npc.AiBrainBehaviour;
-import com.deemeplus.modules.ai.npc.AiBrainState;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.extensions.Feature;
@@ -16,7 +15,7 @@ import eu.darkbot.api.managers.ExtensionsAPI;
 public class AiBrain extends AiBrainBehaviour {
 
     public AiBrain(PluginAPI api) throws SecurityException {
-        super(api, AiBrainState.shared(), true);
+        super(api);
 
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) {
             throw new SecurityException();
