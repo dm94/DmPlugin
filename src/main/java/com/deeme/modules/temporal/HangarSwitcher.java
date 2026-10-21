@@ -160,7 +160,7 @@ public class HangarSwitcher extends TemporalModule {
                 goBack();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("[Hangar Switcher] Failed to switch hangar: " + e.getMessage());
         }
     }
 
