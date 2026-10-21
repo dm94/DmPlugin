@@ -5,6 +5,8 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "0 18 * * 1" # At 06:00 PM, only on Monday
+permissions:
+  contents: read
 jobs:
   scan:
     name: gitleaks
