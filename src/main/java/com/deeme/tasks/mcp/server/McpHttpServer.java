@@ -76,7 +76,6 @@ public class McpHttpServer {
                     port++;
                 } else {
                     System.err.println("[MCP Bridge] Failed to start server: " + e.getMessage());
-                    e.printStackTrace();
                 }
             }
         }
@@ -112,7 +111,6 @@ public class McpHttpServer {
             }
         } catch (Exception e) {
             System.err.println("[MCP Bridge] Error handling request: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
