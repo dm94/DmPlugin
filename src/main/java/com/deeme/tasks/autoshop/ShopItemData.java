@@ -18,6 +18,13 @@ public class ShopItemData implements ShopItem {
     public ShopPage page;
     public double price;
     public String currency = "";
+    /**
+     * Both prices configured for a custom item. The shop may charge either, so
+     * they are kept apart from {@link #price}, which is the price the shop
+     * charges when the data comes from the shop listing.
+     */
+    public double creditsPrice;
+    public double uridiumPrice;
     public int maxAmount;
     public int dailyLimit = -1;
 
@@ -34,11 +41,14 @@ public class ShopItemData implements ShopItem {
         this.category = source.getCategory() == null ? "" : source.getCategory();
         this.page = ShopPage.forCategory(this.category);
 
-        if (source.getCreditsPrice() > 0) {
-            this.price = source.getCreditsPrice();
+        this.creditsPrice = source.getCreditsPrice();
+        this.uridiumPrice = source.getUridiumPrice();
+
+        if (this.creditsPrice > 0) {
+            this.price = this.creditsPrice;
             this.currency = CREDITS;
-        } else if (source.getUridiumPrice() > 0) {
-            this.price = source.getUridiumPrice();
+        } else if (this.uridiumPrice > 0) {
+            this.price = this.uridiumPrice;
             this.currency = URIDIUM;
         }
     }
@@ -54,6 +64,8 @@ public class ShopItemData implements ShopItem {
         this.page = source.page;
         this.price = source.price;
         this.currency = source.currency;
+        this.creditsPrice = source.creditsPrice;
+        this.uridiumPrice = source.uridiumPrice;
         this.maxAmount = source.maxAmount;
         this.dailyLimit = source.dailyLimit;
     }
@@ -74,11 +86,17 @@ public class ShopItemData implements ShopItem {
 
     @Override
     public double getCreditsPrice() {
+        if (creditsPrice > 0) {
+            return creditsPrice;
+        }
         return CREDITS.equals(currency) ? price : 0;
     }
 
     @Override
     public double getUridiumPrice() {
+        if (uridiumPrice > 0) {
+            return uridiumPrice;
+        }
         return URIDIUM.equals(currency) ? price : 0;
     }
 

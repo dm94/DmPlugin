@@ -292,22 +292,30 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
         return data;
     }
 
+    /**
+     * Checks the funds needed for the whole order. Custom items can have both
+     * prices configured and the shop may charge either, so both currencies are
+     * checked instead of assuming the one with the highest priority.
+     */
     private boolean hasEnoughFunds(ShopItemData data, int amount) {
-        if (data.currency == null || data.currency.isEmpty() || data.price <= 0) {
+        double creditsCost = data.getCreditsPrice() * amount;
+        double uridiumCost = data.getUridiumPrice() * amount;
+
+        if (creditsCost <= 0 && uridiumCost <= 0) {
+            if (data.currency != null && !data.currency.isEmpty()) {
+                log("Unsupported currency '%s' for %s, skipping it.", data.currency, data.getDisplayName());
+                return false;
+            }
             return true;
         }
 
-        double cost = data.price * amount;
-        boolean creditPurchase = ShopItemData.CREDITS.equals(data.currency);
-        if (!creditPurchase && !ShopItemData.URIDIUM.equals(data.currency)) {
-            log("Unsupported currency '%s' for %s, skipping it.", data.currency, data.getDisplayName());
+        if (creditsCost > 0 && this.stats.getTotalCredits() - this.reservedCredits < creditsCost) {
+            updateLabel(data.getDisplayName(), ShopState.NO_CREDITS);
             return false;
         }
 
-        double balance = creditPurchase ? this.stats.getTotalCredits() : this.stats.getTotalUridium();
-        double reserved = creditPurchase ? this.reservedCredits : this.reservedUridium;
-        if (balance - reserved < cost) {
-            updateLabel(data.getDisplayName(), creditPurchase ? ShopState.NO_CREDITS : ShopState.NO_URI);
+        if (uridiumCost > 0 && this.stats.getTotalUridium() - this.reservedUridium < uridiumCost) {
+            updateLabel(data.getDisplayName(), ShopState.NO_URI);
             return false;
         }
 
@@ -332,11 +340,8 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
      * next order checked before it's sent can't use them again.
      */
     private void reserve(ShopItemData data, int amount) {
-        if (ShopItemData.CREDITS.equals(data.currency)) {
-            this.reservedCredits += data.price * amount;
-        } else if (ShopItemData.URIDIUM.equals(data.currency)) {
-            this.reservedUridium += data.price * amount;
-        }
+        this.reservedCredits += data.getCreditsPrice() * amount;
+        this.reservedUridium += data.getUridiumPrice() * amount;
 
         if (data.dailyLimit >= 0) {
             this.reservedDaily.merge(data.itemId, amount, Integer::sum);
@@ -344,11 +349,8 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
     }
 
     private void release(ShopItemData data, int amount) {
-        if (ShopItemData.CREDITS.equals(data.currency)) {
-            this.reservedCredits = Math.max(0, this.reservedCredits - data.price * amount);
-        } else if (ShopItemData.URIDIUM.equals(data.currency)) {
-            this.reservedUridium = Math.max(0, this.reservedUridium - data.price * amount);
-        }
+        this.reservedCredits = Math.max(0, this.reservedCredits - data.getCreditsPrice() * amount);
+        this.reservedUridium = Math.max(0, this.reservedUridium - data.getUridiumPrice() * amount);
 
         if (data.dailyLimit >= 0) {
             this.reservedDaily.computeIfPresent(data.itemId,
