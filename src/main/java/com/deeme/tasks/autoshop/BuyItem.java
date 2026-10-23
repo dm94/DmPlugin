@@ -27,7 +27,7 @@ public class BuyItem implements BuyItemConfig {
 
     /**
      * Item id saved by versions that only stored the id of the item. It's only
-     * read to convert old configurations, see {@link #migrateLegacyItem()}.
+     * read to convert old configurations, see {@link #migrateLegacyItem(ShopItemData)}.
      */
     @Option.Ignore
     public String itemToBuy;
@@ -66,10 +66,13 @@ public class BuyItem implements BuyItemConfig {
     /**
      * Configurations saved by older versions stored only the id of the item.
      * Converts it into the item selection so they keep buying the same item.
-     * The shop list may not have been read yet, in that case the selection is
-     * built with just the id and completed once the shop list is available.
+     *
+     * @param knownItem the item as the current shop session sells it, or null when
+     *                  the shop list hasn't been read yet. In that case the
+     *                  selection is built with just the id, and completed when the
+     *                  purchase is prepared.
      */
-    public void migrateLegacyItem() {
+    public void migrateLegacyItem(ShopItemData knownItem) {
         if (itemToBuy == null) {
             return;
         }
@@ -82,12 +85,11 @@ public class BuyItem implements BuyItemConfig {
             return;
         }
 
-        ShopItemData legacy = ShopCatalog.cached(itemId);
-        if (legacy == null) {
-            legacy = new ShopItemData();
-            legacy.itemId = itemId;
+        if (knownItem == null || !itemId.equals(knownItem.getItemId())) {
+            knownItem = new ShopItemData();
+            knownItem.itemId = itemId;
         }
-        item = legacy;
+        item = knownItem;
     }
 
     @Override

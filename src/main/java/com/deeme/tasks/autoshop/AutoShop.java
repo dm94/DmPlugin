@@ -71,9 +71,13 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
 
         BuyItem[] items = { config.item1, config.item2, config.item3, config.item4, config.item5 };
         for (BuyItem buyItem : items) {
-            if (buyItem != null) {
-                buyItem.migrateLegacyItem();
+            if (buyItem == null) {
+                continue;
             }
+
+            String itemId = buyItem.itemToBuy == null ? "" : buyItem.itemToBuy.trim();
+            ShopItemData knownItem = itemId.isEmpty() ? null : ShopCatalog.cached(this.backpage, itemId);
+            buyItem.migrateLegacyItem(knownItem);
         }
     }
 
@@ -121,7 +125,7 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
         // Items converted from an old configuration only know their id until the
         // shop list is read, wait for it instead of sending an incomplete purchase
         if (shopItem instanceof ShopItemData && ((ShopItemData) shopItem).getCategory().isEmpty()
-                && ShopCatalog.cached(shopItem.getItemId()) == null) {
+                && ShopCatalog.cached(this.backpage, shopItem.getItemId()) == null) {
             return;
         }
 
@@ -245,7 +249,7 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
         boolean fromShop = shopItem instanceof ShopItemData;
         ShopItemData data = fromShop ? (ShopItemData) shopItem : new ShopItemData(shopItem);
 
-        ShopItemData current = ShopCatalog.resolve(data);
+        ShopItemData current = ShopCatalog.resolve(this.backpage, data);
         if (current == null) {
             if (fromShop) {
                 log("%s is not available in the shop anymore, skipping it.", data.getDisplayName());

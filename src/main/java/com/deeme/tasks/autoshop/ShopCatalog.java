@@ -8,6 +8,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import eu.darkbot.api.managers.BackpageAPI;
@@ -19,13 +20,20 @@ import eu.darkbot.api.managers.BackpageAPI;
  */
 public final class ShopCatalog {
     private static final String INDEX_PATH = "indexInternal.es";
-    private static final Object LOCK = new Object();
-    private static final AtomicBoolean REFRESHING = new AtomicBoolean();
 
-    /** Immutable snapshot of the pages read so far, replaced after each read. */
-    private static volatile Map<ShopPage, CachedShopPage> pages = Collections.emptyMap();
+    /**
+     * One catalog per account and game instance. The daily limits are account
+     * specific, so the data of one session can't be used for another.
+     */
+    private static final Map<String, SessionState> SESSIONS = new ConcurrentHashMap<>();
 
     private ShopCatalog() {
+    }
+
+    private static final class SessionState {
+        private final AtomicBoolean refreshing = new AtomicBoolean();
+        /** Immutable snapshot of the pages read so far, replaced after each read. */
+        private volatile Map<ShopPage, CachedShopPage> pages = Collections.emptyMap();
     }
 
     /**
@@ -34,7 +42,7 @@ public final class ShopCatalog {
      * background, this method never waits for it.
      */
     public static List<ShopItemData> items(BackpageAPI backpage) {
-        Map<ShopPage, CachedShopPage> snapshot = pages;
+        Map<ShopPage, CachedShopPage> snapshot = pagesOf(backpage);
 
         List<ShopItemData> items = new ArrayList<>();
         for (CachedShopPage cached : snapshot.values()) {
@@ -52,10 +60,11 @@ public final class ShopCatalog {
     }
 
     /**
-     * Item data from the last loaded pages, without making any request.
+     * Item data from the last loaded pages of the session, without making any
+     * request.
      */
-    public static ShopItemData cached(String itemId) {
-        for (CachedShopPage cached : pages.values()) {
+    public static ShopItemData cached(BackpageAPI backpage, String itemId) {
+        for (CachedShopPage cached : pagesOf(backpage).values()) {
             ShopItemData item = cached.find(itemId);
             if (item != null) {
                 return new ShopItemData(item);
@@ -66,11 +75,16 @@ public final class ShopCatalog {
 
     /**
      * Starts reading the pages that are missing or outdated in a background
-     * thread. If a refresh is already running this does nothing.
+     * thread. If a refresh is already running for the session this does nothing.
      */
     public static void requestRefresh(BackpageAPI backpage) {
-        if (!needsRefresh(pages) || !backpage.isInstanceValid()
-                || !REFRESHING.compareAndSet(false, true)) {
+        String sessionKey = sessionKey(backpage);
+        if (sessionKey == null) {
+            return;
+        }
+
+        SessionState session = state(sessionKey);
+        if (!needsRefresh(session.pages) || !session.refreshing.compareAndSet(false, true)) {
             return;
         }
 
@@ -80,9 +94,9 @@ public final class ShopCatalog {
         try {
             CompletableFuture.runAsync(() -> {
                 try {
-                    refreshStale(backpage);
+                    refreshStale(backpage, session, sessionKey);
                 } finally {
-                    REFRESHING.set(false);
+                    session.refreshing.set(false);
                 }
             }).whenComplete((ignored, error) -> {
                 if (error != null) {
@@ -90,23 +104,23 @@ public final class ShopCatalog {
                 }
             });
         } catch (RuntimeException e) {
-            REFRESHING.set(false);
+            session.refreshing.set(false);
             log("Could not start the shop list update: %s", e.getMessage());
         }
     }
 
     /**
-     * Shop data of the item from the last read pages. Returns null when the page
-     * of the item was read and the item is not offered anymore, so it shouldn't
-     * be purchased. When the page hasn't been read the data already known for
-     * the item is kept.
+     * Shop data of the item from the last read pages of the session. Returns null
+     * when the page of the item was read and the item is not offered anymore, so
+     * it shouldn't be purchased. When the page hasn't been read the data already
+     * known for the item is kept.
      */
-    public static ShopItemData resolve(ShopItemData item) {
+    public static ShopItemData resolve(BackpageAPI backpage, ShopItemData item) {
         if (item == null || item.isEmpty()) {
             return null;
         }
 
-        Map<ShopPage, CachedShopPage> snapshot = pages;
+        Map<ShopPage, CachedShopPage> snapshot = pagesOf(backpage);
         ShopPage page = item.page != null ? item.page : ShopPage.forCategory(item.category);
         if (page == null) {
             for (ShopPage each : ShopPage.values()) {
@@ -143,6 +157,31 @@ public final class ShopCatalog {
         return null;
     }
 
+    /**
+     * Identifies the shop session the data belongs to. It's null when there's no
+     * valid session, in that case no shop data should be used.
+     */
+    private static String sessionKey(BackpageAPI backpage) {
+        if (backpage == null || !backpage.isInstanceValid() || backpage.getInstanceURI() == null) {
+            return null;
+        }
+        return backpage.getUserId() + "|" + backpage.getInstanceURI();
+    }
+
+    private static Map<ShopPage, CachedShopPage> pagesOf(BackpageAPI backpage) {
+        String sessionKey = sessionKey(backpage);
+        if (sessionKey == null) {
+            return Collections.emptyMap();
+        }
+
+        SessionState session = SESSIONS.get(sessionKey);
+        return session == null ? Collections.emptyMap() : session.pages;
+    }
+
+    private static SessionState state(String sessionKey) {
+        return SESSIONS.computeIfAbsent(sessionKey, key -> new SessionState());
+    }
+
     private static boolean needsRefresh(Map<ShopPage, CachedShopPage> snapshot) {
         for (ShopPage page : ShopPage.values()) {
             CachedShopPage cached = snapshot.get(page);
@@ -153,21 +192,26 @@ public final class ShopCatalog {
         return false;
     }
 
-    private static void refreshStale(BackpageAPI backpage) {
+    private static void refreshStale(BackpageAPI backpage, SessionState session, String sessionKey) {
         for (ShopPage page : ShopPage.values()) {
-            CachedShopPage cached = pages.get(page);
+            // The account may have changed while the pages were being read
+            if (!sessionKey.equals(sessionKey(backpage))) {
+                return;
+            }
+
+            CachedShopPage cached = session.pages.get(page);
             if (cached != null && cached.isFresh()) {
                 continue;
             }
 
-            load(backpage, page);
+            load(backpage, page, session);
             if (!backpage.isInstanceValid()) {
                 return;
             }
         }
     }
 
-    private static void load(BackpageAPI backpage, ShopPage page) {
+    private static void load(BackpageAPI backpage, ShopPage page, SessionState session) {
         List<ShopItemData> items = null;
 
         if (backpage.isInstanceValid()) {
@@ -186,13 +230,13 @@ public final class ShopCatalog {
             }
         }
 
-        synchronized (LOCK) {
+        synchronized (session) {
             Map<ShopPage, CachedShopPage> updated = new EnumMap<>(ShopPage.class);
-            updated.putAll(pages);
+            updated.putAll(session.pages);
             updated.put(page, items == null
-                    ? CachedShopPage.failed(page, pages.get(page))
+                    ? CachedShopPage.failed(page, session.pages.get(page))
                     : new CachedShopPage(page, items, System.currentTimeMillis(), true));
-            pages = Collections.unmodifiableMap(updated);
+            session.pages = Collections.unmodifiableMap(updated);
         }
     }
 
