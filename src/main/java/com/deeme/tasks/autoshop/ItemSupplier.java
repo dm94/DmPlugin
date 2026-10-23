@@ -1,33 +1,37 @@
 package com.deeme.tasks.autoshop;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import eu.darkbot.api.config.annotations.Dropdown;
+import eu.darkbot.api.managers.BackpageAPI;
 
-public class ItemSupplier implements Dropdown.Options<String> {
-    private static ArrayList<String> allItemsIds = new ArrayList<>();
+/**
+ * Fills the item dropdown with the items currently sold in the shop, so the
+ * categories, prices and limits are the ones the game is using right now.
+ */
+public class ItemSupplier implements Dropdown.Options<ShopItemData> {
+    private final BackpageAPI backpage;
 
-    @Override
-    public List<String> options() {
-        if (allItemsIds.isEmpty()) {
-            ItemSupported[] itemList = ItemSupported.values();
-            for (ItemSupported item : itemList) {
-                allItemsIds.add(item.getId());
-            }
-        }
-
-        return allItemsIds;
+    public ItemSupplier(BackpageAPI backpage) {
+        this.backpage = backpage;
     }
 
     @Override
-    public String getText(String id) {
-        ItemSupported[] itemList = ItemSupported.values();
-        for (ItemSupported item : itemList) {
-            if (item.getId().equals(id)) {
-                return item.getCategory().toUpperCase() + " || " + item.name();
-            }
+    public List<ShopItemData> options() {
+        return ShopCatalog.items(this.backpage);
+    }
+
+    @Override
+    public String getText(ShopItemData item) {
+        if (item == null || item.isEmpty()) {
+            return "None";
         }
-        return id;
+
+        String category = item.getCategory();
+        if (category.isEmpty()) {
+            return item.getDisplayName();
+        }
+        return category.toUpperCase(Locale.ROOT) + " || " + item.getDisplayName();
     }
 }

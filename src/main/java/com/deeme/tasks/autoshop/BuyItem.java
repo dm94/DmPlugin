@@ -23,7 +23,14 @@ public class BuyItem implements BuyItemConfig {
 
     @Option("buy_item_conditions.item")
     @Dropdown(options = ItemSupplier.class)
-    public String itemToBuy = "";
+    public ShopItemData item;
+
+    /**
+     * Item id saved by versions that only stored the id of the item. It's only
+     * read to convert old configurations, see {@link #migrateLegacyItem(ShopItemData)}.
+     */
+    @Option.Ignore
+    public String itemToBuy;
 
     @Option("general.condition")
     public Condition condition;
@@ -56,9 +63,38 @@ public class BuyItem implements BuyItemConfig {
         return quantity;
     }
 
+    /**
+     * Configurations saved by older versions stored only the id of the item.
+     * Converts it into the item selection so they keep buying the same item.
+     *
+     * @param knownItem the item as the current shop session sells it, or null when
+     *                  the shop list hasn't been read yet. In that case the
+     *                  selection is built with just the id, and completed when the
+     *                  purchase is prepared.
+     */
+    public void migrateLegacyItem(ShopItemData knownItem) {
+        if (itemToBuy == null) {
+            return;
+        }
+
+        String itemId = itemToBuy.trim();
+        // Only used to read old configurations, it should not be saved again
+        itemToBuy = null;
+
+        if (itemId.isEmpty() || (item != null && !item.isEmpty())) {
+            return;
+        }
+
+        if (knownItem == null || !itemId.equals(knownItem.getItemId())) {
+            knownItem = new ShopItemData();
+            knownItem.itemId = itemId;
+        }
+        item = knownItem;
+    }
+
     @Override
     public ShopItem getShopItem() {
-        return getItemById(itemToBuy);
+        return item;
     }
 
     @Override
@@ -69,18 +105,5 @@ public class BuyItem implements BuyItemConfig {
     @Override
     public QuantityCondition getQuantityCondition() {
         return quantityCondition;
-    }
-
-    private ItemSupported getItemById(String id) {
-        if (id == null || id.isEmpty()) {
-            return null;
-        }
-        
-        for (ItemSupported item : ItemSupported.values()) {
-            if (item.getId().equals(id)) {
-                return item;
-            }
-        }
-        return null;
     }
 }
