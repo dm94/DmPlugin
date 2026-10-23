@@ -58,9 +58,27 @@ public final class ShopPageParser {
         }
 
         int depth = 0;
+        boolean inString = false;
+        boolean escaped = false;
+
         for (int i = braceStart; i < html.length(); i++) {
             char c = html.charAt(i);
-            if (c == '{') {
+
+            // Braces inside a string value are part of the data, not of the object
+            if (inString) {
+                if (escaped) {
+                    escaped = false;
+                } else if (c == '\\') {
+                    escaped = true;
+                } else if (c == '"') {
+                    inString = false;
+                }
+                continue;
+            }
+
+            if (c == '"') {
+                inString = true;
+            } else if (c == '{') {
                 depth++;
             } else if (c == '}' && --depth == 0) {
                 try {
