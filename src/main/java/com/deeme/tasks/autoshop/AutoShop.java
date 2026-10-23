@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import javax.swing.JComponent;
@@ -95,7 +96,10 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
 
         // Purchases are sent one per tick so a big order does not block the backpage thread
         if (!this.purchaseQueue.isEmpty()) {
-            processNextPurchase();
+            discardDisabledPurchases();
+            if (!this.purchaseQueue.isEmpty()) {
+                processNextPurchase();
+            }
             return;
         }
 
@@ -171,11 +175,36 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
         int remaining = amount;
         while (remaining > 0) {
             int batch = data.maxAmount > 0 ? Math.min(remaining, data.maxAmount) : remaining;
-            this.purchaseQueue.add(new PurchaseTask(purchaseData, batch));
+            this.purchaseQueue.add(new PurchaseTask(itemConfig, purchaseData, batch));
             remaining -= batch;
         }
 
         reserve(data, amount);
+    }
+
+    /**
+     * Queued batches belong to the slot that requested them, so disabling a slot
+     * also stops the purchases of its order that are still waiting in the queue.
+     */
+    private void discardDisabledPurchases() {
+        int discarded = 0;
+
+        Iterator<PurchaseTask> it = this.purchaseQueue.iterator();
+        while (it.hasNext()) {
+            PurchaseTask task = it.next();
+            BuyItemConfig source = task.getConfig();
+            if (source != null && source.isEnabled()) {
+                continue;
+            }
+
+            it.remove();
+            release(task.getData(), task.getAmount());
+            discarded++;
+        }
+
+        if (discarded > 0) {
+            log("Discarded %d queued purchases, their slot is no longer enabled.", discarded);
+        }
     }
 
     private void processNextPurchase() {
