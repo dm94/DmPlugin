@@ -306,17 +306,20 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
         }
 
         if (quantityCondition.item == null || quantityCondition.item.isEmpty()) {
-            log("The quantity condition has no item selected, ignoring it.");
-            return true;
+            log("The quantity condition has no item selected, skipping the purchase.");
+            return false;
         }
 
         SelectableItem selectableItem = SharedFunctions.getItemById(quantityCondition.item);
-        double quantity = 0;
-        if (selectableItem != null) {
-            Item item = this.items.getItem(selectableItem).orElse(null);
-            // An item missing from the item bar means the pilot has none left
-            quantity = item == null ? 0 : item.getQuantity();
+        if (selectableItem == null) {
+            log("The item '%s' of the quantity condition is not valid, skipping the purchase.",
+                    quantityCondition.item);
+            return false;
         }
+
+        Item item = this.items.getItem(selectableItem).orElse(null);
+        // An item missing from the item bar means the pilot has none left
+        double quantity = item == null ? 0 : item.getQuantity();
 
         return quantity <= quantityCondition.quantity;
     }
