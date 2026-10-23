@@ -170,14 +170,10 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
                     data.getDisplayName(), amount, data.maxAmount);
         }
 
-        // The queue keeps its own copy, the config may be edited while it runs
+        // The queue keeps its own copy, the config may be edited while it runs.
+        // The order is split while it's sent, so a big quantity doesn't fill the queue.
         ShopItemData purchaseData = new ShopItemData(data);
-        int remaining = amount;
-        while (remaining > 0) {
-            int batch = data.maxAmount > 0 ? Math.min(remaining, data.maxAmount) : remaining;
-            this.purchaseQueue.add(new PurchaseTask(itemConfig, purchaseData, batch));
-            remaining -= batch;
-        }
+        this.purchaseQueue.addLast(new PurchaseTask(itemConfig, purchaseData, amount));
 
         reserve(data, amount);
     }
@@ -198,7 +194,7 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
             }
 
             it.remove();
-            release(task.getData(), task.getAmount());
+            release(task.getData(), task.getRemaining());
             discarded++;
         }
 
@@ -210,20 +206,27 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
     private void processNextPurchase() {
         PurchaseTask task = this.purchaseQueue.poll();
         ShopItemData data = task.getData();
-        release(data, task.getAmount());
+        int amount = task.takeBatch();
+        release(data, amount);
         try {
-            String response = purchase(data, task.getAmount());
+            String response = purchase(data, amount);
             if (isSuccessful(response)) {
                 updateLabel(data.getDisplayName(), ShopState.PURCHASE_SUCCESS);
-                log("Purchased %s x%d.", data.getDisplayName(), task.getAmount());
+                log("Purchased %s x%d.", data.getDisplayName(), amount);
             } else {
                 updateLabel(data.getDisplayName(), ShopState.PURCHASE_ERROR);
                 log("The server rejected the purchase of %s x%d: %s",
-                        data.getDisplayName(), task.getAmount(), shortResponse(response));
+                        data.getDisplayName(), amount, shortResponse(response));
             }
         } catch (Exception e) {
             updateLabel(data.getDisplayName(), ShopState.PURCHASE_ERROR);
-            log("The purchase of %s x%d failed: %s", data.getDisplayName(), task.getAmount(), e.getMessage());
+            log("The purchase of %s x%d failed: %s", data.getDisplayName(), amount, e.getMessage());
+        }
+
+        // The rest of the order waits for the next ticks, so it's sent in batches
+        // and can still be discarded if the slot changes meanwhile
+        if (task.getRemaining() > 0) {
+            this.purchaseQueue.addLast(task);
         }
     }
 

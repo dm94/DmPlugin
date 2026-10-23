@@ -1,17 +1,28 @@
 package com.deeme.tasks.autoshop;
 
 /**
- * A single purchase waiting in the queue.
+ * A purchase waiting in the queue. The order is sent in batches of the maximum
+ * amount the shop allows per request, taken as it's processed, so a large
+ * quantity never fills the queue.
  */
 public class PurchaseTask {
     final BuyItemConfig config;
     final ShopItemData data;
-    final int amount;
+    int remaining;
 
     public PurchaseTask(BuyItemConfig config, ShopItemData data, int amount) {
         this.config = config;
         this.data = data;
-        this.amount = amount;
+        this.remaining = amount;
+    }
+
+    /**
+     * Takes the amount of the next request, reducing what's left of the order.
+     */
+    public int takeBatch() {
+        int batch = data.maxAmount > 0 ? Math.min(remaining, data.maxAmount) : remaining;
+        this.remaining -= batch;
+        return batch;
     }
 
     /**
@@ -26,7 +37,7 @@ public class PurchaseTask {
         return data;
     }
 
-    public int getAmount() {
-        return amount;
+    public int getRemaining() {
+        return remaining;
     }
 }
