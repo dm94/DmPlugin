@@ -49,6 +49,24 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
     @Override
     public void setConfig(ConfigSetting<Config> arg0) {
         this.config = arg0.getValue();
+        migrateLegacyItems(this.config);
+    }
+
+    /**
+     * Configurations saved by older versions stored only the item id instead of
+     * the full shop item, they are converted when the configuration is loaded.
+     */
+    private void migrateLegacyItems(Config config) {
+        if (config == null) {
+            return;
+        }
+
+        BuyItem[] items = { config.item1, config.item2, config.item3, config.item4, config.item5 };
+        for (BuyItem buyItem : items) {
+            if (buyItem != null) {
+                buyItem.migrateLegacyItem();
+            }
+        }
     }
 
     @Override
@@ -87,12 +105,19 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
             return;
         }
 
-        updateCheckTime(itemConfig);
-
         ShopItem shopItem = itemConfig.getShopItem();
         if (shopItem == null || shopItem.getItemId() == null || shopItem.getItemId().isEmpty()) {
             return;
         }
+
+        // Items converted from an old configuration only know their id until the
+        // shop list is read, wait for it instead of sending an incomplete purchase
+        if (shopItem instanceof ShopItemData && ((ShopItemData) shopItem).getCategory().isEmpty()
+                && ShopCatalog.cached(shopItem.getItemId()) == null) {
+            return;
+        }
+
+        updateCheckTime(itemConfig);
 
         if (checkNormalCondition(itemConfig) && checkQuantityCondition(itemConfig.getQuantityCondition())) {
             try {

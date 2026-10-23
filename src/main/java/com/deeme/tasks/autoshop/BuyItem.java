@@ -3,7 +3,6 @@ package com.deeme.tasks.autoshop;
 import eu.darkbot.api.config.annotations.Configuration;
 import eu.darkbot.api.config.annotations.Dropdown;
 import eu.darkbot.api.config.annotations.Option;
-import eu.darkbot.api.config.annotations.Option.Ignore;
 import eu.darkbot.api.config.annotations.Number;
 import eu.darkbot.api.config.types.Condition;
 
@@ -25,6 +24,13 @@ public class BuyItem implements BuyItemConfig {
     @Option("buy_item_conditions.item")
     @Dropdown(options = ItemSupplier.class)
     public ShopItemData item;
+
+    /**
+     * Item id saved by versions that only stored the id of the item. It's only
+     * read to convert old configurations, see {@link #migrateLegacyItem()}.
+     */
+    @Option.Ignore
+    public String itemToBuy;
 
     @Option("general.condition")
     public Condition condition;
@@ -55,6 +61,33 @@ public class BuyItem implements BuyItemConfig {
     @Override
     public int getQuantity() {
         return quantity;
+    }
+
+    /**
+     * Configurations saved by older versions stored only the id of the item.
+     * Converts it into the item selection so they keep buying the same item.
+     * The shop list may not have been read yet, in that case the selection is
+     * built with just the id and completed once the shop list is available.
+     */
+    public void migrateLegacyItem() {
+        if (itemToBuy == null) {
+            return;
+        }
+
+        String itemId = itemToBuy.trim();
+        // Only used to read old configurations, it should not be saved again
+        itemToBuy = null;
+
+        if (itemId.isEmpty() || (item != null && !item.isEmpty())) {
+            return;
+        }
+
+        ShopItemData legacy = ShopCatalog.cached(itemId);
+        if (legacy == null) {
+            legacy = new ShopItemData();
+            legacy.itemId = itemId;
+        }
+        item = legacy;
     }
 
     @Override
