@@ -1,8 +1,8 @@
 package com.deeme.tasks.autoshop;
 
 /**
- * Unified interface for shop items to eliminate code duplication
- * between ItemSupported and CustomItem handling
+ * Unified interface for shop items, either an item picked from the shop
+ * listing or a custom item configured by the user
  */
 public interface ShopItem {
     
