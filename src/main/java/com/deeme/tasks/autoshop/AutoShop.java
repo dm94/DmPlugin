@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -35,6 +37,12 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
     private final JLabel label = new JLabel("Waiting");
 
     private final Deque<PurchaseTask> purchaseQueue = new ArrayDeque<>();
+
+    // Funds and daily allowance already committed to the queued purchases, so
+    // orders checked in the same tick don't use the same balance twice
+    private double reservedCredits;
+    private double reservedUridium;
+    private final Map<String, Integer> reservedDaily = new HashMap<>();
 
     public AutoShop(PluginAPI api) throws SecurityException {
         this.api = api;
@@ -136,11 +144,13 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
         }
 
         int amount = itemConfig.getQuantity();
-        if (data.dailyLimit >= 0) {
-            amount = Math.min(amount, data.dailyLimit);
-        }
-        if (amount <= 0) {
-            return;
+        int dailyAvailable = availableDaily(data);
+        if (dailyAvailable < amount) {
+            amount = dailyAvailable;
+            if (amount <= 0) {
+                log("%s reached its daily limit, retrying on the next check.", data.getDisplayName());
+                return;
+            }
         }
 
         if (!hasEnoughFunds(data, amount)) {
@@ -160,11 +170,14 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
             this.purchaseQueue.add(new PurchaseTask(purchaseData, batch));
             remaining -= batch;
         }
+
+        reserve(data, amount);
     }
 
     private void processNextPurchase() {
         PurchaseTask task = this.purchaseQueue.poll();
         ShopItemData data = task.getData();
+        release(data, task.getAmount());
         try {
             String response = purchase(data, task.getAmount());
             if (isSuccessful(response)) {
@@ -259,12 +272,55 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
         }
 
         double balance = creditPurchase ? this.stats.getTotalCredits() : this.stats.getTotalUridium();
-        if (balance < cost) {
+        double reserved = creditPurchase ? this.reservedCredits : this.reservedUridium;
+        if (balance - reserved < cost) {
             updateLabel(data.getDisplayName(), creditPurchase ? ShopState.NO_CREDITS : ShopState.NO_URI);
             return false;
         }
 
         return true;
+    }
+
+    /**
+     * Quantity of the item that can still be bought today, discounting the
+     * purchases that are already waiting in the queue.
+     */
+    private int availableDaily(ShopItemData data) {
+        if (data.dailyLimit < 0) {
+            return Integer.MAX_VALUE;
+        }
+
+        int reserved = this.reservedDaily.getOrDefault(data.itemId, 0);
+        return Math.max(0, data.dailyLimit - reserved);
+    }
+
+    /**
+     * Keeps the cost and the daily quantity of a queued purchase apart, so the
+     * next order checked before it's sent can't use them again.
+     */
+    private void reserve(ShopItemData data, int amount) {
+        if (ShopItemData.CREDITS.equals(data.currency)) {
+            this.reservedCredits += data.price * amount;
+        } else if (ShopItemData.URIDIUM.equals(data.currency)) {
+            this.reservedUridium += data.price * amount;
+        }
+
+        if (data.dailyLimit >= 0) {
+            this.reservedDaily.merge(data.itemId, amount, Integer::sum);
+        }
+    }
+
+    private void release(ShopItemData data, int amount) {
+        if (ShopItemData.CREDITS.equals(data.currency)) {
+            this.reservedCredits = Math.max(0, this.reservedCredits - data.price * amount);
+        } else if (ShopItemData.URIDIUM.equals(data.currency)) {
+            this.reservedUridium = Math.max(0, this.reservedUridium - data.price * amount);
+        }
+
+        if (data.dailyLimit >= 0) {
+            this.reservedDaily.computeIfPresent(data.itemId,
+                    (itemId, reserved) -> reserved > amount ? reserved - amount : null);
+        }
     }
 
     private String referer(ShopPage page) {
