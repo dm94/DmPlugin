@@ -1,13 +1,19 @@
 package com.deeme.tasks.autoshop;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.time.LocalDateTime;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 
 import com.deeme.types.SharedFunctions;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.config.ConfigSetting;
@@ -15,11 +21,15 @@ import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.InstructionProvider;
 import eu.darkbot.api.extensions.Task;
 import eu.darkbot.api.game.items.Item;
+import eu.darkbot.api.game.items.SelectableItem;
 import eu.darkbot.api.managers.BackpageAPI;
 import eu.darkbot.api.managers.HeroItemsAPI;
 import eu.darkbot.api.managers.StatsAPI;
 
 public class AutoShop implements Task, Configurable<Config>, InstructionProvider {
+    private static final String SHOP_PATH = "ajax/shop.php";
+    private static final String INDEX_PATH = "indexInternal.es";
+
     private final BackpageAPI backpage;
     private final PluginAPI api;
     private final StatsAPI stats;
@@ -27,30 +37,49 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
     private Config config;
     private final JLabel label = new JLabel("Waiting");
 
-    private enum State {
-        NO_CREDITS("Not enough credits"),
-        NO_URI("Not enough uri"),
-        PURCHASE_ERROR("There was an error while purchasing"),
-        PURCHASE_SUCCESS("Purchase completed"),
-        ;
+    private final Deque<PurchaseTask> purchaseQueue = new ArrayDeque<>();
 
-        private final String message;
-
-        State(String message) {
-            this.message = message;
-        }
-    }
+    // Funds and daily allowance already committed to the queued purchases, so
+    // orders checked in the same tick don't use the same balance twice
+    private double reservedCredits;
+    private double reservedUridium;
+    private final Map<String, Integer> reservedDaily = new HashMap<>();
 
     public AutoShop(PluginAPI api) throws SecurityException {
         this.api = api;
         this.stats = api.requireAPI(StatsAPI.class);
         this.backpage = api.requireAPI(BackpageAPI.class);
         this.items = api.requireAPI(HeroItemsAPI.class);
+
+        // Warm the shop list in the background, so opening the config is instant
+        ShopCatalog.requestRefresh(this.backpage);
     }
 
     @Override
     public void setConfig(ConfigSetting<Config> arg0) {
         this.config = arg0.getValue();
+        migrateLegacyItems(this.config);
+    }
+
+    /**
+     * Configurations saved by older versions stored only the item id instead of
+     * the full shop item, they are converted when the configuration is loaded.
+     */
+    private void migrateLegacyItems(Config config) {
+        if (config == null) {
+            return;
+        }
+
+        BuyItem[] items = { config.item1, config.item2, config.item3, config.item4, config.item5 };
+        for (BuyItem buyItem : items) {
+            if (buyItem == null) {
+                continue;
+            }
+
+            String itemId = buyItem.itemToBuy == null ? "" : buyItem.itemToBuy.trim();
+            ShopItemData knownItem = itemId.isEmpty() ? null : ShopCatalog.cached(this.backpage, itemId);
+            buyItem.migrateLegacyItem(knownItem);
+        }
     }
 
     @Override
@@ -60,9 +89,22 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
 
     @Override
     public void onTickTask() {
-        if (!this.backpage.isInstanceValid() || !this.backpage.getSidStatus().contains("OK")) {
+        if (this.config == null || !this.backpage.isInstanceValid()
+                || !this.backpage.getSidStatus().contains("OK")) {
             return;
         }
+
+        // Purchases are sent one per tick so a big order does not block the backpage thread
+        if (!this.purchaseQueue.isEmpty()) {
+            discardDisabledPurchases();
+            if (!this.purchaseQueue.isEmpty()) {
+                processNextPurchase();
+            }
+            return;
+        }
+
+        // Keeps the item list of the config up to date, loading it in the background
+        ShopCatalog.requestRefresh(this.backpage);
 
         checkItem(this.config.item1);
         checkItem(this.config.item2);
@@ -74,47 +116,269 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
     }
 
     private void checkItem(BuyItemConfig itemConfig) {
-        if (!itemConfig.isEnabled() || itemConfig.getQuantity() <= 0 || itemConfig.getNextCheck() > System.currentTimeMillis()) {
+        if (itemConfig == null || !itemConfig.isEnabled() || itemConfig.getQuantity() <= 0
+                || itemConfig.getNextCheck() > System.currentTimeMillis()) {
+            return;
+        }
+
+        ShopItem shopItem = itemConfig.getShopItem();
+        if (shopItem == null || shopItem.getItemId() == null || shopItem.getItemId().isEmpty()) {
+            return;
+        }
+
+        // Items converted from an old configuration only know their id until the
+        // shop list is read, wait for it instead of sending an incomplete purchase
+        if (shopItem instanceof ShopItemData && ((ShopItemData) shopItem).getCategory().isEmpty()
+                && ShopCatalog.cached(this.backpage, shopItem.getItemId()) == null) {
             return;
         }
 
         updateCheckTime(itemConfig);
 
-        ShopItem shopItem = itemConfig.getShopItem();
-        if (shopItem != null && checkNormalCondition(itemConfig) && checkQuantityCondition(itemConfig.getQuantityCondition())) {
-            tryPurchaseItem(itemConfig, shopItem);
+        if (checkNormalCondition(itemConfig) && checkQuantityCondition(itemConfig.getQuantityCondition())) {
+            try {
+                enqueuePurchase(itemConfig, shopItem);
+            } catch (RuntimeException e) {
+                updateLabel(shopItem.getDisplayName(), ShopState.PURCHASE_ERROR);
+                log("Could not prepare the purchase of %s: %s", shopItem.getDisplayName(), e.getMessage());
+            }
         }
     }
 
-    private void tryPurchaseItem(BuyItemConfig itemConfig, ShopItem shopItem) {
-        if (shopItem.getItemId() == null || shopItem.getItemId().isEmpty()) {
+    private void enqueuePurchase(BuyItemConfig itemConfig, ShopItem shopItem) {
+        ShopItemData data = resolveShopData(shopItem);
+        if (data == null) {
             return;
         }
 
-        if (this.stats.getTotalCredits() < shopItem.getCreditsPrice() * itemConfig.getQuantity()) {
-            updateLabel(shopItem.getDisplayName(), State.NO_CREDITS);
+        int amount = itemConfig.getQuantity();
+        int dailyAvailable = availableDaily(data);
+        if (dailyAvailable < amount) {
+            amount = dailyAvailable;
+            if (amount <= 0) {
+                log("%s reached its daily limit, retrying on the next check.", data.getDisplayName());
+                return;
+            }
+        }
+
+        if (!hasEnoughFunds(data, amount)) {
             return;
         }
 
-        if (this.stats.getTotalUridium() < shopItem.getUridiumPrice() * itemConfig.getQuantity()) {
-            updateLabel(shopItem.getDisplayName(), State.NO_URI);
-            return;
+        if (data.maxAmount > 0 && amount > data.maxAmount) {
+            log("Splitting the purchase of %s: total x%d, batch size x%d.",
+                    data.getDisplayName(), amount, data.maxAmount);
+        }
+
+        // The queue keeps its own copy, the config may be edited while it runs.
+        // The order is split while it's sent, so a big quantity doesn't fill the queue.
+        ShopItemData purchaseData = new ShopItemData(data);
+        this.purchaseQueue.addLast(new PurchaseTask(itemConfig, purchaseData, amount));
+
+        reserve(data, amount);
+    }
+
+    /**
+     * Queued batches belong to the slot that requested them, so disabling a slot
+     * also stops the purchases of its order that are still waiting in the queue.
+     */
+    private void discardDisabledPurchases() {
+        int discarded = 0;
+
+        Iterator<PurchaseTask> it = this.purchaseQueue.iterator();
+        while (it.hasNext()) {
+            PurchaseTask task = it.next();
+            BuyItemConfig source = task.getConfig();
+            if (source != null && source.isEnabled()) {
+                continue;
+            }
+
+            it.remove();
+            release(task.getData(), task.getRemaining());
+            discarded++;
+        }
+
+        if (discarded > 0) {
+            log("Discarded %d queued purchases, their slot is no longer enabled.", discarded);
+        }
+    }
+
+    private void processNextPurchase() {
+        PurchaseTask task = this.purchaseQueue.poll();
+        ShopItemData data = task.getData();
+        int amount = task.takeBatch();
+        release(data, amount);
+        try {
+            String response = purchase(data, amount);
+            if (isSuccessful(response)) {
+                updateLabel(data.getDisplayName(), ShopState.PURCHASE_SUCCESS);
+                log("Purchased %s x%d.", data.getDisplayName(), amount);
+            } else {
+                updateLabel(data.getDisplayName(), ShopState.PURCHASE_ERROR);
+                log("The server rejected the purchase of %s x%d: %s",
+                        data.getDisplayName(), amount, shortResponse(response));
+            }
+        } catch (Exception e) {
+            updateLabel(data.getDisplayName(), ShopState.PURCHASE_ERROR);
+            log("The purchase of %s x%d failed: %s", data.getDisplayName(), amount, e.getMessage());
+        }
+
+        // The rest of the order waits for the next ticks, so it's sent in batches
+        // and can still be discarded if the slot changes meanwhile
+        if (task.getRemaining() > 0) {
+            this.purchaseQueue.addLast(task);
+        }
+    }
+
+    private String purchase(ShopItemData data, int amount) throws IOException {
+        return this.backpage.postHttp(SHOP_PATH, 3000)
+                .setParam("action", "purchase")
+                .setParam("category", data.category)
+                .setParam("itemId", data.itemId)
+                .setParam("amount", amount)
+                .setParam("selectedName", "")
+                .setParam("level", "")
+                .setRawHeader("Referer", referer(data.page))
+                .getContent();
+    }
+
+    /**
+     * The shop answers with a json object, the purchase is only completed when
+     * the result field is "success".
+     */
+    private boolean isSuccessful(String response) {
+        if (response == null) {
+            return false;
+        }
+
+        String trimmed = response.trim();
+        if (!trimmed.startsWith("{")) {
+            return false;
         }
 
         try {
-            buyItem(shopItem, itemConfig.getQuantity());
-            updateLabel(shopItem.getDisplayName(), State.PURCHASE_SUCCESS);
-        } catch (Exception e) {
-            updateLabel(shopItem.getDisplayName(), State.PURCHASE_ERROR);
+            JsonElement result = JsonParser.parseString(trimmed).getAsJsonObject().get("result");
+            return result != null && !result.isJsonNull() && "success".equalsIgnoreCase(result.getAsString());
+        } catch (RuntimeException e) {
+            return false;
         }
     }
 
-    private void updateLabel(String itemName, State state) {
-        this.label.setText(itemName + " | " + state.message);
+    private String shortResponse(String response) {
+        if (response == null) {
+            return "empty response";
+        }
+        String trimmed = response.trim();
+        return trimmed.length() > 200 ? trimmed.substring(0, 200) + "..." : trimmed;
+    }
+
+    /**
+     * Reads the current shop data of the item, so the category, price and limits
+     * always match what the game is selling. The values stored in the config are
+     * updated with them.
+     */
+    private ShopItemData resolveShopData(ShopItem shopItem) {
+        boolean fromShop = shopItem instanceof ShopItemData;
+        ShopItemData data = fromShop ? (ShopItemData) shopItem : new ShopItemData(shopItem);
+
+        ShopItemData current = ShopCatalog.resolve(this.backpage, data);
+        if (current == null) {
+            if (fromShop) {
+                log("%s is not available in the shop anymore, skipping it.", data.getDisplayName());
+                return null;
+            }
+            // Custom items are not required to be in the shop list, use the config values
+            current = data;
+        }
+
+        data.copyFrom(current);
+        return data;
+    }
+
+    /**
+     * Checks the funds needed for the whole order. Custom items can have both
+     * prices configured and the shop may charge either, so both currencies are
+     * checked instead of assuming the one with the highest priority.
+     */
+    private boolean hasEnoughFunds(ShopItemData data, int amount) {
+        double creditsCost = data.getCreditsPrice() * amount;
+        double uridiumCost = data.getUridiumPrice() * amount;
+
+        if (creditsCost <= 0 && uridiumCost <= 0) {
+            if (data.currency != null && !data.currency.isEmpty()) {
+                log("Unsupported currency '%s' for %s, skipping it.", data.currency, data.getDisplayName());
+                return false;
+            }
+            return true;
+        }
+
+        if (creditsCost > 0 && this.stats.getTotalCredits() - this.reservedCredits < creditsCost) {
+            updateLabel(data.getDisplayName(), ShopState.NO_CREDITS);
+            return false;
+        }
+
+        if (uridiumCost > 0 && this.stats.getTotalUridium() - this.reservedUridium < uridiumCost) {
+            updateLabel(data.getDisplayName(), ShopState.NO_URI);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Quantity of the item that can still be bought today, discounting the
+     * purchases that are already waiting in the queue.
+     */
+    private int availableDaily(ShopItemData data) {
+        if (data.dailyLimit < 0) {
+            return Integer.MAX_VALUE;
+        }
+
+        int reserved = this.reservedDaily.getOrDefault(data.itemId, 0);
+        return Math.max(0, data.dailyLimit - reserved);
+    }
+
+    /**
+     * Keeps the cost and the daily quantity of a queued purchase apart, so the
+     * next order checked before it's sent can't use them again.
+     */
+    private void reserve(ShopItemData data, int amount) {
+        this.reservedCredits += data.getCreditsPrice() * amount;
+        this.reservedUridium += data.getUridiumPrice() * amount;
+
+        if (data.dailyLimit >= 0) {
+            this.reservedDaily.merge(data.itemId, amount, Integer::sum);
+        }
+    }
+
+    private void release(ShopItemData data, int amount) {
+        this.reservedCredits = Math.max(0, this.reservedCredits - data.getCreditsPrice() * amount);
+        this.reservedUridium = Math.max(0, this.reservedUridium - data.getUridiumPrice() * amount);
+
+        if (data.dailyLimit >= 0) {
+            this.reservedDaily.computeIfPresent(data.itemId,
+                    (itemId, reserved) -> reserved > amount ? reserved - amount : null);
+        }
+    }
+
+    private String referer(ShopPage page) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(this.backpage.getInstanceURI())
+                .append(INDEX_PATH)
+                .append("?action=")
+                .append(page == null ? "internalStart" : "internalDock");
+        if (page != null) {
+            builder.append("&tpl=").append(page.getTpl());
+        }
+        return builder.toString();
+    }
+
+    private void updateLabel(String itemName, ShopState state) {
+        this.label.setText(itemName + " | " + state.getMessage());
     }
 
     private void updateCheckTime(BuyItemConfig itemConfig) {
-        itemConfig.setNextCheck(System.currentTimeMillis() + (itemConfig.getTimeToCheck() * 60000));
+        itemConfig.setNextCheck(System.currentTimeMillis() + (itemConfig.getTimeToCheck() * 60_000L));
 
         LocalDateTime da = LocalDateTime.now();
         ShopItem shopItem = itemConfig.getShopItem();
@@ -131,35 +395,30 @@ public class AutoShop implements Task, Configurable<Config>, InstructionProvider
     }
 
     private boolean checkQuantityCondition(QuantityCondition quantityCondition) {
-        if (!quantityCondition.active) {
+        if (quantityCondition == null || !quantityCondition.active) {
             return true;
         }
 
-        if (quantityCondition.item == null) {
+        if (quantityCondition.item == null || quantityCondition.item.isEmpty()) {
+            log("The quantity condition has no item selected, skipping the purchase.");
             return false;
         }
 
-        Item item = items.getItem(SharedFunctions.getItemById(quantityCondition.item)).orElse(null);
-
-        if (item == null) {
+        SelectableItem selectableItem = SharedFunctions.getItemById(quantityCondition.item);
+        if (selectableItem == null) {
+            log("The item '%s' of the quantity condition is not valid, skipping the purchase.",
+                    quantityCondition.item);
             return false;
         }
 
-        return item.getQuantity() <= quantityCondition.quantity;
+        Item item = this.items.getItem(selectableItem).orElse(null);
+        // An item missing from the item bar means the pilot has none left
+        double quantity = item == null ? 0 : item.getQuantity();
+
+        return quantity <= quantityCondition.quantity;
     }
 
-    private void buyItem(ShopItem item, int quantity) throws IOException, UnsupportedOperationException {
-        HttpURLConnection conn = this.backpage.postHttp("ajax/shop.php", 3000)
-                .setParam("action", "purchase")
-                .setParam("category", item.getCategory())
-                .setParam("itemId", item.getItemId())
-                .setParam("amount", quantity)
-                .setParam("selectedName", "")
-                .setParam("level", "")
-                .getConnection();
-
-        if (conn.getResponseCode() != 200) {
-            throw new UnsupportedOperationException("Can't connect when sid is invalid");
-        }
+    private void log(String format, Object... args) {
+        System.out.println("AutoShop: " + String.format(format, args));
     }
 }
