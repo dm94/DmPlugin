@@ -48,6 +48,7 @@ public class PalladiumHangar extends LootCollectorModule implements Configurable
     private final AttackAPI attackApi;
     private final StatsAPI stats;
     private final BackpageAPI backpage;
+    private final SafetyFinder safety;
     private final FeatureInfo<?> featureInfo;
     private GameMap sellMap;
     private GameMap activeMap;
@@ -107,6 +108,7 @@ public class PalladiumHangar extends LootCollectorModule implements Configurable
         this.oreApi = api.requireAPI(OreAPI.class);
         this.stats = api.requireAPI(StatsAPI.class);
         this.backpage = api.requireAPI(BackpageAPI.class);
+        this.safety = safety;
 
         ExtensionsAPI extensionsAPI = api.requireAPI(ExtensionsAPI.class);
         this.featureInfo = extensionsAPI.getFeatureInfo(this.getClass());
@@ -143,7 +145,8 @@ public class PalladiumHangar extends LootCollectorModule implements Configurable
             return false;
         }
 
-        return heroapi.isValid() && !heroapi.isAttacking() && !SharedFunctions.hasAttacker(heroapi, api);
+        return heroapi.isValid() && !heroapi.isAttacking() && !SharedFunctions.hasAttacker(heroapi, api)
+                && safety.state() == SafetyFinder.Escaping.NONE;
     }
 
     @Override
