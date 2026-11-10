@@ -1,7 +1,7 @@
 {
 	"name": "DmPlugin",
 	"author": "Dm94Dani",
-	"version": "2.15.1",
+	"version": "2.15.2",
 	"minVersion": "1.132.5",
 	"supportedVersion": "1.133.0",
 	"basePackage": "com.deeme",
@@ -39,7 +39,8 @@
 		"com.deeme.behaviours.bootykeymanager.BootyKeyCollectorManager",
 		"com.deeme.behaviours.travel.SmartX1Travel",
 		"com.deeme.behaviours.travel.SmartBlTravel",
-		"com.deeme.behaviours.calendarbonus.CalendarBonus"
+		"com.deeme.behaviours.calendarbonus.CalendarBonus",
+		"com.deeme.behaviours.armoryunlock.ArmoryUnlock"
 	],
 	"donation": "https://ko-fi.com/deeme",
 	"discord": "https://discord.gg/GPRTRRZJPw",
