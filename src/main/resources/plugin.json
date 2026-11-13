@@ -1,7 +1,7 @@
 {
 	"name": "DmPlugin",
 	"author": "Dm94Dani",
-	"version": "2.15.1",
+	"version": "2.15.3",
 	"minVersion": "1.132.5",
 	"supportedVersion": "1.133.0",
 	"basePackage": "com.deeme",
