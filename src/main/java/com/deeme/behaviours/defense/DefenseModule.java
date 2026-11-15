@@ -8,6 +8,7 @@ import com.deeme.shared.configchanger.ExtraCChangerLogic;
 import eu.darkbot.api.PluginAPI;
 import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.entities.Pet;
+import eu.darkbot.api.game.entities.Player;
 import eu.darkbot.api.game.entities.Ship;
 import eu.darkbot.api.game.items.SelectableItem.Special;
 import eu.darkbot.api.managers.BotAPI;
@@ -99,6 +100,11 @@ public class DefenseModule extends TemporalModule {
     }
 
     private boolean isUnderAttack() {
+        if (isNonEnemyTarget(shipAttacker.getTarget()) || isNonEnemyTarget(target)) {
+            stopDefending();
+            return false;
+        }
+
         if (target == null
                 || target.getId() == heroapi.getId() || !target.isValid() || target instanceof Pet) {
             return false;
@@ -121,6 +127,23 @@ public class DefenseModule extends TemporalModule {
 
         shipAttacker.resetDefenseData();
         return false;
+    }
+
+    private boolean isNonEnemyTarget(Entity entity) {
+        if (!defenseConfig.onlyAttackEnemies || entity == null || !entity.isValid()) {
+            return false;
+        }
+
+        if (entity instanceof Pet) {
+            return true;
+        }
+
+        return entity instanceof Player && !((Player) entity).getEntityInfo().isEnemy();
+    }
+
+    private void stopDefending() {
+        target = null;
+        shipAttacker.resetDefenseData();
     }
 
     private void setConfigToUse() {
