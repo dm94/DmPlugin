@@ -45,6 +45,9 @@ public class DefenseConfig {
     @Option("defense.ignore_enemies")
     public boolean ignoreEnemies = true;
 
+    @Option("defense.only_attack_enemies")
+    public boolean onlyAttackEnemies = true;
+
     @Option("extra_movement_conditions")
     public MovementConfig movementConfig = new MovementConfig();
 
