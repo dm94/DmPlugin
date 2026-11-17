@@ -79,7 +79,9 @@ public class DefenseModule extends TemporalModule {
                 shipAttacker.useKeyWithConditions(defenseConfig.selectable3);
                 shipAttacker.useKeyWithConditions(defenseConfig.selectable4);
                 shipAttacker.useKeyWithConditions(defenseConfig.selectable5);
-                shipAttacker.tryAttackOrFix();
+                if (canSendAttack()) {
+                    shipAttacker.tryAttackOrFix();
+                }
                 this.extraMovementLogic.tick();
             } else {
                 target = null;
@@ -130,7 +132,7 @@ public class DefenseModule extends TemporalModule {
     }
 
     private boolean isNonEnemyTarget(Entity entity) {
-        if (!defenseConfig.onlyAttackEnemies || entity == null || !entity.isValid()) {
+        if (!isEnemyOnlyMode() || entity == null || !entity.isValid()) {
             return false;
         }
 
@@ -141,9 +143,20 @@ public class DefenseModule extends TemporalModule {
         return entity instanceof Player && !((Player) entity).getEntityInfo().isEnemy();
     }
 
+    private boolean isEnemyOnlyMode() {
+        return defenseConfig.onlyAttackEnemies && !defenseConfig.defendEvenAreNotEnemies;
+    }
+
+    private boolean canSendAttack() {
+        return !isNonEnemyTarget(heroapi.getTarget()) && !isNonEnemyTarget(shipAttacker.getTarget());
+    }
+
     private void stopDefending() {
         target = null;
         shipAttacker.resetDefenseData();
+        if (isNonEnemyTarget(heroapi.getLocalTarget())) {
+            heroapi.setLocalTarget(null);
+        }
     }
 
     private void setConfigToUse() {

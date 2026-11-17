@@ -159,8 +159,7 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
             return false;
         }
 
-        target = SharedFunctions.getAttacker(heroapi, players, heroapi,
-                defenseConfig.onlyAttackEnemies || !defenseConfig.defendEvenAreNotEnemies);
+        target = SharedFunctions.getAttacker(heroapi, players, heroapi, isEnemyOnlyMode());
         if (target != null && target.isValid()
                 && heroapi.distanceTo(target) <= defenseConfig.rangeForAttackedEnemy
                 && isAllowedTarget(target)
@@ -185,8 +184,7 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
                 }
             }
 
-            Ship attacker = SharedFunctions.getAttacker(ship, players, heroapi,
-                    defenseConfig.onlyAttackEnemies || !defenseConfig.defendEvenAreNotEnemies);
+            Ship attacker = SharedFunctions.getAttacker(ship, players, heroapi, isEnemyOnlyMode());
             if (attacker != null && attacker.isValid()
                     && isAllowedTarget(attacker)
                     && !isIgnoredPlayer(attacker.getId())) {
@@ -217,11 +215,15 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
             return false;
         }
 
-        if (!defenseConfig.onlyAttackEnemies || !(entity instanceof Player)) {
+        if (!isEnemyOnlyMode() || !(entity instanceof Player)) {
             return true;
         }
 
         return ((Player) entity).getEntityInfo().isEnemy();
+    }
+
+    private boolean isEnemyOnlyMode() {
+        return defenseConfig.onlyAttackEnemies && !defenseConfig.defendEvenAreNotEnemies;
     }
 
     private boolean isIgnoredPlayer(int playerId) {
