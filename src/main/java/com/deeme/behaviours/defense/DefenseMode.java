@@ -142,8 +142,8 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
 
     private boolean hasPreviousTarget() {
         return target != null && target.isValid() && target.getId() != heroapi.getId()
-                && !(target instanceof Pet) && target.getLocationInfo()
-                        .distanceTo(heroapi) < defenseConfig.rangeForAttackedEnemy;
+                && !(target instanceof Pet) && isAllowedTarget(target)
+                && target.getLocationInfo().distanceTo(heroapi) < defenseConfig.rangeForAttackedEnemy;
     }
 
     private boolean friendUnderAttack() {
@@ -159,10 +159,10 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
             return false;
         }
 
-        target = SharedFunctions.getAttacker(heroapi, players, heroapi,
-                !defenseConfig.defendEvenAreNotEnemies);
+        target = SharedFunctions.getAttacker(heroapi, players, heroapi, isEnemyOnlyMode());
         if (target != null && target.isValid()
                 && heroapi.distanceTo(target) <= defenseConfig.rangeForAttackedEnemy
+                && isAllowedTarget(target)
                 && !isIgnoredPlayer(target.getId())) {
             return true;
         }
@@ -178,15 +178,15 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
                 if (!(playerTarget instanceof Npc) && !(playerTarget instanceof Pet)
                         && !isIgnoredPlayer(playerTarget.getId())) {
                     Ship allyTarget = ship.getTargetAs(Ship.class);
-                    if (allyTarget != null && allyTarget.isValid()) {
+                    if (allyTarget != null && allyTarget.isValid() && isAllowedTarget(allyTarget)) {
                         return allyTarget;
                     }
                 }
             }
 
-            Ship attacker = SharedFunctions.getAttacker(ship, players, heroapi,
-                    !defenseConfig.defendEvenAreNotEnemies);
+            Ship attacker = SharedFunctions.getAttacker(ship, players, heroapi, isEnemyOnlyMode());
             if (attacker != null && attacker.isValid()
+                    && isAllowedTarget(attacker)
                     && !isIgnoredPlayer(attacker.getId())) {
                 return attacker;
             }
@@ -208,6 +208,22 @@ public class DefenseMode implements Behavior, Configurable<DefenseConfig> {
                         && inGroupAttacked(player.getId()))
                 || (defenseConfig.helpList.contains(HelpList.EVERYONE)
                         && !player.getEntityInfo().isEnemy());
+    }
+
+    private boolean isAllowedTarget(Entity entity) {
+        if (entity == null || !entity.isValid() || entity instanceof Pet) {
+            return false;
+        }
+
+        if (!isEnemyOnlyMode() || !(entity instanceof Player)) {
+            return true;
+        }
+
+        return ((Player) entity).getEntityInfo().isEnemy();
+    }
+
+    private boolean isEnemyOnlyMode() {
+        return defenseConfig.onlyAttackEnemies && !defenseConfig.defendEvenAreNotEnemies;
     }
 
     private boolean isIgnoredPlayer(int playerId) {
