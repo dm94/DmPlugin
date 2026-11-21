@@ -14,12 +14,14 @@ import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.PetAPI;
 import eu.darkbot.api.utils.Inject;
 import eu.darkbot.shared.modules.TemporalModule;
+import eu.darkbot.shared.utils.SafetyFinder;
 
 public class HangarSwitcher extends TemporalModule {
     private final HeroAPI heroapi;
     private final BackpageAPI backpageAPI;
     private final PetAPI pet;
     private final PluginAPI api;
+    private final SafetyFinder safety;
 
     private final Gui lostConnectionGUI;
     private final Gui logout;
@@ -73,6 +75,7 @@ public class HangarSwitcher extends TemporalModule {
         this.heroapi = api.requireAPI(HeroAPI.class);
         this.backpageAPI = api.requireAPI(BackpageAPI.class);
         this.pet = api.requireAPI(PetAPI.class);
+        this.safety = api.requireInstance(SafetyFinder.class);
         this.hangarToChage = hangar;
         this.checkCount = 0;
 
@@ -113,6 +116,13 @@ public class HangarSwitcher extends TemporalModule {
                 this.currentStatus = State.NO_HANGAR_ERROR;
                 goBack();
             }
+
+            // Let DarkBot's safety take over while in danger, resuming the switch when it
+            // is safe
+            if (!isDisconnect() && !safety.tick()) {
+                return;
+            }
+
             if (waitinUntil > System.currentTimeMillis()) {
                 return;
             }
